@@ -1,0 +1,256 @@
+{{extend 'layout.html'}}
+
+<div class='span2'>
+<div class='well' style="padding: 0px 0px;">
+	<ul id='median' class="nav nav-list">
+		<li class='nav-header'>Median</li>
+		<!--div id="slider-range-min_medians"></div-->
+		<div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('median')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div>
+	</ul>
+
+	<ul id='lower' class="nav nav-list">
+		<li class='nav-header'>Lower Bound</li>
+		<div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('lower')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div>
+	</ul>
+
+	<ul id='trendstart' class="nav nav-list">
+		<li class='nav-header'>Trend start</li>
+		<div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('trendstart')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div>
+	</ul>
+
+	<ul id='trendend' class="nav nav-list">
+		<li class='nav-header'>Trend end</li>
+		<div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('trendend')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div>
+		<label class="checkbox"><input id='all' type="checkbox" checked='checked'>All</label>
+	</ul>
+	<ul id='logs' class="nav nav-list">
+		
+	</ul>
+</div>
+</div>
+
+<div class="span10">
+<div class='row-fluid'>
+	<div class="chart">
+	<div>
+		<!--input type="submit" id='clearSelection' value="Clear zoom" class=''-->
+		<div class='span4'>Total matches<span class='label label-info'>{{=info['n']}}</span></div>
+		<div class='span4'>Devices detected by start<span class='label label-info'>{{=info['n_start']}}</span></div>
+		<div class='span4'>Devices detected by end<span class='label label-info'>{{=info['n_end']}}</span></div>
+		<a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(0)})}}'>Start trend</a>
+		<a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(1)})}}'>End trend</a>
+	</div>
+		<div id="traffic_chart_h"  style="width:900px;height:500px"> </div>
+	</div>
+</div>
+</div>
+
+<!--div><div id="traffic_chart_m" style="width:900px;height:300px"> </div-->
+
+<script>    
+	var plot;
+	var options = { xaxis: { mode: "time", timeZoneOffset: "browser" },
+			yaxis: { mode: "time",
+				timeZoneOffset: 'browser',
+				//timeformat: "%H:%M:%S",
+				zoomRange: false, panRange: false},
+			crosshair: { mode: "x" },
+			y2axis: {mode: null},
+			series:{ lines: { show: true, fill: true },
+				points: { show: true }},
+pan: { interactive: true },
+/*xaxis, yaxis, x2axis, y2axis: {
+	zoomRange: null,  // or [ number, number ] (min range, max range) or false
+	panRange: null  // or [ number, number ] (min, max) or false
+},*/
+zoom: { interactive: true},
+tooltip: true,       //false
+tooltipOpts: {
+  content:      "%s | X: %x | Y: %y",
+  dateFormat:   "%y-%0m-%0d",
+  defaultTheme:  true     //true
+},
+	grid: {	//show: true,
+				color: "#444444",
+				backgroundColor: "#EEEEEE",
+				borderColor: "#FFFFFF",
+				tickColor: "#DDDDDD",
+				//aboveData: false,
+				borderWidth: 0,
+				clickable: true,
+				hoverable: true,
+				autoHighlight: true,}
+
+}
+	var placeholder_h = $("#traffic_chart_h");
+
+	var datasets, plot, data, range_from, range_to;	
+	function onDataReceived_single(json) {
+		//console.log(json);
+		//for (var attrname in json) { datasets[attrname] = json[attrname]; }
+		for (var i in json) {
+			datasets[i] = json[i]
+			if ($('#' + json[i].id))
+				$('#' + json[i].id).parent().remove();
+			var str = "<label class='checkbox'><input id='idJS' type='checkbox' checked='checkek'>labelJS</label>".replace(/labelJS/, json[i].label ).replace(/idJS/, json[i].id );
+			console.log(	json[i].id );		
+			splits = json[i].id.split('_')
+			$('#'+splits[0]).append(str).hide().slideDown();
+		}
+		plotAccordingToChoices();
+	}
+
+	function onDataReceived (json) {
+		datasets = json
+		data = []
+		for (var i in datasets) {
+			splits = datasets[i].id.split('_')
+			$('#'+splits[0]).append("<li><label class='checkbox'><input id='idJS' type='checkbox'>labelJS</label></li>".replace(/labelJS/, datasets[i].label ).replace(/idJS/, datasets[i].id ));
+		}
+		plotAccordingToChoices();
+	}
+
+	function onDataReceived_add(json) {
+		datasets = json
+		
+		plotAccordingToChoices();
+	}
+
+	function onDataReceived_m (json) {
+		$.plot(placeholder_m, [json.data], { xaxis: { mode: "time", timeZoneOffset: "browser" }});
+	}
+
+
+	$(document).on('click', 'input', plotAccordingToChoices);
+
+    
+	function plotAccordingToChoices() {
+		data = []
+		$(document).find("input:checked").each(function () {
+		    var key = $(this).attr("id");
+		    if (key && datasets[key])
+		        data.push(datasets[key]);
+		});
+
+		if ( data.length == 0 ) {
+			$(document).find("#all:checked").each(function () {
+				for (var i in datasets) {
+					data.unshift(datasets[i]);
+				}
+			});
+		} else {
+			$("#all").removeAttr('checked');	
+		}
+
+		$.plot($(placeholder_h), data, options);
+	}
+
+    $(placeholder_h).bind("plotclick", function (event, pos, item) {
+	//console.log('plotclick'); 
+	//console.log(item)
+	//console.log(pos)
+        if (item) {
+       		$.plot.highlight(item.series, item.datapoint);
+        }
+    });
+    var previousPoint = null;
+    $(placeholder_h).bind("plothover", function (event, pos, item) {
+	/*$("#x").text(pos.x.toFixed(2));
+        $("#y").text(pos.y.toFixed(2));*/
+	return;
+            if (item) {
+		//console.log('plothover item');   
+                if (previousPoint != item.dataIndex) {
+                    previousPoint = item.dataIndex;
+                    
+                    $("#tooltip").remove();
+                    var x = item.datapoint[0].toFixed(2),
+                        y = item.datapoint[1].toFixed(2);
+                    
+			var someDate = new Date(item.datapoint[0]);
+			var someDay = d.getDate();
+			var someMonth = d.getMonth() + 1; //months are zero based
+			var someYear = d.getFullYear();
+			var stringDate = someMonth + "/" + someDay + "/" + someYear;
+			console.log(stringDate);
+                    showTooltip(item.pageX, item.pageY,
+                                item.series.label + " of " + x + " = " + y);
+                }
+            }
+            else {
+                $("#tooltip").remove();
+                previousPoint = null;            
+            }
+    });
+
+   $("#clearSelection").click(function () {
+        $.plot.clearSelection(true);
+    });
+
+	function add_line(type) {
+		
+	$.ajax({
+            url: '{{=URL("default", "get_line.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val()),
+            method: 'GET',
+            dataType: 'json',
+            success: onDataReceived_single
+	});
+		
+	}
+
+
+	$.ajax({
+            url: '{{=URL("default", "get_diff.json", args=request.args )}}',
+            method: 'GET',
+            dataType: 'json',
+            success: onDataReceived
+	});
+
+	/*$(function() {
+      	$( "#slider-range-min_medians" ).slider({
+            range: "min",
+            value: 800,
+            min: 100,
+            max: 1500,
+	    step:50,
+            stop: function( event, ui ) {
+		console.log(ui.value);
+		$.ajax({
+		    url: '{{=URL("default", "get_diff.json", vars={'diff_temp':'diff_temp_js'})}}'.replace(/diff_temp_js/, ui.value),
+		    method: 'GET',
+		    dataType: 'json',
+		    success: onDataReceived_add
+		});
+                $( "#amount" ).val( ui.value );
+            }
+        });
+        $( "#amount" ).val( $( "#slider-range-min_medians" ).slider( "value" ) );
+    });*/
+
+    function showTooltip(x, y, contents) {
+        $('<div id="tooltip">' + contents + '</div>').css( {
+            position: 'absolute',
+            display: 'none',
+            top: y + 5,
+            left: x + 5,
+            border: '1px solid #fdd',
+            padding: '2px',
+            'background-color': '#fee',
+            opacity: 0.80
+        }).appendTo("body").fadeIn(200);
+    }
+
+
+</script>
