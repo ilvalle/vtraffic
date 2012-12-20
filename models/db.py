@@ -41,7 +41,7 @@ from gluon.tools import Crud, Service, PluginManager
 crud, service, plugins = Crud(db), Service(), PluginManager()
 
 ## create all tables needed by auth if not custom tables
-auth.define_tables(username=False, signature=False)
+auth.define_tables(username=True)
 
 ## configure email
 mail = auth.settings.mailer
