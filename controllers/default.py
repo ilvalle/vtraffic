@@ -22,9 +22,11 @@ pattern = re.compile(r"""
 			, re.VERBOSE)
 
 def index():
+	redirect(URL(f='compare'))
+
+@auth.requires_login()
+def add_log():
 	from datetime import datetime
-	#form = SQLFORM(db.station)
-	#form = SQLFORM(db.log)
 	form = crud.create(db.log)
 	if form.process(dbio=False).accepted:
 		form.vars.log_id = db.log.insert(**dict(form.vars))
@@ -42,8 +44,9 @@ def index():
 				count += 1
 		session.flash = 'Inserted %s record' % count
 		redirect(URL(f='read', vars={'id':form.vars.station_id}))
-	return dict(form=form)
+	return response.render('default/index.html', dict(form=form))
 
+@auth.requires_login()
 def add_station():
 	form = crud.create(db.station)
 	if form.process(dbio=True).accepted:
@@ -79,7 +82,6 @@ def compare():
 def get_lines():
 	id_start = 17
 	id_end = 18
-	line_type = request.vars.type
 	block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 900
 #	if len(request.args) < 2:
 #		request.flash= 'ID not valid'
@@ -106,6 +108,28 @@ def get_lines():
 		dd['id'] = dd['id'] + '%s' % l['id_start']
 		out['%s' % dd['id']]=dd
 
+	return response.render('generic.json', out)
+
+def get_line_compare():
+	line_type = request.vars.type
+	block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
+	if line_type == 'median':
+		logs = [{'id_start':11, 'id_end':12},
+		{'id_start':15, 'id_end':16},
+		{'id_start':19, 'id_end':20},
+		{'id_start':17, 'id_end':18},
+		{'id_start':13, 'id_end':14},]
+
+		out={}
+		for l in logs:
+			dd = __get_median(l['id_start'], l['id_end'], block_seconds, query='compare')
+			dd['id'] = dd['id'] + '%s' % l['id_start']
+			out['%s' % dd['id']]=dd
+	
+	elif line_type == 'lower':
+		out = __get_lower( id_start, id_end, block_seconds )
+	else:
+		return 'errore'
 	return response.render('generic.json', out)
 
 def origin_destination():
@@ -412,8 +436,8 @@ def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=20
 				mdate = block[1][start.gathered_on]
 				seconds = (mdate-day).total_seconds()		
 			else:
-				seconds = block[1][start.gathered_on.epoch()]
-			median.append ( [ (seconds +3600 + block_seconds/2) * 1000,	0] )
+				seconds = block[1][start.gathered_on.epoch()]+3600
+			median.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
 		else:
 			initial_time_frame = min([(r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
 			end_time_frame = max( [ (r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
@@ -435,12 +459,13 @@ def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=20
 				mdate = block[0][start.gathered_on]
 				seconds = (mdate-day).total_seconds()		
 			else:
-				seconds = block[0][start.gathered_on.epoch()]
-			print seconds
-			median.append ( [(seconds +3600+ block_seconds/2) * 1000,
+				seconds = block[0][start.gathered_on.epoch()]+3600
+			#print seconds
+			median.append ( [(seconds + block_seconds/2) * 1000,
 					 (tot + (vertical_block_seconds/2))  * 1000] )
 	if test == 'compare':
-		label = fdate.strftime('%d, %B')
+		label = fdate.strftime('%a %d, %b' )
+		#label += " [M(%(name)s)]" % {'name':block_seconds}
 	else:
 		label = "Median (%ss)" % block_seconds
 	return {'data': median,'label':label, 'id':'median_%s' %  block_seconds };

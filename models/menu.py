@@ -24,7 +24,7 @@ response.title = ' '.join(
 
 response.menu = [
     (T('Add station'), False, URL('default', 'add_station'), []),
-    (T('Add log'), False, URL('default', 'index', args=['log']), []),
+    (T('Add log'), False, URL('default', 'add_log'), []),
     (T('Origin/Destination'), request.function == 'origin_destination' , URL('default', 'origin_destination')),
     (T('Compare'), request.function == 'compare' , URL('default', 'compare'), []),
 ]

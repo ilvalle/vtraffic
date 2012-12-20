@@ -53,6 +53,7 @@ mail.settings.login = 'username:password'
 auth.settings.registration_requires_verification = True
 auth.settings.registration_requires_approval = True
 auth.settings.reset_password_requires_verification = True
+#auth.settings.actions_disabled.append('register')
 
 ## if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
 ## register with janrain.com, write your domain:api_key in private/janrain.key
