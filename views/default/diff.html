@@ -44,14 +44,15 @@
 <div class="span10">
 <div class='row-fluid'>
 	<div class="chart">
-	<div>
+	<div class='clearfix'>
 		<!--input type="submit" id='clearSelection' value="Clear zoom" class=''-->
 		<div class='span4'>Total matches<span class='label label-info'>{{=info['n']}}</span></div>
 		<div class='span4'>Devices detected by start<span class='label label-info'>{{=info['n_start']}}</span></div>
 		<div class='span4'>Devices detected by end<span class='label label-info'>{{=info['n_end']}}</span></div>
-		<a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(0)})}}'>Start trend</a>
-		<a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(1)})}}'>End trend</a>
-	</div>
+		<!--a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(0)})}}'>Start trend</a>
+		<a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(1)})}}'>End trend</a-->
+		<p id='loading' class="label label-info span4 offset4 center">Loading...</p>	
+		</div>
 		<div id="traffic_chart_h"  style="width:900px;height:500px"> </div>
 	</div>
 </div>
@@ -112,15 +113,6 @@ tooltipOpts: {
 		plotAccordingToChoices();
 	}
 
-	function onDataReceived (json) {
-		datasets = json
-		data = []
-		for (var i in datasets) {
-			splits = datasets[i].id.split('_')
-			$('#'+splits[0]).append("<li><label class='checkbox'><input id='idJS' type='checkbox'>labelJS</label></li>".replace(/labelJS/, datasets[i].label ).replace(/idJS/, datasets[i].id ));
-		}
-		plotAccordingToChoices();
-	}
 
 	function onDataReceived_add(json) {
 		datasets = json

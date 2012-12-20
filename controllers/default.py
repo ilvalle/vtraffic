@@ -445,8 +445,8 @@ def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=20
 			windows = [0] * (n_windows + 1)
 			values = ''
 			#print windows
-			if len(block) <= 2:
-				print 'WARNING', len(block)
+			##if len(block) <= 2:
+			##	print 'WARNING', len(block)
 
 			for ele in block:
 				diff = (ele[end.gathered_on.epoch()] - ele[start.gathered_on.epoch()])

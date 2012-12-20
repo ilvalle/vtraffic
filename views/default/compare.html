@@ -1,11 +1,10 @@
 {{extend 'layout.html'}}
 
 <div class='span2'>
-<div class='well' style="padding: 0px 0px;">
+<div class='well' style="padding: 7px 0px;">
 	<ul id='median' class="nav nav-list">
+		<li><label class="checkbox"><input id='all' type="checkbox" checked='checked'>All</label></li>
 		<li class='nav-header'>Median</li>
-		<label class="checkbox"><input id='all' type="checkbox" checked='checked'>All</label>
-
 		<!--div id="slider-range-min_medians"></div-->
 		<div class="input-append">
 			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
@@ -31,14 +30,6 @@
 <div class="span10">
 <div class='row-fluid'>
 	<div class="chart">
-	<div>
-		<!--input type="submit" id='clearSelection' value="Clear zoom" class=''-->
-		<!--div class='span4'>Total matches<span class='label label-info'>{{#=info['n']}}</span></div>
-		<div class='span4'>Devices detected by start<span class='label label-info'>{{#=info['n_start']}}</span></div>
-		<div class='span4'>Devices detected by end<span class='label label-info'>{{#=info['n_end']}}</span></div>
-		<a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(0)})}}'>Start trend</a>
-		<a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(1)})}}'>End trend</a-->
-	</div>
 		<div id="traffic_chart_h"  style="width:900px;height:500px"> </div>
 	</div>
 </div>
@@ -53,7 +44,7 @@
 				timeZoneOffset: 'browser',
 				//timeformat: "%H:%M:%S",
 				zoomRange: false, panRange: false},
-			crosshair: { mode: "x" },
+			//crosshair: { mode: "x" },
 			y2axis: {mode: null},
 			series:{ lines: { show: true, fill: true },
 				points: { show: true }},
@@ -65,15 +56,15 @@ pan: { interactive: true },
 zoom: { interactive: true},
 tooltip: true,       //false
 tooltipOpts: {
-  content:      "%s | X: %x | Y: %y",
-  dateFormat:   "%y-%0m-%0d",
+  content:      "%s |  %x |  %y",
+  dateFormat:   "%H:%M:%S",
   defaultTheme:  true     //true
 },
 	grid: {	//show: true,
 				color: "#444444",
-				backgroundColor: "#EEEEEE",
+				backgroundColor: "#DDDDDD",
 				borderColor: "#FFFFFF",
-				tickColor: "#DDDDDD",
+				tickColor: "#CCCCCC",
 				//aboveData: false,
 				borderWidth: 0,
 				clickable: true,
@@ -95,16 +86,6 @@ tooltipOpts: {
 			console.log(	json[i].id );		
 			splits = json[i].id.split('_')
 			$('#'+splits[0]).append(str).hide().slideDown();
-		}
-		plotAccordingToChoices();
-	}
-
-	function onDataReceived (json) {
-		datasets = json
-		data = []
-		for (var i in datasets) {
-			splits = datasets[i].id.split('_')
-			$('#'+splits[0]).append("<li><label class='checkbox'><input id='idJS' type='checkbox'>labelJS</label></li>".replace(/labelJS/, datasets[i].label ).replace(/idJS/, datasets[i].id ));
 		}
 		plotAccordingToChoices();
 	}
@@ -189,7 +170,7 @@ tooltipOpts: {
 	function add_line(type) {
 		
 	$.ajax({
-            url: '{{=URL("default", "get_line.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val()),
+            url: '{{=URL("default", "get_line_compare.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val()),
             method: 'GET',
             dataType: 'json',
             success: onDataReceived_single
