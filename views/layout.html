@@ -70,6 +70,7 @@
 	<script src="{{=URL('static','js/jquery.flot.resize.js')}}"></script>
 	<script src="{{=URL('static','js/vtraffic.js')}}"></script>
 
+
 	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" type="text/css" media="all" />
        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js" type="text/javascript"></script>
 
@@ -147,6 +148,13 @@
     </div>
 
   </div> <!-- /container -->
+  {{if response.google_analytics_id and not request.is_local:}}
+  <script src="{{=URL('static','js/analytics.js')}}"></script>
+  <script type="text/javascript">
+  analytics.initialize({
+    'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'} 
+  });</script>
+  {{pass}}
 
   <!-- The javascript =============================================
        (Placed at the end of the document so the pages load faster) -->

@@ -159,9 +159,6 @@ def origin_destination():
 
 	return response.render('default/diff.html', {'info':info})
 
-def diff():
-	return dict()	
-
 def get_hour():
 	c = db.record.id.count()
 	s = db.record.gathered_on.year() | db.record.gathered_on.month() | db.record.gathered_on.day() | db.record.gathered_on.hour() 
@@ -181,46 +178,6 @@ def get_minute():
 	data = [ [ (r[db.record.gathered_on.epoch()] +3600)* 1000, r[c] ] for r in rows]
 	request.view = 'generic.json'
 	return response.render('generic.json', dict(data=data))
-
-def get_both():
-	if not request.vars.id:
-		request.flash= 'ID not valid'
-		return 'error'
-	try:	query = db.record.station_id == int(request.vars.id)
-	except: 
-		request.flash= 'ID not valid'
-		return 'error'
-	c = db.record.id.count()
-
-	s = db.record.gathered_on.year() | db.record.gathered_on.month() | db.record.gathered_on.day() | db.record.gathered_on.hour()
-	#dd = db.record.gathered_on.timedelta(minutes=30) 
-	rows = db(query).select(db.record.gathered_on.epoch(), c, groupby=s)
-
-	s_m = db.record.gathered_on.year() | db.record.gathered_on.month() | db.record.gathered_on.day() | db.record.gathered_on.hour() | db.record.gathered_on.minutes()
-	rows_m = db(query).select(db.record.gathered_on.epoch(), c, groupby=s_m)
-
-	hours = [ [ (r[db.record.gathered_on.epoch()] +3600)* 1000, r[c] ] for r in rows]
-	minutes = [ [ (r[db.record.gathered_on.epoch()] +3600)* 1000, r[c] ] for r in rows_m]
-	
-	rows = db(query).select(db.record.gathered_on, 
-				db.record.gathered_on.epoch(),
-				cache=(cache.ram, 3600),
-			        cacheable=True)
-	block_seconds = 600
-	l = []
-	first = True
-	for pos, r in enumerate(rows):
-		if not first and r[db.record.gathered_on] < limit:
-			l[len(l)-1].append(r)
-		else:
-			limit = r[db.record.gathered_on] + datetime.timedelta(seconds=block_seconds)
-			l[len(l):] = [[r]]
-			first = False
-	
-	tens = [ [ (block[0][db.record.gathered_on.epoch()]+3600 + block_seconds/2) * 1000, len(block) ] for block in l]	
-
-
-	return response.render('generic.json', dict(hours=hours,minutes=minutes, tens=tens))
 
 def get_diff():
 	id_start = 11
