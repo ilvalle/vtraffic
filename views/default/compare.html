@@ -30,6 +30,7 @@
 <div class="span10">
 <div class='row-fluid'>
 	<div class="chart">
+		<p id='loading' class="label label-info span4 offset4 center">Loading...</p>	
 		<div id="traffic_chart_h"  style="width:900px;height:500px"> </div>
 	</div>
 </div>
@@ -168,14 +169,13 @@ tooltipOpts: {
     });
 
 	function add_line(type) {
-		
-	$.ajax({
-            url: '{{=URL("default", "get_line_compare.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val()),
-            method: 'GET',
-            dataType: 'json',
-            success: onDataReceived_single
-	});
-		
+		if ( ! $( '#' + type + " #amount" ).val()) return;
+		$.ajax({
+		    url: '{{=URL("default", "get_line_compare.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val()),
+		    method: 'GET',
+		    dataType: 'json',
+		    success: onDataReceived_single
+		});
 	}
 
 
@@ -207,18 +207,7 @@ tooltipOpts: {
         $( "#amount" ).val( $( "#slider-range-min_medians" ).slider( "value" ) );
     });*/
 
-    function showTooltip(x, y, contents) {
-        $('<div id="tooltip">' + contents + '</div>').css( {
-            position: 'absolute',
-            display: 'none',
-            top: y + 5,
-            left: x + 5,
-            border: '1px solid #fdd',
-            padding: '2px',
-            'background-color': '#fee',
-            opacity: 0.80
-        }).appendTo("body").fadeIn(200);
-    }
+
 
 
 </script>

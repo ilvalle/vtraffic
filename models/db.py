@@ -40,10 +40,11 @@ auth = Auth(db)
 from gluon.tools import Crud, Service, PluginManager
 crud, service, plugins = Crud(db), Service(), PluginManager()
 
-try:
-	pd = local_import('personal_data')
-except:
-	print 'provide a personal data file'
+#try:
+#	pd = local_import('private_data')
+#except:
+#	print 'provide a personal data file'
+
 ## create all tables needed by auth if not custom tables
 auth.define_tables(username=True)
 
