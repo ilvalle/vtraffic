@@ -149,7 +149,7 @@
 
   </div> <!-- /container -->
   {{if response.google_analytics_id and not request.is_local:}}
-  <script src="{{=URL('static','js/analytics.js')}}"></script>
+  <script src="{{=URL('static','js/analytics.min.js')}}"></script>
   <script type="text/javascript">
   analytics.initialize({
     'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'} 
