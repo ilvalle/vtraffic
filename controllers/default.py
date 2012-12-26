@@ -112,7 +112,11 @@ def get_lines():
 
 def get_line_compare():
 	line_type = request.vars.type
-	block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
+	try:
+		block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
+	except:
+		block_seconds = 500
+	
 	if line_type == 'median':
 		logs = [{'id_start':11, 'id_end':12},
 		{'id_start':15, 'id_end':16},
@@ -245,7 +249,10 @@ def get_line():
 	id_start = 11
 	id_end = 12
 	line_type = request.vars.type
-	block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
+	try:
+		block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
+	except:
+		block_seconds = 500
 #	if len(request.args) < 2:
 #		request.flash= 'ID not valid'
 #		return 'error'

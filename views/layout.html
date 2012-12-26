@@ -15,6 +15,7 @@
       <meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
       <![endif]-->
 
+
   <title>{{=response.title or request.application}}</title>
 
   <!-- http://dev.w3.org/html5/markup/meta.name.html -->
@@ -39,7 +40,7 @@
   <!--script src="{{=URL('static','js/modernizr.custom.js')}}"></script-->
 	
 	
-
+  <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="flashcanvas.js"></script><![endif]-->
 
   <!-- include stylesheets -->
   {{  
