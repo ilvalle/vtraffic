@@ -1,5 +1,5 @@
 {{extend 'layout.html'}}
-
+<div class='clear'></div>
 <div class='span2'>
 <div class='well' style="padding: 7px 0px;">
 	<ul id='median' class="nav nav-list">
@@ -26,11 +26,11 @@
 	</ul>
 </div>
 </div>
+		<p id='loading' class="label label-info span4 offset4 center">Loading...</p>	
 
 <div class="span10">
-<div class='row-fluid'>
+<div class=''>
 	<div class="chart">
-		<p id='loading' class="label label-info span4 offset4 center">Loading...</p>	
 		<div id="traffic_chart_h"  style="width:900px;height:500px"> </div>
 	</div>
 </div>
@@ -124,6 +124,7 @@ tooltipOpts: {
 		}
 
 		$.plot($(placeholder_h), data, options);
+		
 	}
 
     $(placeholder_h).bind("plotclick", function (event, pos, item) {
@@ -131,7 +132,7 @@ tooltipOpts: {
 	//console.log(item)
 	//console.log(pos)
         if (item) {
-       		$.plot.highlight(item.series, item.datapoint);
+            //		$.plot.highlight(item.series, item.datapoint);
         }
     });
     var previousPoint = null;
