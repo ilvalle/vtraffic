@@ -22,6 +22,7 @@ pattern = re.compile(r"""
 			, re.VERBOSE)
 
 def index():
+	#return response.render('default/wiki.html', auth.wiki())
 	redirect(URL(f='compare'))
 
 @auth.requires_login()
