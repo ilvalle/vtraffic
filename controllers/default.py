@@ -150,34 +150,6 @@ def get_lines():
 		
 	return response.render('generic.json', out)
 
-#
-#
-#def get_line_compare():
-#	line_type = request.vars.type
-#	try:
-#		block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
-#	except:
-#		block_seconds = 500
-#	
-#	if line_type == 'median':
-#		logs = [{'id_start':11, 'id_end':12},
-#		{'id_start':15, 'id_end':16},
-#		{'id_start':19, 'id_end':20},
-#		{'id_start':17, 'id_end':18},
-#		{'id_start':13, 'id_end':14},]
-#
-#		out={}
-#		for l in logs:
-#			dd = __get_median(l['id_start'], l['id_end'], block_seconds, query='compare')
-#			dd['id'] = dd['id'] + '%s' % l['id_start']
-#			out['%s' % dd['id']]=dd
-#	
-#	elif line_type == 'lower':
-#		out = __get_lower( id_start, id_end, block_seconds )
-#	else:
-#		return 'errore'
-#	return response.render('generic.json', out)
-
 def origin_destination():
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
 	except:	block_seconds = 900
@@ -189,14 +161,15 @@ def origin_destination():
 	
 	rows = db( (start.station_id == id_start) &
 		   	   (end.station_id == id_end) 
-		     ).select(
-					left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)), 
-					cache=(cache.ram, 3600))
+		     ).select( left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)), 
+					   cache=(cache.ram, 3600))
+		     
+	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
 
-	n_start = db( db.record.station_id == id_start).count( cache=(cache.ram, 3600))
-	n_end = db( db.record.station_id == id_end).count( cache=(cache.ram, 3600))
+	n_start = db(db.record.station_id == id_start).count( cache=(cache.ram, 3600))
+	n_end = db(db.record.station_id == id_end).count( cache=(cache.ram, 3600))
 
-	info = {'n': len(rows), 'n_start':n_start, 'n_end':n_end}
+	info = {'n': len(rows_pos), 'n_start':n_start, 'n_end':n_end}
 
 	return response.render('default/diff.html', {'info':info})
 
@@ -459,92 +432,6 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=
 	else:
 		label = "Median (%ss)" % block_seconds
 	return {'data': median,'label':label, 'id':'median_%s' %  block_seconds };
-#
-#def __get_median_old( id_start, id_end, block_seconds=800, vertical_block_seconds=20, query=None ):
-#	start = db.record.with_alias('start_point')
-#	end = db.record.with_alias('end_point')
-##	if not query:
-##		query = ((start.station_id == id_start) &
-##			   (end.station_id == id_end) &
-##			   (start.mac == end.mac))
-#	test = query		
-#	if query=='compare':
-#		query = ((start.log_id == id_start) &
-#			   (end.log_id == id_end) &
-#			   (start.mac == end.mac))
-#	else:
-#		query = ((start.station_id == id_start) &
-#			   (end.station_id == id_end) &
-#			   (start.mac == end.mac))
-#	
-#	rows = db( query ).select(start.ALL, 
-#				   end.ALL, 
-#				   start.gathered_on.epoch(),
-#				   end.gathered_on.epoch(),
-#				   orderby=start.gathered_on.epoch(),
-#				   cache=(cache.ram, 3600),
-#				   cacheable = True)
-#	print len(rows)		
-#	
-#	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on > datetime.timedelta(0)) and 
-#					(r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
-#	l = [] 
-#	first=True
-#	prev = rows_pos[0]
-#	for pos, r in enumerate(rows_pos):
-#		if not first and r.start_point.gathered_on < limit:
-#			l[len(l)-1].append(r)
-#		elif (prev.start_point.gathered_on + (datetime.timedelta(seconds=block_seconds) * 2)) < r.start_point.gathered_on:
-#			l.append([0, prev])
-#			l.append([0, r])
-#		else:
-#			limit = r.start_point.gathered_on + datetime.timedelta(seconds=block_seconds)
-#			l[len(l):] = [[r]]
-#			first = False
-#		prev = r
-#
-#	median=[]
-#	fdate = l[0][0][start.gathered_on]
-#	day = datetime.datetime(fdate.date().year, fdate.date().month, fdate.date().day)
-#	for pos, block in enumerate(l):
-#		if block[0] == 0:
-#			if test=='compare':
-#				mdate = block[1][start.gathered_on]
-#				seconds = (mdate-day).total_seconds()		
-#			else:
-#				seconds = block[1][start.gathered_on.epoch()]+3600
-#			median.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
-#		else:
-#			initial_time_frame = min([(r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
-#			end_time_frame = max( [ (r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
-#			n_windows = (end_time_frame - initial_time_frame) / vertical_block_seconds		
-#			windows = [0] * (n_windows + 1)
-#			values = ''
-#			#print windows
-#			##if len(block) <= 2:
-#			##	print 'WARNING', len(block)
-#
-#			for ele in block:
-#				diff = (ele[end.gathered_on.epoch()] - ele[start.gathered_on.epoch()])
-#				cur_pos = (diff - initial_time_frame)  / vertical_block_seconds
-#				#print len(windows), cur_pos			
-#				windows[cur_pos] += 1
-#			#print windows
-#			tot = initial_time_frame + (vertical_block_seconds * windows.index(max(windows)))
-#			if test=='compare':
-#				mdate = block[0][start.gathered_on]
-#				seconds = (mdate-day).total_seconds()		
-#			else:
-#				seconds = block[0][start.gathered_on.epoch()]+3600
-#			#print seconds
-#			median.append ( [(seconds + block_seconds/2) * 1000,
-#					 (tot + (vertical_block_seconds/2))  * 1000] )
-#	if test == 'compare':
-#		label = fdate.strftime('%a %d, %b' )
-#		#label += " [M(%(name)s)]" % {'name':block_seconds}
-#	else:
-#		label = "Median (%ss)" % block_seconds
-#	return {'data': median,'label':label, 'id':'median_%s' %  block_seconds };
 
 def user():
     """
