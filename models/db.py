@@ -28,7 +28,6 @@ db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
 ## (optional) optimize handling of static files
 response.optimize_css = 'concat,minify,inline'
 response.optimize_js = 'concat,minify,inline'
-
 from gluon.tools import Auth, prettydate
 auth = Auth(db)
 #from gluon.tools import Crud, Service, PluginManager
@@ -53,6 +52,7 @@ auth.settings.registration_requires_verification = False
 auth.settings.registration_requires_approval = True
 auth.settings.reset_password_requires_verification = True
 #auth.settings.actions_disabled.append('register')
+T.is_writable = False
 
 db.define_table('station',
 	Field('name'),
