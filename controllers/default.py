@@ -162,7 +162,7 @@ def get_diff():
 
 					
 	logs=[]
-	for pos, r in enumerate(rows_pos):
+	for pos, r in enumerate(rows):
 		t = r.end_point.gathered_on - r.start_point.gathered_on
 		logs.append( [ (r[start.gathered_on.epoch()]+3600) * 1000,
 				       int(t.total_seconds()) * 1000 ]	)
@@ -173,7 +173,7 @@ def get_diff():
 		all_logs[out['id']] = out
 	
 	for seconds in xrange(700, 1000, 100):
-		out_m = __get_median_rows(rows_pos, seconds)
+		out_m = __get_median_rows(rows, seconds)
 		all_logs[out_m['id']] = out_m
 
 	# single trends
@@ -259,6 +259,7 @@ def __get_rows(station_id_start, station_id_end):
 		     ).select(start.ALL, 
 			          end.ALL, 
 					  start.gathered_on.epoch(),
+					  end.gathered_on.epoch(),
 					  orderby=start.gathered_on.epoch(),
 					  left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
 					  cache=(cache.ram, 3600),
@@ -269,8 +270,8 @@ def __get_rows(station_id_start, station_id_end):
 def __get_lower_rows( rows, block_seconds ):
 	l = []
 	first=True
-	prev = rows_pos[0]
-	for pos, r in enumerate(rows_pos):
+	prev = rows[0]
+	for pos, r in enumerate(rows):
 		if not first and r.start_point.gathered_on < limit:
 			l[len(l)-1].append(r)
 		elif (prev.start_point.gathered_on + (datetime.timedelta(seconds=block_seconds) * 2)) < r.start_point.gathered_on:
@@ -297,8 +298,8 @@ def __get_lower_rows( rows, block_seconds ):
 def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=False):
 	l = [] 
 	first=True
-	prev = rows_pos[0]
-	for pos, r in enumerate(rows_pos):
+	prev = rows[0]
+	for pos, r in enumerate(rows):
 		if not first and r.start_point.gathered_on < limit:
 			l[len(l)-1].append(r)
 		elif (prev.start_point.gathered_on + (datetime.timedelta(seconds=block_seconds) * 2)) < r.start_point.gathered_on:
