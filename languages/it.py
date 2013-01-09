@@ -1,5 +1,6 @@
 # coding: utf8
 {
+' Km': ' Km',
 '!=': '!=',
 '!langcode!': 'it',
 '!langname!': 'Italiano',
@@ -43,6 +44,7 @@
 'change password': 'Cambia password',
 'Changelog': 'Changelog',
 'Check to delete': 'Seleziona per cancellare',
+'Check to delete:': 'Check to delete:',
 'Choose Template or empty for new Page': 'Choose Template or empty for new Page',
 'Clear': 'Clear',
 'Clear CACHE?': 'Clear CACHE?',
@@ -196,6 +198,8 @@
 'Ram Cleared': 'Ram Cleared',
 'Recipes': 'Recipes',
 'Record': 'Record',
+'Record %(id)s created': 'Record %(id)s created',
+'Record Created': 'Record Created',
 'record does not exist': 'il record non esiste',
 'Record ID': 'Record ID',
 'Record id': 'Record id',

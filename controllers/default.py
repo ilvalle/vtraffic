@@ -5,14 +5,8 @@ import re
 from datetime import timedelta
 import datetime, time
 
-
-pattern = re.compile(r"""
-			\[(?P<time>.*?)\]
-#			\s(?P<mac>[0-9A-F]{2}[:]{5}[0-9A-F]{2})?)
-			\s(?P<mac>[0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2})
-			\s(?P<more>.*)
-			\s*"""
-			, re.VERBOSE)
+start = db.record.with_alias('start_point')
+end = db.record.with_alias('end_point')
 
 def index():
 	#return response.render('default/wiki.html', auth.wiki())
@@ -21,6 +15,14 @@ def index():
 @auth.requires_login()
 def add_log():
 	from datetime import datetime
+	pattern = re.compile(r"""
+			\[(?P<time>.*?)\]
+#			\s(?P<mac>[0-9A-F]{2}[:]{5}[0-9A-F]{2})?)
+			\s(?P<mac>[0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2})
+			\s(?P<more>.*)
+			\s*"""
+			, re.VERBOSE)
+
 	form = crud.create(db.log)
 	if form.process(dbio=False).accepted:
 		form.vars.log_id = db.log.insert(**dict(form.vars))
@@ -48,17 +50,15 @@ def add_station():
 		redirect(URL(f='index'))
 	return response.render('default/index.html', dict(form=form))
 
-
-
-def insert():
-	file_stream = open("/home/pvalleri/Desktop/test/bluelog.log", "r")
-	matches=[]
-	for line in file_stream:
-		match = pattern.findall(line)	
-		if match:
-			d = datetime.strptime(match[0][0], '%m/%d/%y %H:%M:%S')
-			db.record.insert(mac=match[0][1], gathered_on=d)	
-	return 'done'
+#def insert():
+#	file_stream = open("/home/pvalleri/Desktop/test/bluelog.log", "r")
+#	matches=[]
+#	for line in file_stream:
+#		match = pattern.findall(line)	
+#		if match:
+#			d = datetime.strptime(match[0][0], '%m/%d/%y %H:%M:%S')
+#			db.record.insert(mac=match[0][1], gathered_on=d)	
+#	return 'done'
 	
 def read():
 	try:	query = db.record.station_id == int(request.vars.id)
@@ -72,39 +72,6 @@ def read():
 def compare():
 	return response.render('default/compare.html', {})
 
-## external request, might be ajax too
-#def get_lines_old():
-#	id_start = 17
-#	id_end = 18
-#	block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 900
-##	if len(request.args) < 2:
-##		request.flash= 'ID not valid'
-##		return 'error'
-##	try:	
-##		id_start = int (request.args(0))	
-##		id_end = int (request.args(1))
-##		block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
-##		line_type = request.vars.type 
-##	except: 
-##		request.flash= 'ID not valid'
-##		return 'error'
-##	if line_type == 'median':
-#	logs = [{'id_start':11, 'id_end':12},
-#		{'id_start':15, 'id_end':16},
-#		{'id_start':19, 'id_end':20},
-#		{'id_start':17, 'id_end':18},
-#		{'id_start':13, 'id_end':14},]
-#	#logs = [{'id_start':15, 'id_end':16}]
-#	
-#	out={}
-#	for l in logs:
-#		dd = __get_median(l['id_start'], l['id_end'], block_seconds, query='compare')
-#		#print len(dd['data'])
-#		dd['id'] = dd['id'] + '%s' % l['id_start']
-#		out['%s' % dd['id']]=dd
-#
-#	return response.render('generic.json', out)
-
 def get_lines():
 	line_type = request.vars.type or 'median'
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 900
@@ -117,7 +84,9 @@ def get_lines():
 									start.gathered_on.year(), 
 									start.gathered_on.month(), 
 									start.gathered_on.day(),
-									groupby=day)	
+									groupby=day,
+									cache=(cache.ram, 3600),
+				   					cacheable = True)	
 	out={}
 	# make the median day by day
 	for d in days:
@@ -141,6 +110,7 @@ def get_lines():
 				   left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on) ),
 				   cache=(cache.ram, 3600),
 				   cacheable = True)
+		print month, day, 'N: ', len(rows) 
 		if line_type == 'lower':
 			out = __get_lower( id_start, id_end, block_seconds )
 		else:
@@ -162,7 +132,8 @@ def origin_destination():
 	rows = db( (start.station_id == id_start) &
 		   	   (end.station_id == id_end) 
 		     ).select( left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)), 
-					   cache=(cache.ram, 3600))
+					   cache=(cache.ram, 3600),
+					   cacheable = True)
 		     
 	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
 
@@ -173,25 +144,24 @@ def origin_destination():
 
 	return response.render('default/diff.html', {'info':info})
 
-def get_hour():
-	c = db.record.id.count()
-	s = db.record.gathered_on.year() | db.record.gathered_on.month() | db.record.gathered_on.day() | db.record.gathered_on.hour() 
-	#dd = db.record.gathered_on.timedelta(minutes=30) 
-	rows = db(db.record.id > 0).select(db.record.gathered_on.epoch(), c, groupby=s)
-
-	data = [ [ (r[db.record.gathered_on.epoch()] +3600)* 1000, r[c] ] for r in rows]
-
-	return response.render('generic.json', dict(data=data))
-
-def get_minute():
-	c = db.record.id.count()
-	s = db.record.gathered_on.year() | db.record.gathered_on.month() | db.record.gathered_on.day() | db.record.gathered_on.hour() | db.record.gathered_on.minutes()
-
-	rows = db(db.record.id > 0).select(db.record.gathered_on.epoch(), c, groupby=s)
-
-	data = [ [ (r[db.record.gathered_on.epoch()] +3600)* 1000, r[c] ] for r in rows]
-	request.view = 'generic.json'
-	return response.render('generic.json', dict(data=data))
+#def get_hour():
+#	c = db.record.id.count()
+#	s = db.record.gathered_on.year() | db.record.gathered_on.month() | db.record.gathered_on.day() | db.record.gathered_on.hour() 
+#	#dd = db.record.gathered_on.timedelta(minutes=30) 
+#	rows = db(db.record.id > 0).select(db.record.gathered_on.epoch(), c, groupby=s)
+#
+#	data = [ [ (r[db.record.gathered_on.epoch()] +3600)* 1000, r[c] ] for r in rows]
+#
+#	return response.render('generic.json', dict(data=data))
+#
+#def get_minute():
+#	c = db.record.id.count()
+#	s = db.record.gathered_on.year() | db.record.gathered_on.month() | db.record.gathered_on.day() | db.record.gathered_on.hour() | db.record.gathered_on.minutes()
+#
+#	rows = db(db.record.id > 0).select(db.record.gathered_on.epoch(), c, groupby=s)
+#
+#	data = [ [ (r[db.record.gathered_on.epoch()] +3600)* 1000, r[c] ] for r in rows]
+#	return response.render('generic.json', dict(data=data))
 
 def get_diff():
 	id_start = 13
@@ -211,8 +181,7 @@ def get_diff():
 					  cacheable=True)
 					
 	logs=[]
-	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on > datetime.timedelta(0)) and 
-					(r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
+	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
 	for pos, r in enumerate(rows_pos):
 		t = r.end_point.gathered_on - r.start_point.gathered_on
 		if True or t<datetime.timedelta(seconds=800):		
@@ -252,17 +221,7 @@ def get_line():
 	line_type = request.vars.type
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
 	except:	block_seconds = 500
-#	if len(request.args) < 2:
-#		request.flash= 'ID not valid'
-#		return 'error'
-#	try:	
-#		id_start = int (request.args(0))	
-#		id_end = int (request.args(1))
-#		block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
-#		line_type = request.vars.type 
-#	except: 
-#		request.flash= 'ID not valid'
-#		return 'error'
+
 	if line_type == 'median':
 		out = __get_median(id_start, id_end, block_seconds)
 	elif line_type == 'lower':
@@ -322,8 +281,7 @@ def __get_lower( id_start, id_end, block_seconds ):
 					  cache=(cache.ram, 3600),
 					  cacheable = True)
 
-	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on > datetime.timedelta(0)) and 
-					(r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
+	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
 	l = []
 	first=True
 	prev = rows_pos[0]
@@ -371,10 +329,8 @@ def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=20
 
 
 def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=False):
-	start = db.record.with_alias('start_point')
-	end = db.record.with_alias('end_point')
-	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on > datetime.timedelta(0)) and 
-					(r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
+
+	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000))]
 	l = [] 
 	first=True
 	prev = rows_pos[0]
@@ -408,8 +364,8 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=
 			windows = [0] * (n_windows + 1)
 			values = ''
 			#print windows
-			##if len(block) <= 2:
-			##	print 'WARNING', len(block)
+			#if len(block) <= 2:
+			#	print 'WARNING', len(block)
 
 			for ele in block:
 				diff = (ele[end.gathered_on.epoch()] - ele[start.gathered_on.epoch()])
