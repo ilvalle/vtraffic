@@ -102,6 +102,7 @@
 'export as csv file': 'esporta come file CSV',
 'Export:': 'Export:',
 'FAQ': 'FAQ',
+'file': 'file',
 'First name': 'Nome',
 'Forgot username?': 'Forgot username?',
 'Forms and Validators': 'Forms and Validators',

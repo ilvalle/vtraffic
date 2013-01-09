@@ -9,9 +9,14 @@
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
 #migrate=False,
-db = DAL('sqlite://storage.sqlite', 
-	migrate=False,	
-	lazy_tables=True)
+#db = DAL('sqlite://storage.sqlite', 
+db = DAL('postgres://web2py:web2py@localhost:5432/traffic', 
+		migrate=False,
+		lazy_tables=True,
+#	fake_migrate_all=True   
+)
+
+
 ##session.connect(request, response, db=db)
 ## or store session in Memcache, Redis, etc.
 ## from gluon.contrib.memdb import MEMDB
@@ -84,7 +89,7 @@ db.define_table('log',
 db.define_table('record',
 	Field('station_id', 'reference station'),
 	Field('log_id', 'reference log'),
-	Field('mac'),
+	Field('mac', 'string', length=18),
 	Field('gathered_on', 'datetime'),
 )	
 	

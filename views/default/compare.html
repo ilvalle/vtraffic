@@ -173,7 +173,7 @@ tooltipOpts: {
 	function add_line(type) {
 		if ( ! $( '#' + type + " #amount" ).val()) return;
 		$.ajax({
-		    url: '{{=URL("default", "get_line_compare.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val()),
+		    url: '{{=URL("default", "get_lines.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val()),
 		    method: 'GET',
 		    dataType: 'json',
 		    success: onDataReceived_single
