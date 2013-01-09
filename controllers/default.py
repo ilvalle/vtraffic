@@ -159,14 +159,12 @@ def get_diff():
 	id_end = 14
 
 	rows = __get_rows (id_start, id_end)
-
-					
 	logs=[]
-	for pos, r in enumerate(rows):
-		t = r.end_point.gathered_on - r.start_point.gathered_on
-		logs.append( [ (r[start.gathered_on.epoch()]+3600) * 1000,
+	for row in rows:
+		t = row.end_point.gathered_on - row.start_point.gathered_on
+		logs.append( [ (row[start.gathered_on.epoch()]+3600) * 1000,
 				       int(t.total_seconds()) * 1000 ]	)
-	all_logs = dict(logs={'data':logs, 'label': 'matches', 'id':'logs'})	
+	all_logs = {'logs':{'data':logs, 'label': 'matches', 'id':'logs'}}	
 
 	for seconds in xrange(700, 1000, 100):
 		out = __get_lower_rows(rows, seconds )
@@ -215,20 +213,18 @@ def get_line():
 
 	return response.render('generic.json', out)
 
-
 def __get_trend(station_id, block_seconds):
 	query = db.record.station_id == station_id
-	rows = db(query).select(
-						db.record.gathered_on, 
-						db.record.gathered_on.epoch(),
-						orderby=db.record.gathered_on.epoch(),
-						cache=(cache.ram, 3600),
-			        	cacheable=True )
+	rows = db(query).select(db.record.gathered_on, 
+							db.record.gathered_on.epoch(),
+							orderby=db.record.gathered_on.epoch(),
+							cache=(cache.ram, 3600),
+			        		cacheable=True )
 	#print '__get_trend(%s, %s)' % (station_id, block_seconds), len(rows)
 	l = []
 	first = True
 	last = 	rows[0]
-	for pos, r in enumerate(rows):
+	for r in rows:
 		if not first and r[db.record.gathered_on] < limit:
 			l[len(l)-1].append(r)
 
@@ -243,7 +239,6 @@ def __get_trend(station_id, block_seconds):
 
 	out = [ [ (block[0][db.record.gathered_on.epoch()]+3600 + block_seconds/2) * 1000, len(block) ] for block in l]
 	return out
-	
 
 def __get_lower( id_start, id_end, block_seconds ):
 	rows = __get_rows (id_start, id_end)
@@ -261,17 +256,17 @@ def __get_rows(station_id_start, station_id_end):
 					  start.gathered_on.epoch(),
 					  end.gathered_on.epoch(),
 					  orderby=start.gathered_on.epoch(),
-					  left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
+					  left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
 					  cache=(cache.ram, 3600),
 					  cacheable = True)
 	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
 	return rows_pos
 
-def __get_lower_rows( rows, block_seconds ):
+def __get_lower_rows( rows, block_seconds, test=False ):
 	l = []
 	first=True
 	prev = rows[0]
-	for pos, r in enumerate(rows):
+	for r in rows:
 		if not first and r.start_point.gathered_on < limit:
 			l[len(l)-1].append(r)
 		elif (prev.start_point.gathered_on + (datetime.timedelta(seconds=block_seconds) * 2)) < r.start_point.gathered_on:
@@ -284,7 +279,7 @@ def __get_lower_rows( rows, block_seconds ):
 		prev = r
 
 	lower_bound=[]
-	for pos, block in enumerate(l):
+	for block in l:
 		if block[0] == 0:
 			lower_bound.append ( [(block[1][start.gathered_on.epoch()]+3600 + block_seconds/2) * 1000,
 						0] )
@@ -299,7 +294,7 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=
 	l = [] 
 	first=True
 	prev = rows[0]
-	for pos, r in enumerate(rows):
+	for r in rows:
 		if not first and r.start_point.gathered_on < limit:
 			l[len(l)-1].append(r)
 		elif (prev.start_point.gathered_on + (datetime.timedelta(seconds=block_seconds) * 2)) < r.start_point.gathered_on:
@@ -314,7 +309,7 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=
 	median=[]
 	fdate = l[0][0][start.gathered_on]
 	day = datetime.datetime(fdate.date().year, fdate.date().month, fdate.date().day)
-	for pos, block in enumerate(l):
+	for block in l:
 		if block[0] == 0:
 			if test:
 				mdate = block[1][start.gathered_on]
@@ -370,24 +365,13 @@ def user():
     """
     return dict(form=auth())
 
-
-#def download():
-#    """
-#    allows downloading of uploaded files
-#    http://..../[app]/default/download/[filename]
-#    """
-#    return response.download(request, db)
-
-
-#def call():
-#    """
-#    exposes services. for example:
-#    http://..../[app]/default/call/jsonrpc
-#    decorate with @services.jsonrpc the functions to expose
-#    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
-#    """
-#    return service()
-
+@auth.requires_login()
+def download():
+    """
+    allows downloading of uploaded files
+    http://..../[app]/default/download/[filename]
+    """
+    return response.download(request, db)
 
 @auth.requires_signature()
 def data():
@@ -405,7 +389,6 @@ def data():
       LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
     """
     return dict(form=crud())
-
 
 #def saveDb():
 #    return db.export_to_csv_file(open(request.folder+'/backup.csv', 'wb'))

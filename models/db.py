@@ -8,12 +8,9 @@
 ## if SSL/HTTPS is properly configured and you want all HTTP requests to
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
-#migrate=False,
-#db = DAL('sqlite://storage.sqlite', 
 db = DAL('postgres://web2py:web2py@localhost:5432/traffic', 
 		migrate=False,
 		lazy_tables=True,
-#	fake_migrate_all=True   
 )
 
 
@@ -30,20 +27,10 @@ db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
 # response.optimize_css = 'concat,minify,inline'
 # response.optimize_js = 'concat,minify,inline'
 
-#########################################################################
-## Here is sample code if you need for
-## - email capabilities
-## - authentication (registration, login, logout, ... )
-## - authorization (role based authorization)
-## - services (xml, csv, json, xmlrpc, jsonrpc, amf, rss)
-## - old style crud actions
-## (more options discussed in gluon/tools.py)
-#########################################################################
-
 from gluon.tools import Auth, prettydate
 auth = Auth(db)
-from gluon.tools import Crud, Service, PluginManager
-crud, service, plugins = Crud(db), Service(), PluginManager()
+#from gluon.tools import Crud, Service, PluginManager
+#crud, service, plugins = Crud(db), Service(), PluginManager()
 
 #try:
 #	pd = local_import('private_data')
@@ -64,11 +51,6 @@ auth.settings.registration_requires_verification = False
 auth.settings.registration_requires_approval = True
 auth.settings.reset_password_requires_verification = True
 #auth.settings.actions_disabled.append('register')
-
-## if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
-## register with janrain.com, write your domain:api_key in private/janrain.key
-#from gluon.contrib.login_methods.rpx_account import use_janrain
-#use_janrain(auth, filename='private/janrain.key')
 
 db.define_table('station',
 	Field('name'),
