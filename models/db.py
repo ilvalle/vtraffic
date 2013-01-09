@@ -8,9 +8,11 @@
 ## if SSL/HTTPS is properly configured and you want all HTTP requests to
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
+#migrate=False,
+#db = DAL('sqlite://storage.sqlite', 
 db = DAL('postgres://web2py:web2py@localhost:5432/traffic', 
-		migrate=False,
-		lazy_tables=True,
+	migrate=False,
+	lazy_tables=True,
 )
 
 
