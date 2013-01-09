@@ -24,8 +24,8 @@ db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
 ## none otherwise. a pattern can be 'controller/function.extension'
 #response.generic_patterns = ['*'] if request.is_local else []
 ## (optional) optimize handling of static files
-# response.optimize_css = 'concat,minify,inline'
-# response.optimize_js = 'concat,minify,inline'
+response.optimize_css = 'concat,minify,inline'
+response.optimize_js = 'concat,minify,inline'
 
 from gluon.tools import Auth, prettydate
 auth = Auth(db)
