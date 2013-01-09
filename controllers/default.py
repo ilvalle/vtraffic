@@ -110,11 +110,12 @@ def get_lines():
 				   left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on) ),
 				   cache=(cache.ram, 3600),
 				   cacheable = True)
-		print month, day, 'N: ', len(rows) 
+		rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000))]
+		#print month, day, 'N: ', len(rows) 
 		if line_type == 'lower':
-			out = __get_lower( id_start, id_end, block_seconds )
+			out = __get_lower_rows(rows_pos, block_seconds )
 		else:
-			dd = __get_median_rows(rows, block_seconds, test=True)
+			dd = __get_median_rows(rows_pos, block_seconds, test=True)
 			dd['id'] = dd['id'] + '%s' % day
 			out['%s' % dd['id']]=dd
 		
@@ -125,22 +126,12 @@ def origin_destination():
 	except:	block_seconds = 900
 	id_start = 13
 	id_end = 14
-
-	start = db.record.with_alias('start_point')
-	end = db.record.with_alias('end_point')
 	
-	rows = db( (start.station_id == id_start) &
-		   	   (end.station_id == id_end) 
-		     ).select( left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)), 
-					   cache=(cache.ram, 3600),
-					   cacheable = True)
-		     
-	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
-
+	rows = __get_rows (id_start, id_end)
 	n_start = db(db.record.station_id == id_start).count( cache=(cache.ram, 3600))
 	n_end = db(db.record.station_id == id_end).count( cache=(cache.ram, 3600))
 
-	info = {'n': len(rows_pos), 'n_start':n_start, 'n_end':n_end}
+	info = {'n': len(rows), 'n_start':n_start, 'n_end':n_end}
 
 	return response.render('default/diff.html', {'info':info})
 
@@ -167,34 +158,22 @@ def get_diff():
 	id_start = 13
 	id_end = 14
 
-	start = db.record.with_alias('start_point')
-	end = db.record.with_alias('end_point')
-	
-	rows = db( (start.station_id == id_start) &
-		       (end.station_id == id_end) 
-		     ).select(start.ALL, 
-				      end.ALL, 
-					  start.gathered_on.epoch(),
-					  left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
-					  orderby=start.gathered_on,
-					  cache=(cache.ram, 3600),
-					  cacheable=True)
+	rows = __get_rows (id_start, id_end)
+
 					
 	logs=[]
-	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
 	for pos, r in enumerate(rows_pos):
 		t = r.end_point.gathered_on - r.start_point.gathered_on
-		if True or t<datetime.timedelta(seconds=800):		
-			logs.append( [ (r[start.gathered_on.epoch()]+3600) * 1000,
+		logs.append( [ (r[start.gathered_on.epoch()]+3600) * 1000,
 				       int(t.total_seconds()) * 1000 ]	)
 	all_logs = dict(logs={'data':logs, 'label': 'matches', 'id':'logs'})	
 
 	for seconds in xrange(700, 1000, 100):
-		out = __get_lower( id_start, id_end, seconds )
+		out = __get_lower_rows(rows, seconds )
 		all_logs[out['id']] = out
 	
 	for seconds in xrange(700, 1000, 100):
-		out_m = __get_median( id_start, id_end, seconds )
+		out_m = __get_median_rows(rows_pos, seconds)
 		all_logs[out_m['id']] = out_m
 
 	# single trends
@@ -266,13 +245,17 @@ def __get_trend(station_id, block_seconds):
 	return out
 	
 
-
 def __get_lower( id_start, id_end, block_seconds ):
-	start = db.record.with_alias('start_point')
-	end = db.record.with_alias('end_point')
-	
-	rows = db( (start.station_id == id_start) &
-		       (end.station_id == id_end)
+	rows = __get_rows (id_start, id_end)
+	return __get_lower_rows(rows, block_seconds)
+
+def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=20 ):
+	rows = __get_rows (id_start, id_end)
+	return __get_median_rows(rows, block_seconds, vertical_block_seconds, False)
+
+def __get_rows(station_id_start, station_id_end):
+	rows = db( (start.station_id == station_id_start) &
+		       (end.station_id == station_id_end)
 		     ).select(start.ALL, 
 			          end.ALL, 
 					  start.gathered_on.epoch(),
@@ -280,8 +263,10 @@ def __get_lower( id_start, id_end, block_seconds ):
 					  left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
 					  cache=(cache.ram, 3600),
 					  cacheable = True)
-
 	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
+	return rows_pos
+
+def __get_lower_rows( rows, block_seconds ):
 	l = []
 	first=True
 	prev = rows_pos[0]
@@ -309,28 +294,7 @@ def __get_lower( id_start, id_end, block_seconds ):
 	
 	return {'data': lower_bound,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
-def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=20 ):
-	start = db.record.with_alias('start_point')
-	end = db.record.with_alias('end_point')
-
-	query = ((start.station_id == id_start) &
-			 (end.station_id == id_end))
-	
-	rows = db( query ).select(start.ALL, 
-				   end.ALL, 
-				   start.gathered_on.epoch(),
-				   end.gathered_on.epoch(),
-				   orderby=start.gathered_on.epoch(),
-				   left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
-				   cache=(cache.ram, 3600),
-				   cacheable = True)
-
-	return __get_median_rows(rows, block_seconds, vertical_block_seconds, False)
-
-
 def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=False):
-
-	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000))]
 	l = [] 
 	first=True
 	prev = rows_pos[0]
@@ -406,22 +370,22 @@ def user():
     return dict(form=auth())
 
 
-def download():
-    """
-    allows downloading of uploaded files
-    http://..../[app]/default/download/[filename]
-    """
-    return response.download(request, db)
+#def download():
+#    """
+#    allows downloading of uploaded files
+#    http://..../[app]/default/download/[filename]
+#    """
+#    return response.download(request, db)
 
 
-def call():
-    """
-    exposes services. for example:
-    http://..../[app]/default/call/jsonrpc
-    decorate with @services.jsonrpc the functions to expose
-    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
-    """
-    return service()
+#def call():
+#    """
+#    exposes services. for example:
+#    http://..../[app]/default/call/jsonrpc
+#    decorate with @services.jsonrpc the functions to expose
+#    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv
+#    """
+#    return service()
 
 
 @auth.requires_signature()
