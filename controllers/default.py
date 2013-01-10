@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
-import re
 from datetime import timedelta
 import datetime, time
 
@@ -14,15 +12,15 @@ def index():
 
 @auth.requires_login()
 def add_log():
+	import re
 	from datetime import datetime
 	pattern = re.compile(r"""
 			\[(?P<time>.*?)\]
-#			\s(?P<mac>[0-9A-F]{2}[:]{5}[0-9A-F]{2})?)
 			\s(?P<mac>[0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2})
 			\s(?P<more>.*)
 			\s*"""
 			, re.VERBOSE)
-
+	crud = Crud(db)
 	form = crud.create(db.log)
 	if form.process(dbio=False).accepted:
 		form.vars.log_id = db.log.insert(**dict(form.vars))
@@ -60,19 +58,21 @@ def add_station():
 #			db.record.insert(mac=match[0][1], gathered_on=d)	
 #	return 'done'
 	
-def read():
-	try:	query = db.record.station_id == int(request.vars.id)
-	except: 
-		request.flash= 'ID not valid'
-		return 'error'
-	rows = db(query).select(db.record.gathered_on, db.record.gathered_on.epoch())
-	info = {'n': len(rows), 'start': rows[0].record.gathered_on, 'end': 'vuoto'}
-	return dict(info=info)
+#def read():
+#	try:	query = db.record.station_id == int(request.vars.id)
+#	except: 
+#		request.flash= 'ID not valid'
+#		return 'error'
+#	rows = db(query).select(db.record.gathered_on, db.record.gathered_on.epoch())
+#	info = {'n': len(rows), 'start': rows[0].record.gathered_on, 'end': 'vuoto'}
+#	return dict(info=info)
 
 def compare():
+	session.forget(response)
 	return response.render('default/compare.html', {})
 
 def get_lines():
+	session.forget(response)
 	line_type = request.vars.type or 'median'
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 900
 	except:	block_seconds = 900
@@ -122,6 +122,7 @@ def get_lines():
 	return response.render('generic.json', out)
 
 def origin_destination():
+	session.forget(response)
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
 	except:	block_seconds = 900
 	id_start = 13
@@ -155,6 +156,7 @@ def origin_destination():
 #	return response.render('generic.json', dict(data=data))
 
 def get_diff():
+	session.forget(response)
 	id_start = 13
 	id_end = 14
 
@@ -193,6 +195,7 @@ def get_diff():
 
 # external request, might be ajax too
 def get_line():
+	session.forget(response)
 	id_start = 13
 	id_end = 14
 	line_type = request.vars.type
@@ -350,44 +353,14 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=
 	return {'data': median,'label':label, 'id':'median_%s' %  block_seconds };
 
 def user():
-    """
-    exposes:
-    http://..../[app]/default/user/login
-    http://..../[app]/default/user/logout
-    http://..../[app]/default/user/register
-    http://..../[app]/default/user/profile
-    http://..../[app]/default/user/retrieve_password
-    http://..../[app]/default/user/change_password
-    use @auth.requires_login()
-        @auth.requires_membership('group name')
-        @auth.requires_permission('read','table name',record_id)
-    to decorate functions that need access control
-    """
     return dict(form=auth())
 
 @auth.requires_login()
 def download():
-    """
-    allows downloading of uploaded files
-    http://..../[app]/default/download/[filename]
-    """
     return response.download(request, db)
 
 @auth.requires_signature()
 def data():
-    """
-    http://..../[app]/default/data/tables
-    http://..../[app]/default/data/create/[table]
-    http://..../[app]/default/data/read/[table]/[id]
-    http://..../[app]/default/data/update/[table]/[id]
-    http://..../[app]/default/data/delete/[table]/[id]
-    http://..../[app]/default/data/select/[table]
-    http://..../[app]/default/data/search/[table]
-    but URLs must be signed, i.e. linked with
-      A('table',_href=URL('data/tables',user_signature=True))
-    or with the signed load operator
-      LOAD('default','data.load',args='tables',ajax=True,user_signature=True)
-    """
     return dict(form=crud())
 
 #def saveDb():
