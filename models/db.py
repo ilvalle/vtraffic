@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#########################################################################
-## This scaffolding model makes your app work on Google App Engine too
-## File is released under public domain and you can use without limitations
-#########################################################################
+
 
 ## if SSL/HTTPS is properly configured and you want all HTTP requests to
 ## be redirected to HTTPS, uncomment the line below:
@@ -20,9 +17,6 @@ db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
 ## from google.appengine.api.memcache import Client
 ## session.connect(request, response, db = MEMDB(Client()))
 
-## by default give a view/generic.extension to all actions from localhost
-## none otherwise. a pattern can be 'controller/function.extension'
-#response.generic_patterns = ['*'] if request.is_local else []
 ## (optional) optimize handling of static files
 response.optimize_css = 'concat,minify,inline'
 response.optimize_js = 'concat,minify,inline'
