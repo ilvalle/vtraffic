@@ -42,9 +42,10 @@ def add_log():
 
 @auth.requires_login()
 def add_station():
+	crud = Crud(db)
 	form = crud.create(db.station)
 	if form.process(dbio=True).accepted:
-		session.flash = 'Station insert correctly'
+		session.flash = 'Station added correctly'
 		redirect(URL(f='index'))
 	return response.render('default/index.html', dict(form=form))
 
