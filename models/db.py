@@ -28,10 +28,9 @@ db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
 ## (optional) optimize handling of static files
 response.optimize_css = 'concat,minify,inline'
 response.optimize_js = 'concat,minify,inline'
-from gluon.tools import Auth, prettydate
+from gluon.tools import Auth, prettydate, Crud
 auth = Auth(db)
-#from gluon.tools import Crud, Service, PluginManager
-#crud, service, plugins = Crud(db), Service(), PluginManager()
+
 
 #try:
 #	pd = local_import('private_data')
