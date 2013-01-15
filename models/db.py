@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 
-
+MIGRATE=False
 ## if SSL/HTTPS is properly configured and you want all HTTP requests to
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
 
 db = DAL('postgres://web2py:web2py@localhost:5432/traffic', 
-	migrate=False,
+	migrate=MIGRATE,
+	migrate_enabled=MIGRATE,
 	lazy_tables=True,
 )
 
@@ -22,12 +23,10 @@ if not request.is_local:
 ## (optional) optimize handling of static files
 response.optimize_css = 'concat,minify,inline'
 response.optimize_js = 'concat,minify,inline'
-from gluon.tools import Auth, Crud
+from gluon.tools import Auth
 auth = Auth(db)
-
-
 ## create all tables needed by auth if not custom tables
-auth.define_tables(username=True)
+auth.define_tables(username=True, migrate=MIGRATE)
 
 ## configure email
 mail = auth.settings.mailer
