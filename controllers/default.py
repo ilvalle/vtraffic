@@ -78,8 +78,6 @@ def get_lines():
 	line_type = request.vars.type or 'median'
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 900
 	except:	block_seconds = 900
-	start = db.record.with_alias('start_point')
-	end = db.record.with_alias('end_point')
 	day = start.gathered_on.year() | start.gathered_on.month() | start.gathered_on.day()  
 	# Gets the days with data 
 	days = db( (start.station_id == 13)  ).select(
@@ -126,7 +124,6 @@ def origin_destination():
 	n_end = db(db.record.station_id == id_end).count( cache=(cache.ram, 3600))
 
 	info = {'n': len(rows), 'n_start':n_start, 'n_end':n_end}
-
 	return response.render('default/diff.html', {'info':info})
 
 @cache(request.env.path_info,time_expire=None,cache_model=cache.ram)

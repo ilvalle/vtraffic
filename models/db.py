@@ -12,6 +12,13 @@ db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
 	lazy_tables=True,
 )
 
+if not request.is_local:
+	from gluon.contrib.memcache import MemcacheClient
+	from gluon.contrib.memdb import MEMDB
+	memcache_servers = ['127.0.0.1:11211']
+	cache.memcache = MemcacheClient(request, memcache_servers)
+	cache.ram = cache.disk = cache.memcache
+	session.connect(request,response,db=MEMDB(cache.memcache))
 
 ##session.connect(request, response, db=db)
 ## or store session in Memcache, Redis, etc.
