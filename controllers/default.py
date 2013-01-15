@@ -103,17 +103,7 @@ def get_lines():
 			 (start.station_id == 13) &
 			 (end.station_id == 14))
 
-		rows = db( query ).select(
-				   start.gathered_on,start.mac,start.id,
-				   end.gathered_on, end.mac, end.id,
-				   start.gathered_on.epoch(),
-				   end.gathered_on.epoch(),
-				   orderby=start.gathered_on.epoch(),
-				   left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on) ),
-				   cache=(cache.ram, 3600),
-				   cacheable = True)
-		rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(days=1))]
-		rows_pos = __remove_dup(rows)
+		rows_pos = __get_rows(query)
 		
 		if line_type == 'lower':
 			out = __get_lower_rows(rows_pos, block_seconds )
@@ -131,7 +121,7 @@ def origin_destination():
 	id_start = 13
 	id_end = 14
 	
-	rows = __get_rows (id_start, id_end)
+	rows = __get_rows_stations (id_start, id_end)
 	n_start = db(db.record.station_id == id_start).count( cache=(cache.ram, 3600))
 	n_end = db(db.record.station_id == id_end).count( cache=(cache.ram, 3600))
 
@@ -145,7 +135,7 @@ def get_diff():
 	id_start = 13
 	id_end = 14
 
-	rows = __get_rows (id_start, id_end)
+	rows = __get_rows_stations (id_start, id_end)
 	
 	logs=[]
 	for row in rows:
@@ -202,10 +192,12 @@ def get_line():
 
 	return response.render('generic.json', out)
 
-def __get_rows(station_id_start, station_id_end):
-	rows = db( (start.station_id == station_id_start) &
-		   (end.station_id == station_id_end)
-		 ).select(start.ALL, 
+def __get_rows_stations(station_id_start, station_id_end):
+	query = (start.station_id == station_id_start) & (end.station_id == station_id_end)
+	return __get_rows(query)
+
+def __get_rows(query):
+	rows = db( query ).select(start.ALL, 
 		          end.ALL, 
 			  start.gathered_on.epoch(),
 			  end.gathered_on.epoch(),
@@ -306,11 +298,11 @@ def __get_trend(station_id, block_seconds):
 	return out
 
 def __get_lower( id_start, id_end, block_seconds ):
-	rows = __get_rows (id_start, id_end)
+	rows = __get_rows_stations (id_start, id_end)
 	return __get_lower_rows(rows, block_seconds)
 
 def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=20 ):
-	rows = __get_rows (id_start, id_end)
+	rows = __get_rows_stations (id_start, id_end)
 	return __get_median_rows(rows, block_seconds, vertical_block_seconds, False)
 
 def __get_lower_rows( rows, block_seconds, test=False ):
