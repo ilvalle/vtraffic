@@ -5,8 +5,7 @@
 ## if SSL/HTTPS is properly configured and you want all HTTP requests to
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
-#migrate=False,
-#db = DAL('sqlite://storage.sqlite', 
+
 db = DAL('postgres://web2py:web2py@localhost:5432/traffic', 
 	migrate=False,
 	lazy_tables=True,
@@ -20,23 +19,12 @@ if not request.is_local:
 	cache.ram = cache.disk = cache.memcache
 	session.connect(request,response,db=MEMDB(cache.memcache))
 
-##session.connect(request, response, db=db)
-## or store session in Memcache, Redis, etc.
-## from gluon.contrib.memdb import MEMDB
-## from google.appengine.api.memcache import Client
-## session.connect(request, response, db = MEMDB(Client()))
-
 ## (optional) optimize handling of static files
 response.optimize_css = 'concat,minify,inline'
 response.optimize_js = 'concat,minify,inline'
-from gluon.tools import Auth, prettydate, Crud
+from gluon.tools import Auth, Crud
 auth = Auth(db)
 
-
-#try:
-#	pd = local_import('private_data')
-#except:
-#	print 'provide a personal data file'
 
 ## create all tables needed by auth if not custom tables
 auth.define_tables(username=True)
@@ -51,7 +39,7 @@ mail.settings.login = 'username:password'
 auth.settings.registration_requires_verification = False
 auth.settings.registration_requires_approval = True
 auth.settings.reset_password_requires_verification = True
-#auth.settings.actions_disabled.append('register')
+auth.settings.actions_disabled.append('register')
 T.is_writable = False
 
 db.define_table('station',

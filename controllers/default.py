@@ -14,6 +14,7 @@ def index():
 def add_log():
 	import re
 	from datetime import datetime
+	from gluon.tools import Crud
 	pattern = re.compile(r"""
 			\[(?P<time>.*?)\]
 			\s(?P<mac>[0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2}[:][0-9A-F]{2})
@@ -37,36 +38,18 @@ def add_log():
 						gathered_on=d)			
 				count += 1
 		session.flash = 'Inserted %s record' % count
-		redirect(URL(f='read', vars={'id':form.vars.station_id}))
+		redirect(URL(f='index', vars={'id':form.vars.station_id}))
 	return response.render('default/index.html', dict(form=form))
 
 @auth.requires_login()
 def add_station():
+	from gluon.tools import Crud
 	crud = Crud(db)
 	form = crud.create(db.station)
 	if form.process(dbio=True).accepted:
 		session.flash = 'Station added correctly'
 		redirect(URL(f='index'))
 	return response.render('default/index.html', dict(form=form))
-
-#def insert():
-#	file_stream = open("/home/pvalleri/Desktop/test/bluelog.log", "r")
-#	matches=[]
-#	for line in file_stream:
-#		match = pattern.findall(line)	
-#		if match:
-#			d = datetime.strptime(match[0][0], '%m/%d/%y %H:%M:%S')
-#			db.record.insert(mac=match[0][1], gathered_on=d)	
-#	return 'done'
-	
-#def read():
-#	try:	query = db.record.station_id == int(request.vars.id)
-#	except: 
-#		request.flash= 'ID not valid'
-#		return 'error'
-#	rows = db(query).select(db.record.gathered_on, db.record.gathered_on.epoch())
-#	info = {'n': len(rows), 'start': rows[0].record.gathered_on, 'end': 'vuoto'}
-#	return dict(info=info)
 
 def compare():
 	session.forget(response)
