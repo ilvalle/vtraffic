@@ -72,7 +72,7 @@ def compare():
 	session.forget(response)
 	return response.render('default/compare.html', {})
 
-@cache(request.env.path_info + (request.vars.diff_temp or ''),time_expire=None,cache_model=cache.ram)
+#@cache(request.env.path_info + (request.vars.diff_temp or ''),time_expire=None,cache_model=cache.ram)
 def get_lines():
 	session.forget(response)
 	line_type = request.vars.type or 'median'
@@ -83,25 +83,25 @@ def get_lines():
 	day = start.gathered_on.year() | start.gathered_on.month() | start.gathered_on.day()  
 	# Gets the days with data 
 	days = db( (start.station_id == 13)  ).select(
-									start.gathered_on.year(), 
-									start.gathered_on.month(), 
-									start.gathered_on.day(),
-									groupby=day,
-									cache=(cache.ram, 3600),
-				   					cacheable = True)	
+						start.gathered_on.year(), 
+						start.gathered_on.month(), 
+						start.gathered_on.day(),
+						groupby=day,
+						cache=(cache.ram, 3600),
+						cacheable = True)	
 	out={}
 	# make the median day by day
 	for d in days:
 		year, month, day  = d[start.gathered_on.year()], d[start.gathered_on.month()], d[start.gathered_on.day()]
 
 		query = ((start.gathered_on.year() == year) &
-				 (start.gathered_on.month() == month) &
-				 (start.gathered_on.day() == day) &
-				 (end.gathered_on.year() == year) &
-				 (end.gathered_on.month() == month) &
-				 (end.gathered_on.day() == day) &
-				 (start.station_id == 13) &
-				 (end.station_id == 14))
+			 (start.gathered_on.month() == month) &
+			 (start.gathered_on.day() == day) &
+			 (end.gathered_on.year() == year) &
+			 (end.gathered_on.month() == month) &
+			 (end.gathered_on.day() == day) &
+			 (start.station_id == 13) &
+			 (end.station_id == 14))
 
 		rows = db( query ).select(
 				   start.gathered_on,start.mac,start.id,
@@ -112,8 +112,9 @@ def get_lines():
 				   left= start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on) ),
 				   cache=(cache.ram, 3600),
 				   cacheable = True)
-		rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000))]
-		#print month, day, 'N: ', len(rows) 
+		rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(days=1))]
+		rows_pos = __remove_dup(rows)
+		
 		if line_type == 'lower':
 			out = __get_lower_rows(rows_pos, block_seconds )
 		else:
@@ -138,32 +139,14 @@ def origin_destination():
 
 	return response.render('default/diff.html', {'info':info})
 
-#def get_hour():
-#	c = db.record.id.count()
-#	s = db.record.gathered_on.year() | db.record.gathered_on.month() | db.record.gathered_on.day() | db.record.gathered_on.hour() 
-#	#dd = db.record.gathered_on.timedelta(minutes=30) 
-#	rows = db(db.record.id > 0).select(db.record.gathered_on.epoch(), c, groupby=s)
-#
-#	data = [ [ (r[db.record.gathered_on.epoch()] +3600)* 1000, r[c] ] for r in rows]
-#
-#	return response.render('generic.json', dict(data=data))
-#
-#def get_minute():
-#	c = db.record.id.count()
-#	s = db.record.gathered_on.year() | db.record.gathered_on.month() | db.record.gathered_on.day() | db.record.gathered_on.hour() | db.record.gathered_on.minutes()
-#
-#	rows = db(db.record.id > 0).select(db.record.gathered_on.epoch(), c, groupby=s)
-#
-#	data = [ [ (r[db.record.gathered_on.epoch()] +3600)* 1000, r[c] ] for r in rows]
-#	return response.render('generic.json', dict(data=data))
-
-@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
+#@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
 def get_diff():
 	session.forget(response)
 	id_start = 13
 	id_end = 14
 
 	rows = __get_rows (id_start, id_end)
+	
 	logs=[]
 	for row in rows:
 		t = row.end_point.gathered_on - row.start_point.gathered_on
@@ -219,6 +202,82 @@ def get_line():
 
 	return response.render('generic.json', out)
 
+def __get_rows(station_id_start, station_id_end):
+	rows = db( (start.station_id == station_id_start) &
+		   (end.station_id == station_id_end)
+		 ).select(start.ALL, 
+		          end.ALL, 
+			  start.gathered_on.epoch(),
+			  end.gathered_on.epoch(),
+			  orderby=start.gathered_on.epoch(),
+			  left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
+			  cache=(cache.ram, 3600),
+			  cacheable = True)
+	matches = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(days=1)) ]
+	matches = __remove_dup(matches)
+	return matches
+
+### issue 1
+# station_id mac datetime
+# 1          'a' 12:00
+# 2          'a' 14:00
+# 1          'a' 12:30
+# 2          'a' 14:30
+# The output of the leftjoin is
+# station_id_start mac datetime_start station_id_end datetime_end
+# 1                'a' 12:00          2              12:30 
+# 1                'a' 12:00          2              14:30   <<-- this is not correct
+# 2                'a' 14:00          2              14:30
+
+### issue 2
+# station_id mac datetime
+# 1          'a' 12:00
+# 1          'a' 12:30
+# 2          'a' 14:30
+# The output of the leftjoin is
+# station_id_start mac datetime_start station_id_end datetime_end
+# 1                'a' 12:00          2              14:30 <<-- this is not correct
+# 1                'a' 12:30          2              14:30   
+
+### issue 3
+# station_id mac datetime
+# 1          'a' 12:00
+# 2          'a' 12:30
+# 2          'a' 14:30
+# The output of the leftjoin is
+# station_id_start mac datetime_start station_id_end datetime_end
+# 1                'a' 12:00          2              12:30 
+# 1                'a' 12:00          2              14:30 <<-- this is not correct  
+
+def __remove_dup(rows):
+	hash_end = {}
+	hash_start = {}
+	remove=[]
+	for pos, r in enumerate(rows):
+		if r.start_point.id in hash_start:
+			pos_prev = hash_start[r.start_point.id]
+			prev = rows[pos_prev]
+			if (r.end_point.gathered_on < prev.end_point.gathered_on):
+				remove.append(pos_prev)			# remove the old one
+				hash_start[r.start_point.id] = pos	# update the pos to the new one
+			else:
+				remove.append(pos)			# remove the current one
+		else:
+			hash_start[r.start_point.id] = pos			
+		if r.end_point.id in hash_end:
+			pos_prev = hash_end[r.end_point.id]
+			prev = rows[pos_prev]
+			if (r.start_point.gathered_on > prev.start_point.gathered_on):
+				remove.append(pos_prev)			# remove the old one
+				hash_end[r.end_point.id] = pos		# update the pos to the new one
+			else:
+				remove.append(pos)			# remove the current one
+		else:
+			hash_end[r.end_point.id] = pos
+
+	rows = [r for pos, r in enumerate(rows) if pos not in remove]
+	return rows
+
 def __get_trend(station_id, block_seconds):
 	query = db.record.station_id == station_id
 	rows = db(query).select(db.record.gathered_on, 
@@ -253,20 +312,6 @@ def __get_lower( id_start, id_end, block_seconds ):
 def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=20 ):
 	rows = __get_rows (id_start, id_end)
 	return __get_median_rows(rows, block_seconds, vertical_block_seconds, False)
-
-def __get_rows(station_id_start, station_id_end):
-	rows = db( (start.station_id == station_id_start) &
-		       (end.station_id == station_id_end)
-		     ).select(start.ALL, 
-			          end.ALL, 
-					  start.gathered_on.epoch(),
-					  end.gathered_on.epoch(),
-					  orderby=start.gathered_on.epoch(),
-					  left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
-					  cache=(cache.ram, 3600),
-					  cacheable = True)
-	rows_pos = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(seconds=12000)) ]
-	return rows_pos
 
 def __get_lower_rows( rows, block_seconds, test=False ):
 	l = []
