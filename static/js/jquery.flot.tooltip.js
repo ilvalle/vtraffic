@@ -163,11 +163,11 @@
 
         // time mode axes with custom dateFormat
         if(this.isTimeMode('xaxis', item) && this.isXDateFormat(item)) {
-            content = content.replace(xPattern, this.timestampToDate(item.series.data[item.dataIndex][0], this.tooltipOptions.xDateFormat));
+            content = content.replace(xPattern, this.timestampToDate(item.series.data[item.dataIndex][0], this.tooltipOptions.xDateFormat, item.series['xaxis'].options));
         }
 
         if(this.isTimeMode('yaxis', item) && this.isYDateFormat(item)) {
-            content = content.replace(yPattern, this.timestampToDate(item.series.data[item.dataIndex][1], this.tooltipOptions.yDateFormat));
+            content = content.replace(yPattern, this.timestampToDate(item.series.data[item.dataIndex][1], this.tooltipOptions.yDateFormat, item.series['yaxis'].options));
         }
 
         // set precision if defined
@@ -203,8 +203,8 @@
     };
 
     // 
-    FlotTooltip.prototype.timestampToDate = function(tmst, dateFormat) {
-        var theDate = new Date(tmst);
+    FlotTooltip.prototype.timestampToDate = function(tmst, dateFormat, options) {
+	var theDate = $.plot.dateGenerator(tmst, options);
         return $.plot.formatDate(theDate, dateFormat);
     };
     
