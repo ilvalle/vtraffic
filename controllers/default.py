@@ -72,7 +72,7 @@ def compare():
 	session.forget(response)
 	return response.render('default/compare.html', {})
 
-#@cache(request.env.path_info + (request.vars.diff_temp or ''),time_expire=None,cache_model=cache.ram)
+@cache(request.env.path_info + (request.vars.diff_temp or ''),time_expire=None,cache_model=cache.ram)
 def get_lines():
 	session.forget(response)
 	line_type = request.vars.type or 'median'
@@ -129,7 +129,7 @@ def origin_destination():
 
 	return response.render('default/diff.html', {'info':info})
 
-#@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
+@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
 def get_diff():
 	session.forget(response)
 	id_start = 13
