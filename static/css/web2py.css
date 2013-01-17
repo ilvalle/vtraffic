@@ -330,11 +330,12 @@ li.w2p_grid_breadcrumb_elem {
 	width: 200px;
 }
 
+/* Few css tips from bootstrap docs, released under CC-BY 3.0 */
 body > .navbar {
     font-size: 13px;
 }
-body > .navbar .brand {
-    color: #000000;
+body > .navbar li a.brand {
+    color: #000001;
     float: right;
     font-weight: bold;
     padding-left: 0;
@@ -342,11 +343,37 @@ body > .navbar .brand {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 30px rgba(255, 255, 255, 0.125);
     transition: all 0.2s linear 0s;
 }
-body > .navbar .brand:hover {
+body > .navbar li a.brand:hover {
     text-decoration: none;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 30px rgba(255, 255, 255, 0.4);
 }
 
+header {
+    background: linear-gradient(75deg, #AA0031 0%, #6D3353 100%) repeat scroll 0 0 transparent;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2) inset, 0 -3px 7px rgba(0, 0, 0, 0.2) inset;
+    color: #FFFFFF;
+    padding: 25px 0;
+    position: relative;
+    margin-bottom: 15px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 0, 0, 0.075);
+}
+header h1 {
+    font-size: 60px;
+    font-weight: bold;
+    letter-spacing: -1px;
+    line-height: 1;
+}
+header:after {
+    /*background: url("../img/bs-docs-masthead-pattern.png") repeat scroll center center transparent;*/
+    bottom: 0;
+    content: "";
+    display: block;
+    left: 0;
+    opacity: 0.4;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
 
 
 
