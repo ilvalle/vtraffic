@@ -35,6 +35,9 @@ input[type=text],input[type=password],select{width:300px;}
 .right {float:right; text-align:right}
 .left {float:left; text-align:left}
 .center {width:100; text-align:center; vertical-align:middle}
+section {
+	padding-top: 30px;
+}
 /** end **/
 
 /* Sticky footer begin */
@@ -67,6 +70,7 @@ input[type=text],input[type=password],select{width:300px;}
 
 fieldset {padding:16px; border-top:1px #DEDEDE solid}
 fieldset legend {text-transform:uppercase; font-weight:bold; padding:4px 16px 4px 16px; background:#f1f1f1}
+
 
 /* fix ie problem with menu */
 
@@ -335,7 +339,7 @@ body > .navbar {
     font-size: 13px;
 }
 body > .navbar li a.brand {
-    color: #000001;
+   /* color: #000001; */
     float: right;
     font-weight: bold;
     padding-left: 0;
@@ -356,7 +360,6 @@ header {
     color: #FFFFFF;
     padding: 25px 0;
     position: relative;
-    margin-bottom: 15px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 0, 0, 0.075); 
     background: #020031; /* Old browsers */
     background: -moz-linear-gradient(45deg,  #020031 0%, #6d3353 100%); /* FF3.6+ */
