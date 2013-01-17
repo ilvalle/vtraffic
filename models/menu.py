@@ -14,16 +14,12 @@ response.meta.author = 'Paolo Valleri'
 response.meta.description = 'Demo to show some figures'
 response.meta.generator = 'Web2py Web Framework'
 
-## your http://google.com/analytics id
 response.google_analytics_id = "UA-34703572-1"
 
-#########################################################################
-## this is the main application menu add/remove items as required
-#########################################################################
-
 response.menu = [
-    (T('Add station'), False, URL('default', 'add_station'), []),
-    (T('Add log'), False, URL('default', 'add_log'), []),
-    (T('Origin/Destination'), request.function == 'origin_destination' , URL('default', 'origin_destination')),
-    (T('Compare'), request.function == 'compare' , URL('default', 'compare'), []),
+	(A('INTEGREEN', _href="http://integreen-life.bz.it/", _class="brand"), False, None),
+	(T('Add station'), False, URL('default', 'add_station'), []),
+	(T('Add log'), False, URL('default', 'add_log'), []),
+	(T('Origin/Destination'), request.function == 'origin_destination' , URL('default', 'origin_destination')),
+	(T('Compare'), request.function == 'compare' , URL('default', 'compare'), []),
 ]
