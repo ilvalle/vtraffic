@@ -6,9 +6,9 @@ MIGRATE=False
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
 db = DAL('postgres://traffic_user:traffic_user@localhost:5432/traffic', 
-	migrate=False,
+	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
-	lazy_tables=True,
+	lazy_tables=False,
 )
 
 if not request.is_local:
