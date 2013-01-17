@@ -6,9 +6,15 @@ import datetime, time
 start = db.record.with_alias('start_point')
 end = db.record.with_alias('end_point')
 
+from gluon.tools import Wiki
+response.menu += Wiki(auth).menu(controller="default", function="wiki")
+
 def index():
 	#return response.render('default/wiki.html', auth.wiki())
 	redirect(URL(f='compare'))
+
+def wiki():
+	return auth.wiki()
 
 @auth.requires_login()
 def add_log():
