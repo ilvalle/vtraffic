@@ -15,7 +15,7 @@ def index():
 	redirect(URL(f='compare'))
 
 def wiki():
-	return auth.wiki()
+	return auth.wiki(render='html')
 
 @auth.requires_login()
 def add_log():
