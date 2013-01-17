@@ -5,9 +5,8 @@
 ## Customize your APP title, subtitle and menus here
 #########################################################################
 
-response.title = ' '.join(
-    word.capitalize() for word in request.application.split('_'))
-#response.subtitle = T('customize me!')
+response.title = "Bluetooth monitoring"
+response.subtitle = "Bringing free and open source softwares to vehicular traffic monitoring"
 
 ## read more at http://dev.w3.org/html5/markup/meta.name.html
 response.meta.author = 'Paolo Valleri'
