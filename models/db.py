@@ -5,7 +5,7 @@ MIGRATE=False
 ## if SSL/HTTPS is properly configured and you want all HTTP requests to
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
-db = DAL('postgres://web2py:web2py@localhost:5432/traffic', 
+db = DAL('postgres://traffic_user:traffic_user@localhost:5432/traffic', 
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
 	lazy_tables=False,
@@ -13,11 +13,11 @@ db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
 
 if not request.is_local:
 	from gluon.contrib.memcache import MemcacheClient
-	from gluon.contrib.memdb import MEMDB
+	#from gluon.contrib.memdb import MEMDB
 	memcache_servers = ['127.0.0.1:11211']
-	cache.memcache = MemcacheClient(request, memcache_servers, time_expire=3600)
+	cache.memcache = MemcacheClient(request, memcache_servers)
 	cache.ram = cache.disk = cache.memcache
-	session.connect(request,response,db=MEMDB(cache.memcache))
+	#session.connect(request,response,db=MEMDB(cache.memcache))
 
 ## (optional) optimize handling of static files
 #response.optimize_css = 'concat,minify,inline'
