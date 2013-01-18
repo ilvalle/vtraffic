@@ -7,6 +7,7 @@
 
 response.title = "Bluetooth monitoring"
 response.subtitle = "Bringing free and open source softwares to vehicular traffic monitoring"
+response.header_msg = " Join the presentation at FOSDEM 2013 conference! <a href='https://fosdem.org/2013/schedule/event/vehicular_traffic_estimation_through_bluetooth/'>read more</a>"
 
 ## read more at http://dev.w3.org/html5/markup/meta.name.html
 response.meta.author = 'Paolo Valleri'

@@ -381,8 +381,14 @@ header h1 {
     letter-spacing: -1px;
     line-height: 1;
 }
-header:after {
-    /*background: url("../img/bs-docs-masthead-pattern.png") repeat scroll center center transparent;*/
+header p {
+    padding-top: 7px;   
+    letter-spacing: -1px;
+    line-height: 1;
+}
+
+/*header:after {
+    background: url("../img/bs-docs-masthead-pattern.png") repeat scroll center center transparent;
     bottom: 0;
     content: "";
     display: block;
@@ -391,7 +397,7 @@ header:after {
     position: absolute;
     right: 0;
     top: 0;
-}
+}*/
 
 
 .bs-docs-sidebar .bs-docs-sidenav {
