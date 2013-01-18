@@ -15,6 +15,7 @@ response.meta.description = 'Demo to show some figures'
 response.meta.generator = 'Web2py Web Framework'
 
 response.google_analytics_id = "UA-34703572-1"
+response.google_map_key = 'AIzaSyA9DDSrqpql5y89lZfnnwu6dkOiCcLf9Bk'
 
 response.menu = [
 	(A('INTEGREEN', _href="http://integreen-life.bz.it/", _class="brand"), False, None),

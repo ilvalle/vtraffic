@@ -335,7 +335,9 @@ li.w2p_grid_breadcrumb_elem {
     padding-bottom: 0px;
     margin-bottom: 0px;
 }
-
+#map_canvas{
+    height: 500px;
+}
 
 #slider-range-min {
 	display: inline-block;
