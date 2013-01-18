@@ -15,12 +15,12 @@ if not request.is_local:
 	from gluon.contrib.memcache import MemcacheClient
 	from gluon.contrib.memdb import MEMDB
 	memcache_servers = ['127.0.0.1:11211']
-	cache.memcache = MemcacheClient(request, memcache_servers)
+	cache.memcache = MemcacheClient(request, memcache_servers, time_expire=3600)
 	cache.ram = cache.disk = cache.memcache
 	session.connect(request,response,db=MEMDB(cache.memcache))
 
 ## (optional) optimize handling of static files
-response.optimize_css = 'concat,minify,inline'
+#response.optimize_css = 'concat,minify,inline'
 response.optimize_js = 'concat,minify,inline'
 from gluon.tools import Auth
 auth = Auth(db)

@@ -319,15 +319,23 @@ li.w2p_grid_breadcrumb_elem {
 
 .chart, #traffic_chart_m {
     background: linear-gradient(#F6F6F6 0px, #FFFFFF 50px) repeat scroll 0 0 transparent;
-    border: 1px solid #DDDDDD;
+    border-left: 1px solid #DDDDDD;
+    border-right: 1px solid #DDDDDD;
+    border-bottom: 1px solid #DDDDDD;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
     height: 500px;
     margin: 0px auto 30px;
-    padding: 10px;
-	padding-bottom: 60px;
-    width: 900px;
-	border-radius: 5px 5px 5px 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 60px;
+
+    border-radius: 5px 5px 5px 5px;
 }
+.nav.nav-tabs{
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+}
+
 
 #slider-range-min {
 	display: inline-block;

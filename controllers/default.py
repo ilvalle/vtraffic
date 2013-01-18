@@ -59,8 +59,8 @@ def add_station():
 	return response.render('default/index.html', dict(form=form))
 
 def compare():
-	session.forget(response)
-	return response.render('default/compare.html', {})
+	content = auth.wiki(slug='compare', render='html')
+	return response.render('default/compare.html', {'content':content})
 
 @cache(request.env.path_info + (request.vars.diff_temp or ''),time_expire=None,cache_model=cache.ram)
 def get_lines():

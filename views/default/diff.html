@@ -43,6 +43,12 @@
 
 <div class="span10">
 <div class='row-fluid'>
+<ul class="nav nav-tabs" id="myTab">
+<li class="active"><a href="#graph" data-toggle="tab">Graph</a></li>
+<li><a href="#maps" data-toggle="tab">Map</a></li>
+</ul>
+<div id="myTabContent" class="tab-content">
+	<div id="graph" class="tab-pane fade in active">
 	<div class="chart">
 	<div class='clearfix'>
 		<!--input type="submit" id='clearSelection' value="Clear zoom" class=''-->
@@ -53,8 +59,14 @@
 		<a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(1)})}}'>End trend</a-->
 		<p id='loading' class="label label-info span4 offset4 center">Loading...</p>	
 		</div>
-		<div id="traffic_chart_h"  style="width:900px;height:500px"> </div>
-	</div>
+		<div id="traffic_chart_h"  style="height:500px"> </div>
+	</div></div>
+	
+<div id="maps" class="tab-pane fade">
+
+</div>
+	
+
 </div>
 </div>
 

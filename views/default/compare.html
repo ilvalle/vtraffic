@@ -1,6 +1,6 @@
 {{extend 'layout.html'}}
 <section>
-<div class='clear'></div>
+{{=content}}
 <div class='span2'>
 <div class='well' style="padding: 7px 0px;">
 	<ul id='median' class="nav nav-list">
@@ -30,13 +30,24 @@
 		<p id='loading' class="label label-info span4 offset4 center">Loading...</p>	
 
 <div class="span10">
-<div class=''>
-	<div class="chart">
-		<div id="traffic_chart_h"  style="width:900px;height:500px"> </div>
+<div class='row-fluid'>
+<ul class="nav nav-tabs" id="myTab">
+<li class="active"><a href="#graph" data-toggle="tab">Graph</a></li>
+<li><a href="#maps" data-toggle="tab">Map</a></li>
+</ul>
+<div id="myTabContent" class="tab-content">
+	<div id="graph" class="tab-pane fade in active">
+		<div class="chart">
+			<div id="traffic_chart_h"  style="height:500px"> </div>
+		</div>
+	</div>
+	
+	<div id="maps" class="tab-pane fade">
+		coming soon
 	</div>
 </div>
 </div>
-
+</div>
 <!--div><div id="traffic_chart_m" style="width:900px;height:300px"> </div-->
 
 <script>    
@@ -188,30 +199,5 @@ tooltipOpts: {
             dataType: 'json',
             success: onDataReceived
 	});
-
-	/*$(function() {
-      	$( "#slider-range-min_medians" ).slider({
-            range: "min",
-            value: 800,
-            min: 100,
-            max: 1500,
-	    step:50,
-            stop: function( event, ui ) {
-		console.log(ui.value);
-		$.ajax({
-		    url: '{{=URL("default", "get_diff.json", vars={'diff_temp':'diff_temp_js'})}}'.replace(/diff_temp_js/, ui.value),
-		    method: 'GET',
-		    dataType: 'json',
-		    success: onDataReceived_add
-		});
-                $( "#amount" ).val( ui.value );
-            }
-        });
-        $( "#amount" ).val( $( "#slider-range-min_medians" ).slider( "value" ) );
-    });*/
-
-
-
-
 </script>
 </section>
