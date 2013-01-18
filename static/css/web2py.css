@@ -440,9 +440,7 @@ header:after {
   margin-right: -6px;
   opacity: .25;
 }
-.bs-docs-sidebar .bs-docs-sidenav > li > a:hover {
-  background-color: #f5f5f5;
-}
+
 .bs-docs-sidebar .bs-docs-sidenav a:hover .icon-chevron-right {
   opacity: .5;
 }
