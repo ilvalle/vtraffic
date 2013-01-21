@@ -1,5 +1,6 @@
 {{extend 'layout.html'}}
 <section>
+
 {{=content}}
 <div class='span2'>
 <div class='well' style="padding: 7px 0px;">
@@ -35,11 +36,9 @@
 <li class="active"><a href="#graph" data-toggle="tab">Graph</a></li>
 <li><a href="#maps" data-toggle="tab">Map</a></li>
 </ul>
-<div id="myTabContent" class="tab-content">
+<div id="myTabContent" class="chart tab-content">
 	<div id="graph" class="tab-pane fade in active">
-		<div class="chart">
-			<div id="traffic_chart_h"  style="height:500px"> </div>
-		</div>
+		<div id="traffic_chart_h"  style="height:500px"> </div>
 	</div>
 	
 	<div id="maps" class="tab-pane fade">

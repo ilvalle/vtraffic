@@ -5,10 +5,10 @@ MIGRATE=False
 ## if SSL/HTTPS is properly configured and you want all HTTP requests to
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
-db = DAL('postgres://traffic_user:traffic_user@localhost:5432/traffic', 
+db = DAL('postgres://web2py:web2py@localhost:5432/traffic', 
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
-	lazy_tables=False,
+	lazy_tables=not(MIGRATE),
 )
 
 if not request.is_local:
