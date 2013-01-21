@@ -19,8 +19,9 @@ response.google_map_key = 'AIzaSyA9DDSrqpql5y89lZfnnwu6dkOiCcLf9Bk'
 
 response.menu = [
 	(A('INTEGREEN', _href="http://integreen-life.bz.it/", _class="brand"), False, None),
-	(T('Add station'), False, URL('default', 'add_station'), []),
-	(T('Add log'), False, URL('default', 'add_log'), []),
 	(T('Origin/Destination'), request.function == 'origin_destination' , URL('default', 'origin_destination')),
 	(T('Compare'), request.function == 'compare' , URL('default', 'compare'), []),
 ]
+if session.auth and auth.is_logged_in():
+	response.menu.insert(1, (T('Add station'), False, URL('default', 'add_station')))
+	response.menu.insert(2, (T('Add log'), False, URL('default', 'add_log')))

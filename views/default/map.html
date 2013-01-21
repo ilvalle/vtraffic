@@ -26,7 +26,6 @@ function initialize() {
 
 	{{for station in db(db.station).select(cache=(cache.ram, 86400)):}}
 	p = new google.maps.LatLng({{=station.lat}},{{=station.lgt}})
-	//console.log("{{=station.name}}");
 	createMarker( map, p, "{{=station.name}}");
 	{{pass}}
 
