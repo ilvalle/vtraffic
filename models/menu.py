@@ -23,5 +23,6 @@ response.menu = [
 	(T('Compare'), request.function == 'compare' , URL('default', 'compare'), []),
 ]
 if session.auth and auth.is_logged_in():
-	response.menu.insert(1, (T('Add station'), False, URL('default', 'add_station')))
-	response.menu.insert(2, (T('Add log'), False, URL('default', 'add_log')))
+	response.menu.insert(1, (T('manage'), False, None, [
+		(T('Add station'), False, URL('default', 'add_station')),
+		(T('Add log'), False, URL('default', 'add_log'))]))
