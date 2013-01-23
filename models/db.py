@@ -21,7 +21,7 @@ if not request.is_local:
 
 ## (optional) optimize handling of static files
 #response.optimize_css = 'concat,minify,inline'
-#response.optimize_js = 'concat,minify,inline'
+response.optimize_js = 'concat,minify'
 from gluon.tools import Auth
 auth = Auth(db)
 ## create all tables needed by auth if not custom tables
