@@ -2,7 +2,7 @@
                        CUSTOM RULES 
 ==============================================================*/
 
-body{height:auto;} /* to avoid vertical scroll bar */
+body{height:100%;} /* to avoid vertical scroll bar */
 div.flash.flash-center{left:25%;right:25%;}
 div.flash.flash-top,div.flash.flash-top:hover{
   position:relative;

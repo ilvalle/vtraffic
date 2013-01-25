@@ -46,11 +46,11 @@ section {
   padding:20px 0 50px 0;
 }
 
-.footer,.push {
+/*.footer,.push {
   height:6em;
   padding:1em 0;
   clear:both;
-}
+}*/
 
 .footer-content {position:relative; bottom:-4em; width:100%}
 
@@ -368,9 +368,12 @@ body > .navbar li a.brand:hover {
 header {
     box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2) inset, 0 -3px 7px rgba(0, 0, 0, 0.2) inset;
     color: #FFFFFF;
-    padding: 25px 0;
+    padding-top: 65px;
+    padding-right: 0;
+    padding-left: 0;
+    padding-bottom: 25px;
     position: relative;
-    margin-top:40px;
+    /*margin-top:40px;*/
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 0, 0, 0.075); 
     background: #020031; /* Old browsers */
     background: -moz-linear-gradient(45deg,  #020031 0%, #6d3353 100%); /* FF3.6+ */
@@ -558,6 +561,28 @@ header p {
     font-size: 45px;
   }
 }
+
+/** sticky footer **/
+html, body {
+   height: 100%;
+   /* The html and body elements cannot have any padding or margin. */
+}
+/* Wrapper for page content to push down footer */
+#wrap {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	/* Negative indent footer by it's height */
+	margin: 0 auto -121px;
+}
+
+/* Set the fixed height of the footer here */
+#push,#footer {
+	height: 120px;
+}
+
+
+
 
 
 

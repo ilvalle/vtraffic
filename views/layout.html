@@ -75,6 +75,7 @@
 </head>
 
 <body data-spy="scroll" data-target="#affixul">
+<div id="wrap">
   <!-- Navbar ================================================== -->
   <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="flash">{{=response.flash or ''}}</div>
@@ -97,6 +98,7 @@
     </div>
   </div><!--/top navbar -->
 
+  
   <header class="mastheader" id="header">
     <div class='container'>
 	{{if response.header_msg:}}
@@ -109,9 +111,9 @@
 	<p class='lead'>{{=response.subtitle}}</p>	
     </div>
   </header>
-  <div class="container">
+  
     <!-- Masthead ================================================== -->
-
+<div class="container">
 
     <div class="row">
         {{if left_sidebar_enabled:}}
@@ -139,22 +141,23 @@
         {{pass}}
     </div>
 	<!--/section--><!--/main-->
-	
+	</div><div id="push"></div>
+    </div> <!-- end wrap -->
+
     <!-- Footer ================================================== -->
-    <div class="row">
-        <footer class="footer span12" id="footer">
-            <div class="footer-content">
-         <p>Code licensed under <a href="http://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU Affero General Public License</a> available on <a href='https://github.com/ilvalle/vtraffic'>github</a><p>
-        <p>Powered by the <a href='http://web2py.com'>web2py</a> python web framework</p>
+    <!--div class="row"-->
+        <footer class="footer" id="footer">
+            <div class="container">
+         <p>Code licensed under <a href="http://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU Affero General Public License</a> available on <a href='https://github.com/ilvalle/vtraffic'>github</a>
+        <br/>Powered by the <a href='http://web2py.com'>web2py</a> python web framework</p>
 	<ul>
 		<li><a href="http://twitter.github.com/bootstrap">Bootstrap</a> licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License v2.0</a></li>
 		<li><a href="http://glyphicons.com">Glyphicons Free</a> licensed under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></li>
 	</ul>
 	<!--p>Designed and built by <a href='https://twitter.com/ilvalle' rel="popover"  data-content="" title='Paolo Valleri'>Paolo Valleri</a></p-->
-	<p></p>
 	</div>
         </footer>
-    </div>
+    <!--/div-->
 
 
   </div> <!-- /container -->
