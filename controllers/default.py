@@ -12,7 +12,7 @@ if request.function != 'wiki':	# temp fix due to double menu
 
 def index():
 	#return response.render('default/wiki.html', auth.wiki())
-	redirect(URL(f='compare'))
+	redirect(URL(f='wiki', args=['about']))
 
 def wiki():
 	return auth.wiki(render='html')
