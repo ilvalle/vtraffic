@@ -57,6 +57,13 @@
 
  	<noscript><link href="{{=URL('static', 'css/web2py_bootstrap_nojs.css')}}" rel="stylesheet" type="text/css" /></noscript>
   {{block head}}{{end}}
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@integreenlife">
+    <meta name="twitter:creator" content="@ilvalle">
+    <meta name="twitter:url" content="{{=URL(args=request.args, vars=request.vars, scheme='https', host=True )}}">
+    <meta name="twitter:title" content="{{=response.title}}">
+    <meta name="twitter:description" content="{{=response.subtitle}}">
+    <meta name="twitter:image" content="http://traffic.integreen-life.bz.it/wiki/2/foto-stazione.jpg">
 </head>
 
 <body data-spy="scroll" data-target="#affixul">
