@@ -15,12 +15,7 @@ def index():
 	redirect(URL(f='wiki', args=['about']))
 
 def wiki():
-	request.extension = ''
-	from gluon.tools import Wiki
-	print Wiki(auth, render='html')()
-	dict_wiki = auth.wiki(render='html')
-	request.extension = 'html'
-	return dict_wiki
+	return auth.wiki(render='html')
 
 @auth.requires_login()
 def add_log():
@@ -374,10 +369,6 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=30, test=
 				n_windows = (end_time_frame - initial_time_frame) / vertical_block_seconds		
 				windows = [0] * (n_windows + 1)
 				values = ''
-				#print windows
-				#if len(block) <= 2:
-				#	print 'WARNING', len(block)
-
 				for ele in block:
 					diff = (ele[end.gathered_on.epoch()] - ele[start.gathered_on.epoch()])
 					cur_pos = (diff - initial_time_frame)  / vertical_block_seconds
