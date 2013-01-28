@@ -384,18 +384,6 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=30, test=
 					windows[cur_pos] += 1
 
 				tot = initial_time_frame + (vertical_block_seconds * windows.index(max(windows)))
-				if tot > 15000:
-					print len(block)
-					for r in block:
-						print r[start.mac], r[start.gathered_on], r[end.gathered_on]
-
-					print '0', tot,vertical_block_seconds,  windows
-	#			if test:
-	#				mdate = block[0][start.gathered_on]
-	#				seconds = (mdate-day).total_seconds()		
-	#			else:
-	#				seconds = block[0][start.gathered_on.epoch()]+3600
-				#print seconds
 				median.append ( [(seconds + block_seconds/2) * 1000,
 						 (tot + (vertical_block_seconds/2))  * 1000] )
 	if test:
