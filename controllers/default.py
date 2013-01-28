@@ -15,7 +15,12 @@ def index():
 	redirect(URL(f='wiki', args=['about']))
 
 def wiki():
-	return auth.wiki(render='html')
+	request.extension = ''
+	from gluon.tools import Wiki
+	print Wiki(auth, render='html')()
+	dict_wiki = auth.wiki(render='html')
+	request.extension = 'html'
+	return dict_wiki
 
 @auth.requires_login()
 def add_log():
@@ -62,7 +67,7 @@ def compare():
 	content = auth.wiki(slug='compare', render='html')
 	return response.render('default/compare.html', {'content':content})
 
-@cache(request.env.path_info + (request.vars.diff_temp or ''),time_expire=None,cache_model=cache.ram)
+#@cache(request.env.path_info + (request.vars.diff_temp or ''), time_expire=None, cache_model=cache.ram)
 def get_lines():
 	session.forget(response)
 	line_type = request.vars.type or 'median'
@@ -79,6 +84,7 @@ def get_lines():
 						cacheable = True)	
 	out={}
 	# make the median day by day
+	print days
 	for d in days:
 		year, month, day  = d[start.gathered_on.year()], d[start.gathered_on.month()], d[start.gathered_on.day()]
 
@@ -288,7 +294,7 @@ def __get_lower( id_start, id_end, block_seconds ):
 	rows = __get_rows_stations (id_start, id_end)
 	return __get_lower_rows(rows, block_seconds)
 
-def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=20 ):
+def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=30 ):
 	rows = __get_rows_stations (id_start, id_end)
 	return __get_median_rows(rows, block_seconds, vertical_block_seconds, False)
 
@@ -313,6 +319,9 @@ def __get_lower_rows( rows, block_seconds, test=False ):
 		if block[0] == 0:
 			lower_bound.append ( [(block[1][start.gathered_on.epoch()]+3600 + block_seconds/2) * 1000,
 						0] )
+		elif len(block) >= 1 and len(block) <= 2:
+			pass
+			#lower_bound.append ( [(block[0][start.gathered_on.epoch()]+3600 + block_seconds/2) * 1000,0] )
 		else:		
 			cur_min=min([(r.end_point.gathered_on - r.start_point.gathered_on) if r != 0 else 0 for r in block ])	
 			lower_bound.append ( [(block[0][start.gathered_on.epoch()]+3600 + block_seconds/2) * 1000,
@@ -320,7 +329,7 @@ def __get_lower_rows( rows, block_seconds, test=False ):
 	
 	return {'data': lower_bound,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
-def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=False):
+def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=30, test=False):
 	l = [] 
 	first=True
 	prev = rows[0]
@@ -348,30 +357,47 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=20, test=
 				seconds = block[1][start.gathered_on.epoch()]+3600
 			median.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
 		else:
-			initial_time_frame = min([(r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
-			end_time_frame = max( [ (r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
-			n_windows = (end_time_frame - initial_time_frame) / vertical_block_seconds		
-			windows = [0] * (n_windows + 1)
-			values = ''
-			#print windows
-			#if len(block) <= 2:
-			#	print 'WARNING', len(block)
-
-			for ele in block:
-				diff = (ele[end.gathered_on.epoch()] - ele[start.gathered_on.epoch()])
-				cur_pos = (diff - initial_time_frame)  / vertical_block_seconds
-				#print len(windows), cur_pos			
-				windows[cur_pos] += 1
-			#print windows
-			tot = initial_time_frame + (vertical_block_seconds * windows.index(max(windows)))
+			# compute the horizontal seconds
 			if test:
 				mdate = block[0][start.gathered_on]
 				seconds = (mdate-day).total_seconds()		
 			else:
 				seconds = block[0][start.gathered_on.epoch()]+3600
-			#print seconds
-			median.append ( [(seconds + block_seconds/2) * 1000,
-					 (tot + (vertical_block_seconds/2))  * 1000] )
+
+			if len(block) >= 1 and len(block) <= 2:
+				# pass instead of plotting real value, otherwise it will draw odd valuea 
+				pass
+				#median.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
+			else:
+				initial_time_frame = min([(r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
+				end_time_frame = max( [ (r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
+				n_windows = (end_time_frame - initial_time_frame) / vertical_block_seconds		
+				windows = [0] * (n_windows + 1)
+				values = ''
+				#print windows
+				#if len(block) <= 2:
+				#	print 'WARNING', len(block)
+
+				for ele in block:
+					diff = (ele[end.gathered_on.epoch()] - ele[start.gathered_on.epoch()])
+					cur_pos = (diff - initial_time_frame)  / vertical_block_seconds
+					windows[cur_pos] += 1
+
+				tot = initial_time_frame + (vertical_block_seconds * windows.index(max(windows)))
+				if tot > 15000:
+					print len(block)
+					for r in block:
+						print r[start.mac], r[start.gathered_on], r[end.gathered_on]
+
+					print '0', tot,vertical_block_seconds,  windows
+	#			if test:
+	#				mdate = block[0][start.gathered_on]
+	#				seconds = (mdate-day).total_seconds()		
+	#			else:
+	#				seconds = block[0][start.gathered_on.epoch()]+3600
+				#print seconds
+				median.append ( [(seconds + block_seconds/2) * 1000,
+						 (tot + (vertical_block_seconds/2))  * 1000] )
 	if test:
 		label = fdate.strftime('%a %d, %b' )
 		#label += " [M(%(name)s)]" % {'name':block_seconds}
