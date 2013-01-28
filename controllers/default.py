@@ -62,7 +62,7 @@ def compare():
 	content = auth.wiki(slug='compare', render='html')
 	return response.render('default/compare.html', {'content':content})
 
-#@cache(request.env.path_info + (request.vars.diff_temp or ''), time_expire=None, cache_model=cache.ram)
+@cache(request.env.path_info + (request.vars.diff_temp or ''), time_expire=None, cache_model=cache.ram)
 def get_lines():
 	session.forget(response)
 	line_type = request.vars.type or 'median'
