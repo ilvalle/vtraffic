@@ -55,7 +55,7 @@
 			yaxis: { mode: "time",
 				timeZoneOffset: 2,
 				//timeformat: "%H:%M:%S",
-				zoomRange: false, panRange: false},
+				zoomRange: [0, null], panRange: [0, null]},
 			//crosshair: { mode: "x" },
 			y2axis: {mode: null},
 			series:{ lines: { show: true, fill: true },
@@ -70,7 +70,7 @@ tooltip: true,       //false
 tooltipOpts: {
 	content:      "%s |  %x |  %y",
 	//xDateFormat: "%H:%M:%S",
-	//yDateFormat: "%H:%M:%S",
+	yDateFormat: "%H:%M:%S",
 	defaultTheme:  true     //true
 },
 	grid: {	//show: true,
