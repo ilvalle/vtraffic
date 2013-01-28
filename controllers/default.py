@@ -79,7 +79,6 @@ def get_lines():
 						cacheable = True)	
 	out={}
 	# make the median day by day
-	print days
 	for d in days:
 		year, month, day  = d[start.gathered_on.year()], d[start.gathered_on.month()], d[start.gathered_on.day()]
 
