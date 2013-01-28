@@ -137,11 +137,11 @@ def get_diff():
 				       int(t.total_seconds()) * 1000 ]	)
 	all_logs = {'logs':{'data':logs, 'label': 'matches', 'id':'logs'}}	
 
-	for seconds in xrange(700, 1000, 100):
+	for seconds in xrange(900, 1000, 100):
 		out = __get_lower_rows(rows, seconds )
 		all_logs[out['id']] = out
 	
-	for seconds in xrange(700, 1000, 100):
+	for seconds in xrange(900, 1000, 100):
 		out_m = __get_median_rows(rows, seconds)
 		all_logs[out_m['id']] = out_m
 
