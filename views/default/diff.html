@@ -82,8 +82,10 @@
 				},
 			crosshair: { mode: "x" },
 			y2axis: {mode: null},
-			series:{ lines: { show: true, fill: true },
-				points: { show: true }},
+			points: { show: true },	
+			lines: { show: true, fill: true },
+//bars: {show: true, fill: true, align:'center', barWidth: 10000*60},
+
 pan: { interactive: true },
 /*xaxis, yaxis, x2axis, y2axis: {
 	zoomRange: null,  // or [ number, number ] (min range, max range) or false
@@ -120,7 +122,7 @@ tooltipOpts: {
 			if ($('#' + json[i].id))
 				$('#' + json[i].id).parent().remove();
 			var str = "<label class='checkbox'><input id='idJS' type='checkbox' checked='checkek'>labelJS</label>".replace(/labelJS/, json[i].label ).replace(/idJS/, json[i].id );
-			console.log(	json[i].id );		
+			//console.log(	json[i].id );		
 			splits = json[i].id.split('_')
 			$('#'+splits[0]).append(str).hide().slideDown();
 		}
@@ -128,15 +130,11 @@ tooltipOpts: {
 	}
 
 
-	function onDataReceived_add(json) {
+	/*function onDataReceived_add(json) {
 		datasets = json
-		
 		plotAccordingToChoices();
-	}
+	}*/
 
-	function onDataReceived_m (json) {
-		$.plot(placeholder_m, [json.data], { xaxis: { mode: "time", timeZoneOffset: "browser" }});
-	}
 
 
 	$(document).on('click', 'input', function() {
