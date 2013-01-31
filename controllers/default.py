@@ -16,7 +16,7 @@ def index():
 
 def wiki():
 	wiki = auth.wiki(render='html')
-	response.title += " - %s" % wiki['title']
+	response.page_title += " - %s" % wiki['title']
 	return wiki
 
 @auth.requires_login()
