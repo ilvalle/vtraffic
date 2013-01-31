@@ -15,7 +15,9 @@ def index():
 	redirect(URL(f='wiki', args=['about']))
 
 def wiki():
-	return auth.wiki(render='html')
+	wiki = auth.wiki(render='html')
+	response.title += " - %s" % wiki['title']
+	return wiki
 
 @auth.requires_login()
 def add_log():
@@ -116,7 +118,7 @@ def origin_destination():
 	info = {'n': len(rows), 'n_start':n_start, 'n_end':n_end}
 	return response.render('default/diff.html', {'info':info})
 
-@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
+#@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
 def get_diff():
 	session.forget(response)
 	id_start = 13
@@ -143,7 +145,7 @@ def get_diff():
 	hours = __get_trend(id_start, 3600)
 	#tens = __get_trend(id_start, 600)
 	fifteens = __get_trend(id_start, 900)
-	all_logs['trendstart_h'] = {'data':hours, 'label': 'trend start h', 'id':'trendstart_h', 'yaxis': 2 }
+	all_logs['trendstart_h'] = {'data':hours, 'label': 'trend start h', 'id':'trendstart_h', 'yaxis': 2, 'bars':{'show':'true', 'fill': 'true', 'align':'center', 'barWidth': 60*60*1000}, 'lines': {'show':'false'}}
 	#all_logs['trendstart_10'] = {'data':tens, 'label': 'trend start 10m', 'id':'trendstart_10', 'yaxis': 2 }
 	all_logs['trendstart_15'] = {'data':fifteens, 'label': 'trend start 15m', 'id':'trendstart_15', 'yaxis': 2 }
 
