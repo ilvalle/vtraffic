@@ -16,7 +16,7 @@ def index():
 
 def wiki():
 	wiki = auth.wiki(render='html')
-	if isinstance (wiki, dict):
+	if isinstance (wiki, dict) and 'title' in wiki:
 		response.page_title += " - %s" % wiki['title']
 	return wiki
 
