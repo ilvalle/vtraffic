@@ -582,7 +582,9 @@ html, body {
 }
 
 
-
+.carousel .carousel-indicators .active {
+    background-color: #AA0031;
+}
 
 
 
