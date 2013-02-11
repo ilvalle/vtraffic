@@ -582,7 +582,15 @@ html, body {
 }
 
 
+.carousel .carousel-indicators .active {
+    background-color: #AA0031;
+}
 
-
+#githubSticker {
+    position: absolute; 
+    top: 40px; 
+    right: 0; 
+    border: 0;
+}
 
 
