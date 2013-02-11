@@ -2,12 +2,12 @@
 <section>
 <div class='span2'>
 <div class='well' style="padding: 0px 0px;">
-	<ul id='median' class="nav nav-list">
-		<li class='nav-header'>Median</li>
-		<!--div id="slider-range-min_medians"></div-->
+	<ul id='mode' class="nav nav-list">
+		<li class='nav-header'>Mode</li>
+		<!--div id="slider-range-min_modes"></div-->
 		<div class="input-append">
 			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
-			<a href='#' onclick="add_line('median')" class="add-on pointer"><i class='icon-plus'></i></a>
+			<a href='#' onclick="add_line('mode')" class="add-on pointer"><i class='icon-plus'></i></a>
 		</div>
 	</ul>
 
@@ -209,7 +209,7 @@ tooltipOpts: {
 	});
 
 	/*$(function() {
-      	$( "#slider-range-min_medians" ).slider({
+      	$( "#slider-range-min_modes" ).slider({
             range: "min",
             value: 800,
             min: 100,
@@ -226,7 +226,7 @@ tooltipOpts: {
                 $( "#amount" ).val( ui.value );
             }
         });
-        $( "#amount" ).val( $( "#slider-range-min_medians" ).slider( "value" ) );
+        $( "#amount" ).val( $( "#slider-range-min_modes" ).slider( "value" ) );
     });*/
 /*
     function showTooltip(x, y, contents) {

@@ -68,7 +68,7 @@ def compare():
 @cache(request.env.path_info + (request.vars.diff_temp or ''), time_expire=None, cache_model=cache.ram)
 def get_lines():
 	session.forget(response)
-	line_type = request.vars.type or 'median'
+	line_type = request.vars.type or 'mode'
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 900
 	except:	block_seconds = 900
 	day = start.gathered_on.year() | start.gathered_on.month() | start.gathered_on.day()  
@@ -81,7 +81,7 @@ def get_lines():
 						cache=(cache.ram, 3600),
 						cacheable = True)	
 	out={}
-	# make the median day by day
+	# make the mode day by day
 	for d in days:
 		year, month, day  = d[start.gathered_on.year()], d[start.gathered_on.month()], d[start.gathered_on.day()]
 
@@ -99,7 +99,7 @@ def get_lines():
 		if line_type == 'lower':
 			out = __get_lower_rows(rows_pos, block_seconds )
 		else:
-			dd = __get_median_rows(rows_pos, block_seconds, test=True)
+			dd = __get_mode_rows(rows_pos, block_seconds, test=True)
 			dd['id'] = dd['id'] + '%s' % day
 			out['%s' % dd['id']]=dd
 		
@@ -139,7 +139,7 @@ def get_diff():
 		all_logs[out['id']] = out
 	
 	for seconds in xrange(900, 1000, 100):
-		out_m = __get_median_rows(rows, seconds)
+		out_m = __get_mode_rows(rows, seconds)
 		all_logs[out_m['id']] = out_m
 
 	# single trends
@@ -168,8 +168,8 @@ def get_line():
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
 	except:	block_seconds = 500
 
-	if line_type == 'median':
-		out = __get_median(id_start, id_end, block_seconds)
+	if line_type == 'mode':
+		out = __get_mode(id_start, id_end, block_seconds)
 	elif line_type == 'lower':
 		out = __get_lower( id_start, id_end, block_seconds )
 	elif line_type == 'trendstart':
@@ -291,9 +291,9 @@ def __get_lower( id_start, id_end, block_seconds ):
 	rows = __get_rows_stations (id_start, id_end)
 	return __get_lower_rows(rows, block_seconds)
 
-def __get_median( id_start, id_end, block_seconds=800, vertical_block_seconds=30 ):
+def __get_mode( id_start, id_end, block_seconds=800, vertical_block_seconds=30 ):
 	rows = __get_rows_stations (id_start, id_end)
-	return __get_median_rows(rows, block_seconds, vertical_block_seconds, False)
+	return __get_mode_rows(rows, block_seconds, vertical_block_seconds, False)
 
 def __get_lower_rows( rows, block_seconds, test=False ):
 	l = []
@@ -326,7 +326,7 @@ def __get_lower_rows( rows, block_seconds, test=False ):
 	
 	return {'data': lower_bound,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
-def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=30, test=False):
+def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=False):
 	l = [] 
 	first=True
 	prev = rows[0]
@@ -342,7 +342,7 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=30, test=
 			first = False
 		prev = r
 
-	median=[]
+	mode=[]
 	fdate = l[0][0][start.gathered_on]
 	day = datetime.datetime(fdate.date().year, fdate.date().month, fdate.date().day)
 	for block in l:
@@ -352,7 +352,7 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=30, test=
 				seconds = (mdate-day).total_seconds()		
 			else:
 				seconds = block[1][start.gathered_on.epoch()]+3600
-			median.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
+			mode.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
 		else:
 			# compute the horizontal seconds
 			if test:
@@ -364,7 +364,7 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=30, test=
 			if len(block) >= 1 and len(block) <= 2:
 				# pass instead of plotting real value, otherwise it will draw odd valuea 
 				pass
-				#median.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
+				#mode.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
 			else:
 				initial_time_frame = min([(r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
 				end_time_frame = max( [ (r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
@@ -377,14 +377,14 @@ def __get_median_rows( rows, block_seconds=800, vertical_block_seconds=30, test=
 					windows[cur_pos] += 1
 
 				tot = initial_time_frame + (vertical_block_seconds * windows.index(max(windows)))
-				median.append ( [(seconds + block_seconds/2) * 1000,
+				mode.append ( [(seconds + block_seconds/2) * 1000,
 						 (tot + (vertical_block_seconds/2))  * 1000] )
 	if test:
 		label = fdate.strftime('%a %d, %b' )
 		#label += " [M(%(name)s)]" % {'name':block_seconds}
 	else:
-		label = "Median (%ss)" % block_seconds
-	return {'data': median,'label':label, 'id':'median_%s' %  block_seconds };
+		label = "Mode (%ss)" % block_seconds
+	return {'data': mode,'label':label, 'id':'mode_%s' %  block_seconds };
 
 def user():
     return dict(form=auth())
