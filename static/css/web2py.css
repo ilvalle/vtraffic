@@ -400,18 +400,16 @@ header p {
     line-height: 1;
 }
 
-/*header:after {
-    background: url("../img/bs-docs-masthead-pattern.png") repeat scroll center center transparent;
-    bottom: 0;
-    content: "";
-    display: block;
-    left: 0;
-    opacity: 0.4;
-    position: absolute;
-    right: 0;
-    top: 0;
-}*/
+header .container {
+	margin-left: 20px;
+	margin-right: 20px;
+}
 
+#githubSticker {
+    top: 40px; 
+    right: 0; 
+    border: 0;
+}
 
 .bs-docs-sidebar .bs-docs-sidenav {
   width: 228px;
@@ -495,6 +493,12 @@ header p {
     margin-top: 30px;
     margin-right: 0;
   }
+  header {
+    padding-top: 20px;
+  }
+  #githubSticker {
+	display: none;
+  }
 }
 
 /* Tablet to desktop
@@ -515,6 +519,12 @@ header p {
   }
   .bs-docs-sidenav.affix {
     top: 0;
+  }
+  header {
+    padding-top: 20px;
+  }
+  #githubSticker {
+	display: none;
   }
 }
 
@@ -543,6 +553,12 @@ header p {
     width: auto;
     top: 0;
   }
+  header {
+    padding-top: 10px;
+  }
+  #githubSticker {
+	display: none;
+  }
 }
 
 /* Landscape phones
@@ -555,10 +571,15 @@ header p {
   header {
     margin-top: -20px; /* Offset bottom margin on .navbar */
   }
-
   /* Downsize the jumbotrons */
   header h1 {
     font-size: 45px;
+  }
+  header {
+    padding-top: 10px;
+  }
+  #githubSticker {
+	display: none;
   }
 }
 
@@ -586,11 +607,6 @@ html, body {
     background-color: #AA0031;
 }
 
-#githubSticker {
-    position: absolute; 
-    top: 40px; 
-    right: 0; 
-    border: 0;
-}
+
 
 
