@@ -10,7 +10,7 @@ h3 {font-size:2.00em}
 h4 {font-size:1.50em}
 h5 {font-size:1.25em}
 h6 {font-size:1.12em}
-th,label {font-weight:bold; white-space:nowrap;}
+th,label {font-weight:bold; white-space: normal; word-wrap: break-word;}
 td,th {text-align:left; padding:2px 5px 2px 5px}
 th {vertical-align:middle; border-right:1px solid white}
 td {vertical-align:top}
@@ -318,25 +318,35 @@ li.w2p_grid_breadcrumb_elem {
 .ie9 #w2p_query_panel {padding-bottom:2px}
 
 .chart, #traffic_chart_m {
-    background: linear-gradient(#F6F6F6 0px, #FFFFFF 50px) repeat scroll 0 0 transparent;
-    border-left: 1px solid #DDDDDD;
-    border-right: 1px solid #DDDDDD;
-    border-bottom: 1px solid #DDDDDD;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-    height: 500px;
+    background-color: #F5F5F5;
+    border: 1px solid #E3E3E3;
+/*    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);*/
+    height: 370px;
     margin: 0px auto 30px;
     padding-left: 10px;
-    padding-right: 10px;
+    padding-right: 10px;    
+    padding-top: 10px;
     padding-bottom: 60px;
-
     border-radius: 5px 5px 5px 5px;
+	position: relative;
+
+	-webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+	   -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+	        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+
+	/*-webkit-box-shadow: inset 0 3px 3px rgba(0,0,0,.15), 0 -3px 3px rgba(0, 0, 0, 0.2) inset;
+	   -moz-box-shadow: inset 0 3px 3px rgba(0,0,0,.15), 0 -3px 3px rgba(0, 0, 0, 0.2) inset;
+	        box-shadow: inset 0 3px 3px rgba(0,0,0,.15), 0 -3px 3px rgba(0, 0, 0, 0.2) inset;*/
 }
 .nav.nav-tabs{
     padding-bottom: 0px;
     margin-bottom: 0px;
 }
 #map_canvas{
-    height: 500px;
+    height: 370px;
+}
+#loading {
+	position: absolute;
 }
 
 #slider-range-min {
@@ -366,12 +376,12 @@ body > .navbar li a.brand:hover {
 }
 
 header {
-    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2) inset, 0 -3px 7px rgba(0, 0, 0, 0.2) inset;
+	box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2) inset, 0 -3px 7px rgba(0, 0, 0, 0.2) inset;
     color: #FFFFFF;
-    padding-top: 65px;
+    padding-top: 50px;
     padding-right: 0;
     padding-left: 0;
-    padding-bottom: 25px;
+    padding-bottom: 0px;
     position: relative;
     /*margin-top:40px;*/
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 0, 0, 0.075); 
@@ -409,6 +419,7 @@ header .container {
     top: 40px; 
     right: 0; 
     border: 0;
+	position: absolute;
 }
 
 .bs-docs-sidebar .bs-docs-sidenav {
@@ -475,6 +486,35 @@ header .container {
   bottom: 270px;
 }
 
+#logs a input {
+	margin-top: -2px;
+	margin-right: 5px;
+}
+
+.legend_box {
+	margin-right: 5px;
+	margin-left: 5px;
+	border: 1px solid #ccc;
+	padding: 1px;
+}
+
+.legend_box_color {
+	border-radius: 2px 2px 2px 2px;
+    display: inline-block;
+    float: left;
+    height: 16px;
+	line-height: 16px;
+    /*margin-left: -5px;*/
+    margin-right: 4px;
+	margin-top: 1px;
+    width: 6px;
+	background-color: #ccc;
+	white-space: nowrap;
+}
+
+.chart .nav-pills {
+	margin-bottom: 5px;
+}
 /* Desktop
 ------------------------- */
 @media (max-width: 980px) {

@@ -5,19 +5,21 @@
 <!--[if IE 7]><html class="ie ie7 ie-lte9 ie-lte8 ie-lte7 no-js" lang="{{=T.accepted_language or 'en'}}"> <![endif]-->
 <!--[if IE 8]><html class="ie ie8 ie-lte9 ie-lte8 no-js" lang="{{=T.accepted_language or 'en'}}"> <![endif]-->
 <!--[if IE 9]><html class="ie9 ie-lte9 no-js" lang="{{=T.accepted_language or 'en'}}"> <![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--> 
-<html class="no-js" lang="{{=T.accepted_language or 'en'}}"> <!--<![endif]-->
-<head>
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'en'}}"> <!--<![endif]-->
+<head> 
   <title>{{=response.page_title or request.application}}</title>
-  <!--[if IE]>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
+  <!--[if !HTML5]>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
   <![endif]-->
+  <!-- www.phpied.com/conditional-comments-block-downloads/ -->
+  <!-- Always force latest IE rendering engine
+       (even in intranet) & Chrome Frame
+       Remove this if you use the .htaccess -->
+
   <meta charset="utf-8" />
-  
+
   <!-- http://dev.w3.org/html5/markup/meta.name.html -->
   <meta name="application-name" content="{{=request.application}}" />
-
-
   <!--  Mobile Viewport Fix
         j.mp/mobileviewport & davidbcalhoun.com/2010/viewport-metatag
         device-width: Occupy full width of the screen in its current orientation
