@@ -19,7 +19,10 @@ response.google_analytics_id = "UA-34703572-1"
 response.google_map_key = 'AIzaSyA9DDSrqpql5y89lZfnnwu6dkOiCcLf9Bk'
 
 response.menu = [
-	(A('INTEGREEN', _href="http://integreen-life.bz.it/", _class="brand"), False, None),
+	(SPAN('INTEGREEN'), False, 'http://www.integreen-life.bz.it', [
+        (A(CAT(TAG.I(_class="icon-info-sign"), " %s" % T('Parking situation')), _href='http://parking.integreen-life.bz.it', _title="Bolzano parking situation") , False, None),
+		(A(CAT(TAG.I(_class="icon-road"), " %s" %  T('Traffic monitoring')),_href='http://traffic.integreen-life.bz.it', _title="Bluetooth traffic monitoring"), False, None),
+	]),
 	(T('Origin/Destination'), request.function == 'origin_destination' , URL('default', 'origin_destination')),
 	(T('Compare'), request.function == 'compare' , URL('default', 'compare'), []),
 ]
