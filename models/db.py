@@ -20,7 +20,7 @@ if not request.is_local:
 	#session.connect(request,response,db=MEMDB(cache.memcache))
 
 ## (optional) optimize handling of static files
-#response.optimize_css = 'concat,minify,inline'
+response.optimize_css = 'concat,minify'
 response.optimize_js = 'concat,minify'
 from gluon.tools import Auth
 auth = Auth(db)
