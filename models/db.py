@@ -9,15 +9,16 @@ db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
 	lazy_tables=not(MIGRATE),
+	pool_size=3
 )
 
-if not request.is_local:
-	from gluon.contrib.memcache import MemcacheClient
-	#from gluon.contrib.memdb import MEMDB
-	memcache_servers = ['127.0.0.1:11211']
-	cache.memcache = MemcacheClient(request, memcache_servers)
-	cache.ram = cache.disk = cache.memcache
-	#session.connect(request,response,db=MEMDB(cache.memcache))
+#if not request.is_local:
+from gluon.contrib.memcache import MemcacheClient
+#from gluon.contrib.memdb import MEMDB
+memcache_servers = ['127.0.0.1:11211']
+cache.memcache = MemcacheClient(request, memcache_servers)
+#cache.ram = cache.disk = cache.memcache
+#session.connect(request,response,db=MEMDB(cache.memcache))
 
 ## (optional) optimize handling of static files
 response.optimize_css = 'concat,minify'
@@ -29,9 +30,9 @@ auth.define_tables(username=True, migrate=MIGRATE)
 
 ## configure email
 mail = auth.settings.mailer
-mail.settings.server = 'logging' or 'smtp.gmail.com:587'
-mail.settings.sender = 'you@gmail.com'
-mail.settings.login = 'username:password'
+mail.settings.server = 'smtp.digital.tis.bz.it:25'
+#mail.settings.sender = 'you@gmail.com'
+#mail.settings.login = 'username:password'
 
 ## configure auth policy
 auth.settings.registration_requires_verification = False
