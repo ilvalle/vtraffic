@@ -31,7 +31,7 @@ auth.define_tables(username=True, migrate=MIGRATE)
 ## configure email
 mail = auth.settings.mailer
 mail.settings.server = 'smtp.digital.tis.bz.it:25'
-#mail.settings.sender = 'you@gmail.com'
+mail.settings.sender = 'project@integreen-life.bz.it'
 #mail.settings.login = 'username:password'
 
 ## configure auth policy
