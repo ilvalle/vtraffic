@@ -1,0 +1,175 @@
+{{extend 'layout.html'}}
+<section>
+<div class='span3'>
+<div class='well' style="padding: 7px 0px;">
+	<ul id='logs' class="nav nav-list">
+		<li class="nav-header">Monitoring stations</li>
+		{{for station in stations:}}
+			<li><a id='station_{{=station['id']}}' title="{{='%s %s' % (T('Station'), station['name']) }}" href="#" class="muted">
+				<span class="legend_box_color"> </span>
+				{{=station['name']}}
+			</a></li>	
+		{{pass}}
+	</ul>
+</div>
+</div>
+<div class="span9">
+<div class='row-fluid'>
+	<div id="myTabContent" class="chart">
+		<span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
+		<!--a id="print" title="{{=T('Save image')}}" href="#" class="btn pull-right"><i class="icon-print"></i></a-->
+		<ul class="nav nav-pills"> 
+		<li class="active"><a class='group' href="#" id="group_1">group by 1hour</a></li>
+		<li><a href="#" class='group' id="group_6">group by 6hour</a></li>
+		<li><a href="#" class='group' id="group_24">group by  1day</a></li>
+		</ul>
+		<div id="traffic_chart_h"  style="height:370px"></div>
+	</div>
+</div>
+</div>
+<script>    
+	//$('#loading').hide();
+	/*var d = new Date();
+	m_seconds = d.getTime();
+	console.log(m_seconds);
+	var min_seconds = m_seconds-1000*60*60*24*7;
+	console.log(m_seconds, min_seconds);*/
+	var options = { 
+		xaxis: { mode: "time", timeZoneOffset: "browser", alignTicksWithAxis:true},
+		yaxis: { position: 'left', axisLabel: "{{=T('Free slots')}}", zoomRange: false, panRange: false, },
+		series:{ lines: { show: false, fill: false },
+				 points: { show: false },
+				 bars: {show: true},
+				},
+		crosshair: { mode: null },
+		pan: { interactive: true },
+		zoom: { interactive: true},
+		tooltip: true, 
+		legend: {show: false, backgroundOpacity: 0},    
+		tooltipOpts: {
+			content:      "%s |  %x |  %y",
+			xDateFormat: "%b %d, %H:%M:%S",
+			defaultTheme:  true,
+		},
+		grid: {
+			color: "#444444",
+			/*	backgroundColor: "#DDDDDD",*/
+			backgroundColor: {
+				colors: ["#fff", "#e4f4f4"]
+			},
+			borderColor: "#FFFFFF",
+			tickColor: "#CCCCCC",
+			//aboveData: false,
+			borderWidth: 1,
+			clickable: true,
+			hoverable: true,
+			autoHighlight: true,
+			markings: function(axes) {
+				var markings = [];
+				var xaxis = axes.xaxis;
+				for (var x = Math.floor(xaxis.min); x < xaxis.max; x += xaxis.tickSize * 2) {
+					markings.push({ xaxis: { from: x, to: x + xaxis.tickSize }, color: "rgba(232, 232, 255, 0.2)" });
+				}
+				return markings;
+			}
+		},
+		touch: {autoHeight: false, autoWidth: false},
+	}
+	var placeholder = $("#traffic_chart_h");
+	var datasets = {};	// All data available
+	var data = [];		// All data shown
+	var interval = 1; 	// Default 7 days
+
+	function onDataReceived (json) {
+		for (var k in json) {
+			json[k]['label'] = $('#'+k).attr('title') ;
+			data.push(json[k]);
+		}
+		$.extend(datasets, json);
+		interval = $("li.active a[class='group']").attr('id').split('_')[1];
+		console.log(interval);
+		options.series.bars.barWidth = 60*60*1000*interval;
+		plotAccordingToChoices();
+	}
+
+	$(document).on('click', '#logs a', function() {
+		var key = $(this).attr("id");	
+		$(this).toggleClass('muted');
+
+		if (typeof datasets[key] === "undefined") {
+			if ( ! $(this).hasClass('muted')) { 
+				return get_station_history(key.split('_')[1])
+			} else { 
+				// skip already coming call			
+				$(this).toggleClass('muted');
+			}
+		} else {
+			if ($(this).hasClass('muted')) {
+				if (key && datasets[key]) {
+					$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
+					var index = jQuery.inArray(datasets[key], data);
+					data.splice(index, 1);
+				}
+			} else {
+				if (key && datasets[key])
+					data.push(datasets[key]);
+			}
+		}
+		plotAccordingToChoices();	
+	});
+
+	function plotAccordingToChoices() {
+		if (data.length>1) {
+			options.crosshair.mode = 'x';
+		} else {
+			options.crosshair.mode = null;
+		}
+		$('#loading').hide();
+		var plot = $.plot($(placeholder), data, options);
+		/* get color assigned to the data series */
+		var dataPlotted = plot.getData();
+		for (var d in dataPlotted) {
+			$('#station_' + dataPlotted[d].station_id).children('span.legend_box_color').css('background-color', dataPlotted[d].color);
+		}
+	}
+
+	$(document).on('click', "li a[class='group']", function() {
+		$(this).parent().siblings().removeClass('active');
+		$(this).parent().addClass('active');
+		var next_interval = $(this).attr('id').split('_')[1];
+		if (next_interval === interval) return;
+		interval = next_interval;
+		datasets = {};	//errase different interval data TODO fix it
+		keys=[]
+		for (key in data) {
+/*			console.log(data[key]['station_id']);
+			keys.push (data[key]['station_id']);*/
+			get_station_history(data[key]['station_id']);
+		}
+		data = [];
+		for (key in keys) {
+			console.log(key);
+			get_station_history(key);	
+		}
+	});
+
+	$(document).on('click', '#print', function() {
+		canvas = $(placeholder).children('canvas')[0];
+		dataUrl = canvas.toDataURL();
+		//window.open(dataUrl, "toDataURL() image", "width=1000, height=600");
+		rawImageData = dataUrl.replace("image/png", "image/octet-stream")
+        document.location.href = rawImageData;
+	});
+	function get_station_history(station_id) {
+		$('#loading').show();
+		$.ajax({
+			url: '{{=URL("plot", "get_history.json", args=['station_idJS'], vars={'interval':'intervalJs'} )}}'.replace(/station_idJS/,station_id).replace(/intervalJs/, interval),
+			method: 'GET',
+		    dataType: 'json',
+		    success: onDataReceived
+		});
+	}
+	// Starting call
+	$("#station_" + {{=station_id}}).click();
+</script>
+</section>
