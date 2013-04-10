@@ -6,7 +6,9 @@ import datetime, time
 start = db.record.with_alias('start_point')
 end = db.record.with_alias('end_point')
 
-if request.function != 'wiki':	# temp fix due to double menu
+# temp fix due to double menu
+zero = request.args(0) or 'index'
+if request.function != 'wiki' and zero and not(zero.isdigit()):
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth).menu(controller="default", function="wiki")
 
