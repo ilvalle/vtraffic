@@ -18,6 +18,12 @@
 	<div id="myTabContent" class="chart">
 		<span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
 		<!--a id="print" title="{{=T('Save image')}}" href="#" class="btn pull-right"><i class="icon-print"></i></a-->
+		<form class="pull-right">
+			<label class="radio inline"><input name="graph" type='radio' value="bars" checked='checked' class='graph' id="bars_1"/>bars
+			</label>
+			<label class="radio inline"><input name="graph" type='radio' value="lines" class='graph' id="lines_6"/>lines
+			</label>
+		</form>
 		<ul class="nav nav-pills"> 
 		<li class="active"><a class='group' href="#" id="group_1">group by 1hour</a></li>
 		<li><a href="#" class='group' id="group_6">group by 6hour</a></li>
@@ -82,12 +88,11 @@
 
 	function onDataReceived (json) {
 		for (var k in json) {
-			json[k]['label'] = $('#'+k).attr('title') ;
+			/*json[k]['label'] = $('#'+k).attr('title') ;*/
 			data.push(json[k]);
 		}
 		$.extend(datasets, json);
 		interval = $("li.active a[class='group']").attr('id').split('_')[1];
-		console.log(interval);
 		options.series.bars.barWidth = 60*60*1000*interval;
 		plotAccordingToChoices();
 	}
@@ -114,6 +119,18 @@
 				if (key && datasets[key])
 					data.push(datasets[key]);
 			}
+		}
+		plotAccordingToChoices();	
+	});
+
+	$(document).on('click', "input[name='graph']", function() {
+		serie = $(this).attr('value');
+		if (serie == 'bars') {
+			options.series.lines.show = false;
+			options.series.bars.show = true;
+		} else {
+			options.series.lines.show = true;
+			options.series.bars.show = false;
 		}
 		plotAccordingToChoices();	
 	});

@@ -9,7 +9,9 @@ def get_history():
 	station_id = request.args(0) or 'index'
 	#n_days = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 7
 	n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
-	if not(station_id and station_id.isdigit()): raise HTTP(404)
+	station = db(db.station.id == station_id).select(db.station.name, cache=(cache.ram, 3600))
+	if not(station_id and station_id.isdigit()) or len(station) != 1: raise HTTP(404)
+	station = station.first()
 	#now = request.now
 	#days_back = now - timedelta(days=n_days)
 	epoch = db.record.gathered_on.epoch()
@@ -27,4 +29,4 @@ def get_history():
 		output.append( [ key*60*60*1000*n_hours, len(l)] ) 
 	t2 = time.time()
 	#print 'T', t2-t0, 't0', t1-t0, 't1', t2-t1
-	return response.render('generic.json', {'station_%s' % station_id:{'data':output, 'station_id':station_id}})	
+	return response.render('generic.json', {'station_%s' % station_id:{'data':output, 'station_id':station_id, 'label': station.name}})	
