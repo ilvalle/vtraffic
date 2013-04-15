@@ -25,7 +25,7 @@ response.menu = [
 	]),
 	(T('Origin/Destination'), request.function == 'origin_destination' , URL('default', 'origin_destination')),
 	(T('Compare'), request.function == 'compare' , URL('default', 'compare')),
-	(T('Graph'), request.function == 'plot' , URL('default', 'plot'))
+	(T('Graph'), request.function == 'plot' , URL('plot', 'index'))
 ]
 if session.auth and auth.is_logged_in():
 	response.menu.insert(1, (T('manage'), False, None, [
