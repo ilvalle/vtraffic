@@ -40,8 +40,9 @@
 	console.log(m_seconds);
 	var min_seconds = m_seconds-1000*60*60*24*7;
 	console.log(m_seconds, min_seconds);*/
+	timezoneJS.timezone.zoneFileBasePath = '{{=URL('vtraffic', 'static/js', 'tz')}}';
 	var options = { 
-		xaxis: { mode: "time", timeZoneOffset: "browser", alignTicksWithAxis:true},
+		xaxis: { mode: "time", timezone: "Europe/Rome", alignTicksWithAxis:true},
 		yaxis: { position: 'left', axisLabel: "{{=T('Vehicles detected')}}", zoomRange: false, panRange: false, },
 		series:{ lines: { show: false, fill: false },
 				 points: { show: false },
