@@ -1,3 +1,5 @@
+#tz_offset = 3600
+
 def index():
 	stations = db(db.station).select(db.station.ALL)
 	return {'stations':stations, 'station_id':15}
@@ -21,10 +23,10 @@ def get_history():
 	data = db(	(db.record.station_id == station_id) 
 				#& (db.record.gathered_on >= days_back) 
 				#& (db.record.gathered_on <= request.now)
-			).select(epoch, orderby=epoch, cache=(cache.ram, 3600))
+			).select(epoch, orderby=epoch) #, cache=(cache.ram, 3600)
 	t1 = time.time()
 	output = []
-	for key, group in groupby(data, lambda x: (x[epoch] + 3600) / ( 60 * 60 * n_hours)):
+	for key, group in groupby(data, lambda x: (x[epoch]) / ( 60 * 60 * n_hours)):
 		l = list(group)
 		output.append( [ key*60*60*1000*n_hours, len(l)] ) 
 	t2 = time.time()
