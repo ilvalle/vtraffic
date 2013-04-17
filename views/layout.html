@@ -76,7 +76,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <ul id="navbar" class="nav pull-right">{{='auth' in globals() and auth.navbar(mode="dropdown") or ''}}</ul>
+        <ul id="navbar" class="nav pull-right">{{= auth.navbar( action="/scapp/def", mode="dropdown" ) }}</ul>
         <div class="nav-collapse">
           {{is_mobile=request.user_agent().is_mobile}}
           {{if response.menu:}}
@@ -157,7 +157,7 @@
   });</script>
   {{pass}}
   <script>
-	$('.container .row a').popover({trigger:'hover', placement:'top', html:true});
+	$('.container .row a').popover({trigger:'hover', placement:'bottom', html:true});
   </script>
 </body>
 </html>

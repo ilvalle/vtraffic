@@ -5,7 +5,7 @@
 	<ul id='logs' class="nav nav-list">
 		<li class="nav-header">Monitoring stations</li>
 		{{for station in stations:}}
-			<li><a id='station_{{=station['id']}}' title="{{='%s %s' % (T('Station'), station['name']) }}" href="#" class="muted">
+			<li><a id='station_{{=station['id']}}' title="{{='%s %s' % (T('Station'), station['name']) }}" href="#" class="muted" data-content="{{=get_static_img( station['lat'], station['lgt'])}}">
 				<span class="legend_box_color"> </span>
 				{{=station['name']}}
 			</a></li>	
