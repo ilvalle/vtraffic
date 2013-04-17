@@ -1,0 +1,25 @@
+<h4>Last 7days </h4>
+<table class="table table-striped">
+<thead><tr>
+<th>{{=T('Monitoring station')}}</th>
+<th>{{=T('Total detected')}}</th>
+<th>{{=T('Unique detected')}}</th>
+<th>{{=T('Average (day)')}}</th>
+<th>{{=T('Min value (day)')}}</th>
+<th>{{=T('Max value (day)')}}</th>
+</tr></thead>
+
+<tbody>
+{{for station in stations:}}
+	<tr>
+		<td>{{=station['name']}}</td>
+		<td>{{=station['total_detected']}}</td>
+		<td>{{=station['unique_detected']}}</td>
+		<td>{{=station['avg']}}</td>
+		<td>{{=station['min']['detected']}}</td>
+		<td>{{=station['max']['detected']}}</td>
+		<td><label class="label {{='label-success' if station['active'] == 'active' else 'label-important'}}">{{=station['active']}}</label></td>
+	</tr>
+{{pass}}
+</tbody>
+</table>
