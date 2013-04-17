@@ -45,7 +45,10 @@
 	console.log(m_seconds, min_seconds);*/
 	timezoneJS.timezone.zoneFileBasePath = '{{=URL('vtraffic', 'static/js', 'tz')}}';
 	var options = { 
-		xaxis: { mode: "time", timezone: "Europe/Rome", alignTicksWithAxis:true},
+		xaxis: { 
+			mode: "time", timezone: "Europe/Rome", alignTicksWithAxis:true,
+			dayNames: ['{{=T('Sun')}}', '{{=T('Mon')}}', '{{=T('Tue')}}', '{{=T('Wen')}}', '{{=T('Thu')}}', '{{=T('Fri')}}', '{{=T('Sat')}}'] 
+		},
 		yaxis: { position: 'left', axisLabel: "{{=T('Vehicles detected')}}", zoomRange: false, panRange: false, },
 		series:{ lines: { show: false, fill: false },
 				 points: { show: false },
@@ -58,7 +61,7 @@
 		legend: {show: false, backgroundOpacity: 0},    
 		tooltipOpts: {
 			content:      "%s |  %x |  %y",
-			xDateFormat: "%b %d, %H:%M:%S",
+			xDateFormat: "%a, %b %d, %H:%M",
 			defaultTheme:  true,
 		},
 		grid: {
