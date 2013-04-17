@@ -76,7 +76,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <ul id="navbar" class="nav pull-right">{{= auth.navbar( action="/scapp/def", mode="dropdown" ) }}</ul>
+        <ul id="navbar" class="nav pull-right">{{= auth.navbar(  mode="dropdown" ) }}</ul>
         <div class="nav-collapse">
           {{is_mobile=request.user_agent().is_mobile}}
           {{if response.menu:}}
