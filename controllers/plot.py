@@ -17,7 +17,6 @@ def get_history():
 	station = station.first()
 	#now = request.now
 	#days_back = now - timedelta(days=n_days)
-	epoch = db.record.gathered_on.epoch()
 	day = db.record.gathered_on.day()
 	import time
 	t0 = time.time()	

@@ -1,8 +1,9 @@
-/*! Javascript plotting library for jQuery, version 0.8 alpha.
- *
- * Released under the MIT license by IOLA, December 2007.
- *
- */
+/* Javascript plotting library for jQuery, version 0.8 alpha.
+
+Copyright (c) 2007-2012 IOLA and Ole Laursen.
+Licensed under the MIT license.
+
+*/
 
 // first an inline dependency, jquery.colorhelpers.js, we inline it here
 // for convenience
@@ -105,6 +106,8 @@
                         fill: false,
                         fillColor: null,
                         steps: false
+                        // Omit 'zero', so we can later default its value to
+                        // match that of the 'fill' option.
                     },
                     bars: {
                         show: false,
@@ -113,7 +116,8 @@
                         fill: true,
                         fillColor: null,
                         align: "left", // "left", "right", or "center"
-                        horizontal: false
+                        horizontal: false,
+                        zero: true
                     },
                     shadowSize: 3,
                     highlightColor: null
@@ -420,10 +424,10 @@
 
         function fillInSeriesOptions() {
 
-            var neededColors = series.length, maxIndex = 0, i;
+            var neededColors = series.length, maxIndex = -1, i;
 
-            // Subtract the number of series that already have fixed
-            // colors from the number we need to generate.
+            // Subtract the number of series that already have fixed colors or
+            // color indexes from the number that we still need to generate.
 
             for (i = 0; i < series.length; ++i) {
                 var sc = series[i].color;
@@ -435,14 +439,15 @@
                 }
             }
 
-            // If any of the user colors are numeric indexes, then we
-            // need to generate at least as many as the highest index.
+            // If any of the series have fixed color indexes, then we need to
+            // generate at least as many colors as the highest index.
 
-            if (maxIndex > neededColors) {
+            if (neededColors <= maxIndex) {
                 neededColors = maxIndex + 1;
             }
 
-            // Generate the needed colors, based on the option colors
+            // Generate all the colors, using first the option colors and then
+            // variations on those colors once they're exhausted.
 
             var c, colors = [], colorPool = options.colors,
                 colorPoolSize = colorPool.length, variation = 0;
@@ -496,6 +501,13 @@
                         s.lines.show = true;
                 }
 
+                // If nothing was provided for lines.zero, default it to match
+                // lines.fill, since areas by default should extend to zero.
+
+                if (s.lines.zero == null) {
+                    s.lines.zero = !!s.lines.fill;
+                }
+
                 // setup axes
                 s.xaxis = getOrCreateAxis(xaxes, axisNumber(s, "x"));
                 s.yaxis = getOrCreateAxis(yaxes, axisNumber(s, "y"));
@@ -545,7 +557,8 @@
                     format.push({ y: true, number: true, required: true });
 
                     if (s.bars.show || (s.lines.show && s.lines.fill)) {
-                        format.push({ y: true, number: true, required: false, defaultValue: 0 });
+                        var autoscale = !!((s.bars.show && s.bars.zero) || (s.lines.show && s.lines.zero));
+                        format.push({ y: true, number: true, required: false, defaultValue: 0, autoscale: autoscale });
                         if (s.bars.horizontal) {
                             delete format[format.length - 1].y;
                             format[format.length - 1].x = true;
@@ -659,7 +672,7 @@
                     for (m = 0; m < ps; ++m) {
                         val = points[j + m];
                         f = format[m];
-                        if (!f || val == fakeInfinity || val == -fakeInfinity)
+                        if (!f || f.autoscale === false || val == fakeInfinity || val == -fakeInfinity)
                             continue;
 
                         if (f.x) {
@@ -737,15 +750,13 @@
             return devicePixelRatio / backingStoreRatio;
         }
 
-        function makeCanvas(skipPositioning, cls) {
+        function makeCanvas(cls) {
 
             var c = document.createElement('canvas');
             c.className = cls;
 
-            if (!skipPositioning)
-                $(c).css({ position: 'absolute', left: 0, top: 0 });
-
-            $(c).appendTo(placeholder);
+			$(c).css({ direction: "ltr", position: "absolute", left: 0, top: 0 })
+				.appendTo(placeholder);
 
 			// If HTML5 Canvas isn't available, fall back to Excanvas
 
@@ -841,8 +852,8 @@
 
                 getCanvasDimensions();
 
-                canvas = makeCanvas(true, "flot-base");
-                overlay = makeCanvas(false, "flot-overlay"); // overlay canvas for interactive features
+                canvas = makeCanvas("flot-base");
+                overlay = makeCanvas("flot-overlay"); // overlay canvas for interactive features
 
                 reused = false;
             }
@@ -884,7 +895,14 @@
             // bind events
             if (options.grid.hoverable) {
                 eventHolder.mousemove(onMouseMove);
-                eventHolder.mouseleave(onMouseLeave);
+
+                // Use bind, rather than .mouseleave, because we officially
+                // still support jQuery 1.2.6, which doesn't define a shortcut
+                // for mouseenter or mouseleave.  This was a bug/oversight that
+                // was fixed somewhere around 1.3.x.  We can return to using
+                // .mouseleave when we drop support for 1.2.6.
+
+                eventHolder.bind("mouseleave", onMouseLeave);
             }
 
             if (options.grid.clickable)
@@ -956,7 +974,7 @@
 
                 // accept various kinds of newlines, including HTML ones
                 // (you can actually split directly on regexps in Javascript,
-                // but IE is unfortunately broken)
+                // but IE < 9 is unfortunately broken)
                 var lines = (t.label + "").replace(/<br ?\/?>|\r\n|\r/g, "\n").split("\n");
                 for (var j = 0; j < lines.length; ++j) {
                     var line = { text: lines[j] },
@@ -1124,10 +1142,10 @@
 
             for (var a in plotOffset) {
                 if(typeof(options.grid.borderWidth) == "object") {
-                    plotOffset[a] = showGrid ? options.grid.borderWidth[a] : 0;
+                    plotOffset[a] += showGrid ? options.grid.borderWidth[a] : 0;
                 }
                 else {
-                    plotOffset[a] = showGrid ? options.grid.borderWidth : 0;
+                    plotOffset[a] += showGrid ? options.grid.borderWidth : 0;
                 }
             }
 
@@ -1256,40 +1274,47 @@
 
             if (!axis.tickGenerator) {
 
-                var maxDec = opts.tickDecimals;
-                var dec = -Math.floor(Math.log(axis.delta) / Math.LN10);
-                if (maxDec != null && dec > maxDec)
-                    dec = maxDec;
-
-                var magn = Math.pow(10, -dec);
-                var norm = axis.delta / magn; // norm is between 1.0 and 10.0
-                var size;
-
-                if (norm < 1.5)
-                    size = 1;
-                else if (norm < 3) {
-                    size = 2;
-                    // special case for 2.5, requires an extra decimal
-                    if (norm > 2.25 && (maxDec == null || dec + 1 <= maxDec)) {
-                        size = 2.5;
-                        ++dec;
-                    }
-                }
-                else if (norm < 7.5)
-                    size = 5;
-                else size = 10;
-
-                size *= magn;
-
-                if (opts.minTickSize != null && size < opts.minTickSize)
-                    size = opts.minTickSize;
-
-                axis.tickDecimals = Math.max(0, maxDec != null ? maxDec : dec);
-                axis.tickSize = opts.tickSize || size;
-
                 axis.tickGenerator = function (axis) {
-                    var ticks = [], start = floorInBase(axis.min, axis.tickSize),
-                        i = 0, v = Number.NaN, prev;
+                    var maxDec = opts.tickDecimals,
+                        dec = -Math.floor(Math.log(axis.delta) / Math.LN10);
+
+                    if (maxDec != null && dec > maxDec)
+                        dec = maxDec;
+
+                    var magn = Math.pow(10, -dec),
+                        norm = axis.delta / magn, // norm is between 1.0 and 10.0
+                        size,
+
+                        ticks = [],
+                        start,
+                        i = 0,
+                        v = Number.NaN,
+                        prev;
+
+                    if (norm < 1.5)
+                        size = 1;
+                    else if (norm < 3) {
+                        size = 2;
+                        // special case for 2.5, requires an extra decimal
+                        if (norm > 2.25 && (maxDec == null || dec + 1 <= maxDec)) {
+                            size = 2.5;
+                            ++dec;
+                        }
+                    }
+                    else if (norm < 7.5)
+                        size = 5;
+                    else size = 10;
+
+                    size *= magn;
+
+                    if (opts.minTickSize != null && size < opts.minTickSize)
+                        size = opts.minTickSize;
+
+                    axis.tickDecimals = Math.max(0, maxDec != null ? maxDec : dec);
+                    axis.tickSize = opts.tickSize || size;
+
+                    start = floorInBase(axis.min, axis.tickSize)
+
                     do {
                         prev = v;
                         v = start + i * axis.tickSize;
@@ -1301,7 +1326,7 @@
 
 				axis.tickFormatter = function (value, axis) {
 
-					var factor = Math.pow(10, axis.tickDecimals);
+					var factor = axis.tickDecimals ? Math.pow(10, axis.tickDecimals) : 1;
 					var formatted = "" + Math.round(value * factor) / factor;
 
 					// If tickDecimals was specified, ensure that we have exactly that
@@ -1750,8 +1775,10 @@
                         y += line.height/2 + offset;
                         offset += line.height;
 
-                        if ($.browser.opera) {
-                            // FIXME: UGLY BROWSER DETECTION
+                        if (!!(window.opera && window.opera.version().split('.')[0] < 12)) {
+                            // FIXME: LEGACY BROWSER FIX
+                            // AFFECTS: Opera < 12.00
+
                             // round the coordinates since Opera
                             // otherwise switches to more ugly
                             // rendering (probably non-hinted) and
@@ -2065,6 +2092,15 @@
                 sw = series.shadowSize,
                 radius = series.points.radius,
                 symbol = series.points.symbol;
+
+            // If the user sets the line width to 0, we change it to a very 
+            // small value. A line width of 0 seems to force the default of 1.
+            // Doing the conditional here allows the shadow setting to still be 
+            // optional even with a lineWidth of 0.
+
+            if( lw == 0 )
+                lw = 0.0001;
+
             if (lw > 0 && sw > 0) {
                 // draw shadow in two steps
                 var w = sw / 2;
@@ -2279,6 +2315,8 @@
             if (options.legend.sorted) {
                 if ($.isFunction(options.legend.sorted)) {
                     entries.sort(options.legend.sorted);
+                } else if (options.legend.sorted == "reverse") {
+                	entries.reverse();
                 } else {
                     var ascending = options.legend.sorted != "descending";
                     entries.sort(function(a, b) {
@@ -2293,7 +2331,7 @@
 
             for (var i = 0; i < entries.length; ++i) {
 
-                entry = entries[i];
+                var entry = entries[i];
 
                 if (i % options.legend.noColumns == 0) {
                     if (rowStarted)
@@ -2449,7 +2487,7 @@
         function onMouseMove(e) {
             if (options.grid.hoverable)
                 triggerClickHoverEvent("plothover", e,
-                                       function (s) { return !!s["hoverable"]; });
+                                       function (s) { return s["hoverable"] != false; });
         }
 
         function onMouseLeave(e) {
@@ -2460,7 +2498,7 @@
 
         function onClick(e) {
             triggerClickHoverEvent("plotclick", e,
-                                   function (s) { return !!s["clickable"]; });
+                                   function (s) { return s["clickable"] != false; });
         }
 
         // trigger click or hover event (they send the same parameters
@@ -2584,7 +2622,7 @@
 
         function drawPointHighlight(series, point) {
             var x = point[0], y = point[1],
-                axisx = series.xaxis, axisy = series.yaxis;
+                axisx = series.xaxis, axisy = series.yaxis,
                 highlightColor = (typeof series.highlightColor === "string") ? series.highlightColor : $.color.parse(series.color).scale('a', 0.5).toString();
 
             if (x < axisx.min || x > axisx.max || y < axisy.min || y > axisy.max)
@@ -2645,6 +2683,8 @@
         }
     }
 
+    // Add the plot function to the top level of the jQuery object
+
     $.plot = function(placeholder, data, options) {
         //var t0 = new Date();
         var plot = new Plot($(placeholder), data, options, $.plot.plugins);
@@ -2652,9 +2692,17 @@
         return plot;
     };
 
-    $.plot.version = "0.7";
+    $.plot.version = "0.8-alpha";
 
     $.plot.plugins = [];
+
+    // Also add the plot function as a chainable property
+
+    $.fn.plot = function(data, options) {
+        return this.each(function() {
+            $.plot(this, data, options);
+        });
+    }
 
     // round to nearby lower multiple of base
     function floorInBase(n, base) {
