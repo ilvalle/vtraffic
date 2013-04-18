@@ -40,6 +40,7 @@ auth.settings.registration_requires_verification = False
 auth.settings.registration_requires_approval = True
 auth.settings.reset_password_requires_verification = True
 auth.settings.actions_disabled.append('register')
+auth.settings.allow_basic_login = True
 T.is_writable = False
 
 db.define_table('station',
