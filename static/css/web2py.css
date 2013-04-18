@@ -515,6 +515,11 @@ header .container {
 .chart .nav-pills {
 	margin-bottom: 5px;
 }
+
+.modal img {
+	max-width: none;
+}
+
 /* Desktop
 ------------------------- */
 @media (max-width: 980px) {

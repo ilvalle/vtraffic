@@ -8,7 +8,7 @@
 {{
 	response.files.insert(0,URL('static','js/jquery.js'))
 	#response.files.insert(1,URL('static','css/calendar.css'))
-	#response.files.insert(2,URL('static','js/calendar.js'))
+	response.files.insert(2,URL('static','js/calendar.js'))
 	response.files.insert(3,URL('static','js/web2py.js'))
 	response.files.append(URL('static','js/bootstrap.min.js'))
 	response.files.append(URL('static','js/web2py_bootstrap.js'))
@@ -22,6 +22,7 @@
 	response.files.append(URL('static','js/jquery.flot.resize.js'))
 	response.files.append(URL('static','js/jquery.flot.axislabels.js'))
 	response.files.append(URL('static','js/vtraffic.js'))
+	response.files.append(URL('static','js/app.js'))
 	response.files.append(URL('static','js/modernizr.custom.js'))
 	
 	response.include_meta()

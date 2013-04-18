@@ -1,0 +1,52 @@
+{{extend 'layout.html'}}
+<div id="myModal" class="modal fade">
+	<div class="modal-header">
+		<!--button type="button" class="close" data-dismiss="modal" >&times;</button-->
+		<h3>Origin destination selector</h3>
+	</div>
+	<div class="modal-body" style="height: 400px">
+	<form class="form-horizontal">
+		<div class="control-group warning">
+			<label class="control-label" for="inputWarning">Starting station</label>
+			<div class="controls"><select><option> </option>
+			{{for station in stations:}}
+				<option>{{=station.name}}</option>
+			{{pass}}
+			</select></div>
+		</div>
+		<div class="control-group warning">
+			<label class="control-label" for="inputWarning">Landing station</label>
+			<div class="controls"><select><option> </option>
+			{{for station in stations:}}
+				<option>{{=station.name}}</option>
+			{{pass}}
+			</select></div>
+		</div>
+	</form>
+		<div id='modal_map' class="map" style="width: 100%; height: 100%">
+		</div>
+	</div>
+  <div class="modal-footer">
+    <a href="#" class="btn disabled btn-primary">Continue</a>
+  </div>
+</div>
+
+
+<script>
+	$('#myModal').modal({backdrop:'static'});
+
+	map = $('#modal_map').add_os_map();
+	var layer_markers = map.getLayersByName('Markers')[0];
+	var bounds = new OpenLayers.Bounds();
+	{{for station in stations:}}
+		var m = add_os_marker(layer_markers, {{=station.lat}}, {{=station.lgt}});
+		bounds.extend(m.lonlat);
+		console.log(m.icon.imageDiv);
+		$(m.icon.imageDiv).find('img').popover({trigger:'click', placement:'top', html:true, content:'ciao ok!'}); 
+
+
+	{{pass}}
+	map.zoomToExtent(bounds);
+
+
+</script>
