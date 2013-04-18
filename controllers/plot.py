@@ -10,6 +10,10 @@ def index():
 	stations = db(db.station).select(db.station.ALL)
 	return {'stations':stations, 'station_id':15}
 
+station_id = request.args(0) or 'index'
+n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
+
+@cache('get_history_%s_%s' % (station_id, n_hours), time_expire=3600, cache_model=cache.memcache)
 def get_history():
 	from datetime import datetime, timedelta
 	if not(request.ajax): raise HTTP(403)
@@ -27,7 +31,7 @@ def get_history():
 	data = db(	(db.record.station_id == station_id) 
 				#& (db.record.gathered_on >= days_back) 
 				#& (db.record.gathered_on <= request.now)
-			).select(epoch, orderby=epoch, cache=(cache.ram, 3600))
+			).select(epoch, orderby=epoch, cache=(cache.memcache, 3600))
 	t1 = time.time()
 	output = []
 	for key, group in groupby(data, lambda x: (x[epoch]) / ( 60 * 60 * n_hours)):
