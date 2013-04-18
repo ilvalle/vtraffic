@@ -2,6 +2,10 @@ from itertools import groupby
 from datetime import datetime, timedelta
 epoch = db.record.gathered_on.epoch()
 
+if request.function != 'wiki' and zero and not(zero.isdigit()):
+	from gluon.tools import Wiki
+	response.menu += Wiki(auth).menu(controller="default", function="wiki")
+	
 def index():
 	stations = db(db.station).select(db.station.ALL)
 	return {'stations':stations, 'station_id':15}

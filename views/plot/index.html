@@ -148,7 +148,7 @@
 		} else {
 			options.crosshair.mode = null;
 		}
-		$('#loading').hide();
+		$('#loading').hide(); $('body').css("cursor", "auto");
 		var plot = $.plot($(placeholder), data, options);
 		/* get color assigned to the data series */
 		var dataPlotted = plot.getData();
@@ -186,6 +186,7 @@
 	});
 	function get_station_history(station_id) {
 		$('#loading').show();
+		$('body').css("cursor", "progress");
 		$.ajax({
 			url: '{{=URL("plot", "get_history.json", args=['station_idJS'], vars={'interval':'intervalJs'} )}}'.replace(/station_idJS/,station_id).replace(/intervalJs/, interval),
 			method: 'GET',
