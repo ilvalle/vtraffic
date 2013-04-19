@@ -50,7 +50,12 @@ def add_log():
 						gathered_on=d)			
 				count += 1
 		session.flash = 'Inserted %s record' % count
-		redirect(URL(f='index', vars={'id':form.vars.station_id}))
+		try:
+			cache.memcache.flush_all()	#memcache client
+		except:
+			cache.memcache.clear() 		#web2py ram client 
+
+		redirect(URL(c='plot', f='index', vars={'id':form.vars.station_id}))
 	return response.render('default/index.html', dict(form=form))
 
 @auth.requires_login()

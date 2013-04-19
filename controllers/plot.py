@@ -15,6 +15,7 @@ n_hours = int(request.vars.interval) if request.vars.interval and request.vars.i
 
 @cache('get_history_%s_%s' % (station_id, n_hours), time_expire=3600, cache_model=cache.memcache)
 def get_history():
+	session.forget()
 	from datetime import datetime, timedelta
 	if not(request.ajax): raise HTTP(403)
 	station_id = request.args(0) or 'index'
@@ -41,7 +42,9 @@ def get_history():
 	#print 'T', t2-t0, 't0', t1-t0, 't1', t2-t1
 	return response.render('generic.json', {'station_%s' % station_id:{'data':output, 'station_id':station_id, 'label': station.name}})	
 
+@cache('figures', time_expire=3600, cache_model=cache.memcache)
 def figures():
+	session.forget()
 	stations = db(db.station).select(db.station.id, db.station.name, cache=(cache.ram, 3600))
 	n_days = 7
 	aggregation	= 60*60*24 # Daily aggregation
