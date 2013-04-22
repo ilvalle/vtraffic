@@ -5,15 +5,16 @@ epoch = db.record.gathered_on.epoch()
 if request.function != 'wiki':
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth).menu(controller="default", function="wiki")
-	
+
+@cache.client(time_expire=80000, cache_model=cache.memcache)
 def index():
 	stations = db(db.station).select(db.station.ALL)
-	return {'stations':stations, 'station_id':15}
+	return response.render('plot/index.html', {'stations':stations, 'station_id':15})
 
 station_id = request.args(0) or 'index'
 n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
 
-@cache('get_history_%s_%s' % (station_id, n_hours), time_expire=3600, cache_model=cache.memcache)
+@cache('get_history_%s_%s' % (station_id, n_hours), time_expire=80000, cache_model=cache.memcache)
 def get_history():
 	session.forget()
 	from datetime import datetime, timedelta
@@ -42,7 +43,7 @@ def get_history():
 	#print 'T', t2-t0, 't0', t1-t0, 't1', t2-t1
 	return response.render('generic.json', {'station_%s' % station_id:{'data':output, 'station_id':station_id, 'label': station.name}})	
 
-@cache('figures', time_expire=3600, cache_model=cache.memcache)
+@cache('figures', time_expire=80000, cache_model=cache.memcache)
 def figures():
 	session.forget()
 	stations = db(db.station).select(db.station.id, db.station.name, cache=(cache.ram, 3600))
@@ -69,5 +70,5 @@ def figures():
 		cur_station['active'] = 'active' if len(values) else 'disabled'		
 		output.append(cur_station)
 
-	return {'stations':output}
+	return response.render('plot/figures.html', {'stations':output} )
 
