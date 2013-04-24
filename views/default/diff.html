@@ -74,43 +74,7 @@
 
 <script>    
 	var plot;
-	var options = { xaxis: { mode: "time", timeZoneOffset: "browser" },
-			yaxis: { mode: "time",
-				timeZoneOffset: 'browser',
-				//timeformat: "%H:%M:%S",
-				//zoomRange: [0, null], panRange: [0, null]
-				},
-			crosshair: { mode: "x" },
-			y2axis: {mode: null},
-			points: { show: true },	
-			lines: { show: true, fill: true },
-//bars: {show: true, fill: true, align:'center', barWidth: 10000*60},
-
-pan: { interactive: true },
-/*xaxis, yaxis, x2axis, y2axis: {
-	zoomRange: null,  // or [ number, number ] (min range, max range) or false
-	panRange: null  // or [ number, number ] (min, max) or false
-},*/
-zoom: { interactive: true},
-tooltip: true,       //false
-tooltipOpts: {
-	content:      "%s |  %x |  %y",
-	//xDateFormat: "%H:%M:%S",
-	yDateFormat: "%H:%M:%S",
-	defaultTheme:  true     //true
-},
-	grid: {	//show: true,
-				color: "#444444",
-				backgroundColor: "#EEEEEE",
-				borderColor: "#FFFFFF",
-				tickColor: "#DDDDDD",
-				//aboveData: false,
-				borderWidth: 0,
-				clickable: true,
-				hoverable: true,
-				autoHighlight: true,}
-
-}
+	var options = flot_global_option;
 	var placeholder_h = $("#traffic_chart_h");
 
 	var datasets, plot, data, range_from, range_to;	
@@ -136,8 +100,21 @@ tooltipOpts: {
 	}*/
 
 
+	$(document).on('click', '#mode a, #lower a, #trendend a, #trendstart a, #logs a', function() {
+		var key = $(this).attr("id");	
+		$(this).toggleClass('muted');		
+		if ($(this).hasClass('muted')){
+			$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
+			var index = jQuery.inArray(datasets[key], data);
+			data.splice(index, 1);
+		} else {
+			if (key && datasets[key])
+				data.push(datasets[key]);
+		}
 
-	$(document).on('click', 'input', function() {
+		plotAccordingToChoices();	
+	});
+	/*$(document).on('click', 'input', function() {
 		var key = $(this).attr("id");		
 		if (key === 'all') {
 			that = $(this)
@@ -162,10 +139,10 @@ tooltipOpts: {
 			}
 		}
 		plotAccordingToChoices();	
-	});
+	}); */
 
 
-    
+   /* 
 	function plotAccordingToChoices() {
 		if ( data.length == 0 ) {
 			for (var i in datasets) {
@@ -184,7 +161,7 @@ tooltipOpts: {
        		$.plot.highlight(item.series, item.datapoint);
         }
     });
-
+*/
    $("#clearSelection").click(function () {
         $.plot.clearSelection(true);
     });
@@ -207,41 +184,5 @@ tooltipOpts: {
             dataType: 'json',
             success: onDataReceived
 	});
-
-	/*$(function() {
-      	$( "#slider-range-min_modes" ).slider({
-            range: "min",
-            value: 800,
-            min: 100,
-            max: 1500,
-	    step:50,
-            stop: function( event, ui ) {
-		console.log(ui.value);
-		$.ajax({
-		    url: '{{=URL("default", "get_diff.json", vars={'diff_temp':'diff_temp_js'})}}'.replace(/diff_temp_js/, ui.value),
-		    method: 'GET',
-		    dataType: 'json',
-		    success: onDataReceived_add
-		});
-                $( "#amount" ).val( ui.value );
-            }
-        });
-        $( "#amount" ).val( $( "#slider-range-min_modes" ).slider( "value" ) );
-    });*/
-/*
-    function showTooltip(x, y, contents) {
-        $('<div id="tooltip">' + contents + '</div>').css( {
-            position: 'absolute',
-            display: 'none',
-            top: y + 5,
-            left: x + 5,
-            border: '1px solid #fdd',
-            padding: '2px',
-            'background-color': '#fee',
-            opacity: 0.80
-        }).appendTo("body").fadeIn(200);
-    }
-*/
-
 </script>
 </section>
