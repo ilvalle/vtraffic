@@ -1,5 +1,6 @@
 {{extend 'layout.html'}}
 <section>
+{{#include 'plot/choose.html'}}
 <div class='span3'>
 <div class='well' style="padding: 7px 0px;">
 	<ul id='logs' class="nav nav-list">
@@ -46,7 +47,7 @@
 	timezoneJS.timezone.zoneFileBasePath = '{{=URL('vtraffic', 'static/js', 'tz')}}';
 	var options = { 
 		xaxis: { 
-			mode: "time", timezone: "Europe/Rome", alignTicksWithAxis:true,
+			mode: "time", timezone: false, alignTicksWithAxis:true,
 			dayNames: ['{{=T('Sun')}}', '{{=T('Mon')}}', '{{=T('Tue')}}', '{{=T('Wen')}}', '{{=T('Thu')}}', '{{=T('Fri')}}', '{{=T('Sat')}}'] 
 		},
 		yaxis: { position: 'left', axisLabel: "{{=T('Vehicles detected')}}", zoomRange: false, panRange: false, },
