@@ -6,7 +6,7 @@ if request.function != 'wiki':
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth).menu(controller="default", function="wiki")
 
-@cache.client(time_expire=80000, cache_model=cache.memcache)
+@cache.action(time_expire=80000, cache_model=cache.memcache)
 def index():
 	stations = db(db.station).select(db.station.ALL)
 	return response.render('plot/index.html', {'stations':stations, 'station_id':15})
