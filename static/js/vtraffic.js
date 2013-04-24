@@ -1,4 +1,7 @@
 function onDataReceived (json) {
+	if ( jQuery.isEmptyObject(json) ) {
+		$('#warning').show();
+	} 
 	$('#loading').hide();
 	datasets = json
 	data = []

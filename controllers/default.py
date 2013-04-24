@@ -68,11 +68,17 @@ def add_station():
 		redirect(URL(f='index'))
 	return response.render('default/index.html', dict(form=form))
 
+@cache(request.env.path_info + (request.vars.id_origin or '') + (request.vars.id_destination or ''), time_expire=80000, cache_model=cache.ram)
 def compare():
+	response.files.append(URL('static','js/OpenLayers.js'))
 	content = auth.wiki(slug='compare', render='html')
-	return response.render('default/compare.html', {'content':content})
+	stations = db(db.station).select(db.station.ALL)
+	return response.render('default/compare.html', {'content':content, 'stations':stations})
 
-@cache(request.env.path_info + (request.vars.diff_temp or ''), time_expire=None, cache_model=cache.ram)
+id_origin = int(request.vars.id_origin) if request.vars.id_origin and request.vars.id_origin.isdigit() else 13
+id_destination = int(request.vars.id_destination) if request.vars.id_destination and request.vars.id_destination.isdigit() else 14
+
+@cache(request.env.path_info + '%s-%s' % (id_origin, id_destination) , time_expire=None, cache_model=cache.ram)
 def get_lines():
 	session.forget(response)
 	line_type = request.vars.type or 'mode'
@@ -80,7 +86,7 @@ def get_lines():
 	except:	block_seconds = 900
 	day = start.gathered_on.year() | start.gathered_on.month() | start.gathered_on.day()  
 	# Gets the days with data 
-	days = db( (start.station_id == 13)  ).select(
+	days = db( (start.station_id == id_origin)  ).select(
 						start.gathered_on.year(), 
 						start.gathered_on.month(), 
 						start.gathered_on.day(),
@@ -98,8 +104,8 @@ def get_lines():
 			 (end.gathered_on.year() == year) &
 			 (end.gathered_on.month() == month) &
 			 (end.gathered_on.day() == day) &
-			 (start.station_id == 13) &
-			 (end.station_id == 14))
+			 (start.station_id == id_origin) &
+			 (end.station_id == id_destination))
 
 		rows_pos = __get_rows(query)
 		
@@ -107,8 +113,9 @@ def get_lines():
 			out = __get_lower_rows(rows_pos, block_seconds )
 		else:
 			dd = __get_mode_rows(rows_pos, block_seconds, test=True)
-			dd['id'] = dd['id'] + '%s' % day
-			out['%s' % dd['id']]=dd
+			if len(dd['data']) != 0:
+				dd['id'] = dd['id'] + '%s' % day
+				out['%s' % dd['id']]=dd
 		
 	return response.render('generic.json', out)
 
@@ -116,8 +123,8 @@ def origin_destination():
 	session.forget(response)
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
 	except:	block_seconds = 900
-	id_start = 13
-	id_end = 14
+	id_start = id_origin
+	id_end = id_destination
 	
 	rows = __get_rows_stations (id_start, id_end)
 	n_start = db(db.record.station_id == id_start).count( cache=(cache.ram, 3600))
@@ -129,8 +136,8 @@ def origin_destination():
 #@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
 def get_diff():
 	session.forget(response)
-	id_start = 13
-	id_end = 14
+	id_start = id_origin
+	id_end = id_destination
 
 	rows = __get_rows_stations (id_start, id_end)
 	
@@ -169,8 +176,8 @@ def get_diff():
 # external request, might be ajax too
 def get_line():
 	session.forget(response)
-	id_start = 13
-	id_end = 14
+	id_start = id_origin
+	id_end = id_destination
 	line_type = request.vars.type
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
 	except:	block_seconds = 500
@@ -334,6 +341,8 @@ def __get_lower_rows( rows, block_seconds, test=False ):
 	return {'data': lower_bound,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
 def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=False):
+	if (len(rows) == 0):
+		return  {'data': [],'label':'No matches', 'id':'mode_%s' %  block_seconds };
 	l = [] 
 	first=True
 	prev = rows[0]

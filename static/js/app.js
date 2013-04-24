@@ -1,6 +1,5 @@
 // Map
 jQuery.fn.add_os_map = function() {
-	console.log($(this	));
 	var placeHolder = $(this[0]);
 
 	var zoom = 17;

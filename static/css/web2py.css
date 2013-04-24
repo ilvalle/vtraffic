@@ -520,6 +520,11 @@ header .container {
 	max-width: none;
 }
 
+.well form {
+	padding-right: 15px;
+	padding-left: 15px;
+}
+
 /* Desktop
 ------------------------- */
 @media (max-width: 980px) {
