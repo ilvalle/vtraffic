@@ -1,6 +1,6 @@
+from applications.vtraffic.modules.tools import EPOCH_M
 from itertools import groupby
-from datetime import datetime, timedelta
-epoch = db.record.gathered_on.epoch()
+from datetime import timedelta
 
 if request.function != 'wiki':
 	from gluon.tools import Wiki
@@ -17,7 +17,6 @@ n_hours = int(request.vars.interval) if request.vars.interval and request.vars.i
 @cache('get_history_%s_%s' % (station_id, n_hours), time_expire=80000, cache_model=cache.memcache)
 def get_history():
 	session.forget()
-	from datetime import datetime, timedelta
 	if not(request.ajax): raise HTTP(403)
 	station_id = request.args(0) or 'index'
 	#n_days = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 7
@@ -29,14 +28,16 @@ def get_history():
 	#days_back = now - timedelta(days=n_days)
 	day = db.record.gathered_on.day()
 	import time
+
 	t0 = time.time()	
 	data = db(	(db.record.station_id == station_id) 
 				#& (db.record.gathered_on >= days_back) 
 				#& (db.record.gathered_on <= request.now)
-			).select(epoch, orderby=epoch, cache=(cache.memcache, 3600))
+			).select(db.record.gathered_on, orderby=db.record.gathered_on) #, cache=(cache.memcache, 3600))
 	t1 = time.time()
 	output = []
-	for key, group in groupby(data, lambda x: (x[epoch]) / ( 60 * 60 * n_hours)):
+
+	for key, group in groupby(data, lambda x: (EPOCH_M(x.gathered_on)) / ( 60 * 60 * n_hours)):
 		l = list(group)
 		output.append( [ key*60*60*1000*n_hours, len(l)] ) 
 	t2 = time.time()
@@ -54,9 +55,9 @@ def figures():
 	for station in stations:
 		data = db(	(db.record.station_id == station.id) 
 					& (db.record.gathered_on >= days_back) 
-				).select(epoch, db.record.mac, orderby=epoch, cache=(cache.ram, 3600))
+				).select(db.record.mac,db.record.gathered_on, orderby=db.record.gathered_on, cache=(cache.ram, 3600))
 		values = []
-		for key, group in groupby(data, lambda x: (x[epoch]) / ( aggregation )):
+		for key, group in groupby(data, lambda x: (EPOCH_M(x.gathered_on)) / ( aggregation )):
 			l = list(group)
 			values.append( {'detected':len(l), 'day':key*aggregation} ) 
 		cur_station = {}
