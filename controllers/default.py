@@ -70,6 +70,7 @@ def add_station():
 
 @cache(request.env.path_info + (request.vars.id_origin or '') + (request.vars.id_destination or ''), time_expire=80000, cache_model=cache.ram)
 def compare():
+	response.files.append(URL('static','js/theme/default/style.css'))
 	response.files.append(URL('static','js/OpenLayers.js'))
 	content = auth.wiki(slug='compare', render='html')
 	stations = db(db.station).select(db.station.ALL)

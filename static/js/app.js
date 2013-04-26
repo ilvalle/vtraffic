@@ -1,5 +1,6 @@
 // Map
 jQuery.fn.add_os_map = function() {
+	OpenLayers.ImgPath = "static/js/img/";
 	var placeHolder = $(this[0]);
 
 	var zoom = 17;
@@ -7,6 +8,7 @@ jQuery.fn.add_os_map = function() {
 	var lat  = 11.0000;//{{=park['latitude']}};
 	var map = new OpenLayers.Map($(this).attr('id'), {
 		projection: "EPSG:900913",
+		theme: null,
 	});
 	var fromProjection = new OpenLayers.Projection("EPSG:4326");   // Transform from WGS 1984
 	var toProjection   = new OpenLayers.Projection("EPSG:900913"); // to Spherical Mercator Projection
