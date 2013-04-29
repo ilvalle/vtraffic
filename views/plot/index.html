@@ -26,9 +26,9 @@
 			</label>
 		</form>
 		<ul class="nav nav-pills"> 
-		<li class="active"><a class='group' href="#" id="group_1">group by 1hour</a></li>
-		<li><a href="#" class='group' id="group_6">group by 6hour</a></li>
-		<li><a href="#" class='group' id="group_24">group by  1day</a></li>
+		<li class="{{='active' if not(request.vars.interval) or request.vars.interval not in [str(7),str(24)] else ''}}"><a class='group' href="#" id="group_1">group by 1hour</a></li>
+		<li class="{{='active' if request.vars.interval == str(6) else ''}}"><a href="#" class='group' id="group_6">group by 6hour</a></li>
+		<li class="{{='active' if request.vars.interval == str(24) else ''}}"><a href="#" class='group' id="group_24">group by  1day</a></li>
 		</ul>
 		<div id="traffic_chart_h"  style="height:370px"></div>
 	</div>
@@ -92,12 +92,15 @@
 	var placeholder = $("#traffic_chart_h");
 	var datasets = {};	// All data available
 	var data = [];		// All data shown
-	var interval = 1; 	// Default 7 days
+	var interval = {{=request.vars.interval if request.vars.interval and request.vars.interval in [6,24] else 1}}; 	// Default 7 days
 
 	function onDataReceived (json) {
+		var n = Object.keys(datasets).length;
 		for (var k in json) {
 			/*json[k]['label'] = $('#'+k).attr('title') ;*/
 			data.push(json[k]);
+			json[k]['color'] = n;
+			n = n + 1;
 		}
 		$.extend(datasets, json);
 		interval = $("li.active a[class='group']").attr('id').split('_')[1];
