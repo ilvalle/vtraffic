@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from applications.vtraffic.modules.tools import EPOCH_M
 from datetime import timedelta
 import datetime, time
 
@@ -124,29 +124,24 @@ def origin_destination():
 	session.forget(response)
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
 	except:	block_seconds = 900
-	id_start = id_origin
-	id_end = id_destination
-	
-	rows = __get_rows_stations (id_start, id_end)
-	n_start = db(db.record.station_id == id_start).count( cache=(cache.ram, 3600))
-	n_end = db(db.record.station_id == id_end).count( cache=(cache.ram, 3600))
+
+	rows = __get_rows_stations (id_origin, id_destination)
+	n_start = db(db.record.station_id == id_origin).count( cache=(cache.ram, 3600))
+	n_end = db(db.record.station_id == id_destination).count( cache=(cache.ram, 3600))
 
 	info = {'n': len(rows), 'n_start':n_start, 'n_end':n_end}
 	return response.render('default/diff.html', {'info':info})
 
-#@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
+@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
 def get_diff():
 	session.forget(response)
-	id_start = id_origin
-	id_end = id_destination
 
-	rows = __get_rows_stations (id_start, id_end)
+	rows = __get_rows_stations (id_origin,  id_destination)
 	
 	logs=[]
 	for row in rows:
-		t = row.end_point.gathered_on - row.start_point.gathered_on
-		logs.append( [ (row[start.gathered_on.epoch()]+3600) * 1000,
-				       int(t.total_seconds()) * 1000 ]	)
+		logs.append( [ EPOCH_M(row[start.gathered_on]) * 1000, row['elapsed_time'] * 1000 ]	)
+
 	all_logs = {'logs':{'data':logs, 'label': 'matches', 'id':'logs'}}	
 
 	for seconds in xrange(900, 1000, 100):
@@ -158,16 +153,16 @@ def get_diff():
 		all_logs[out_m['id']] = out_m
 
 	# single trends
-	hours = __get_trend(id_start, 3600)
+	hours = __get_trend(id_origin, 3600)
 	#tens = __get_trend(id_start, 600)
-	fifteens = __get_trend(id_start, 900)
+	fifteens = __get_trend(id_origin, 900)
 	all_logs['trendstart_h'] = {'data':hours, 'label': 'trend start h', 'id':'trendstart_h', 'yaxis': 2, 'bars':{'show':'true', 'fill': 'true', 'align':'center', 'barWidth': 60*60*1000}, 'lines': {'show':'false'}}
 	#all_logs['trendstart_10'] = {'data':tens, 'label': 'trend start 10m', 'id':'trendstart_10', 'yaxis': 2 }
 	all_logs['trendstart_15'] = {'data':fifteens, 'label': 'trend start 15m', 'id':'trendstart_15', 'yaxis': 2 }
 
-	hours = __get_trend(id_end, 3600)
+	hours = __get_trend(id_destination, 3600)
 	#tens = __get_trend(id_end, 600)
-	fifteens = __get_trend(id_end, 900)
+	fifteens = __get_trend(id_destination, 900)
 	all_logs['trendend_h'] = {'data':hours, 'label': 'trend end h', 'id':'trendend_h', 'yaxis': 2 }
 	#all_logs['trendend_10'] = {'data':tens, 'label': 'trend end 10m', 'id':'trendend_10', 'yaxis': 2 }
 	all_logs['trendend_15'] = {'data':fifteens, 'label': 'trend end 15m', 'id':'trendend_15', 'yaxis': 2 }
@@ -202,16 +197,19 @@ def __get_rows_stations(station_id_start, station_id_end):
 	return __get_rows(query)
 
 def __get_rows(query):
-	rows = db( query ).select(start.ALL, 
-		          end.ALL, 
-			  start.gathered_on.epoch(),
-			  end.gathered_on.epoch(),
-			  orderby=start.gathered_on.epoch(),
-			  left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
-			  cache=(cache.ram, 3600),
-			  cacheable = True)
-	matches = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(days=1)) ]
+	rows = db( query ).select(start.ALL, end.ALL, 
+							  orderby=start.gathered_on,
+							  left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
+							  cache=(cache.ram, 3600),
+							  cacheable = True)
+	matches = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(hours=1)) ]
 	matches = __remove_dup(matches)
+	# Compute the elapsed_time 	
+	for m in matches:
+		m.start_point['epoch'] = EPOCH_M(m[start.gathered_on])
+		m.end_point['epoch']   = EPOCH_M(m[end.gathered_on])
+		m['elapsed_time']      = m.end_point['epoch'] - m.start_point['epoch']
+
 	return matches
 
 ### issue 1
@@ -299,7 +297,7 @@ def __get_trend(station_id, block_seconds):
 			first = False
 		last = 	r
 
-	out = [ [ (block[0][db.record.gathered_on.epoch()]+3600 + block_seconds/2) * 1000, len(block) ] for block in l]
+	out = [ [ ( EPOCH_M (block[0][db.record.gathered_on]) + block_seconds/2) * 1000, len(block) ] for block in l]
 	return out
 
 def __get_lower( id_start, id_end, block_seconds ):
@@ -329,15 +327,13 @@ def __get_lower_rows( rows, block_seconds, test=False ):
 	lower_bound=[]
 	for block in l:
 		if block[0] == 0:
-			lower_bound.append ( [(block[1][start.gathered_on.epoch()]+3600 + block_seconds/2) * 1000,
-						0] )
+			lower_bound.append ( [( EPOCH_M( block[1][start.gathered_on] ) + block_seconds/2) * 1000, 0] )
 		elif len(block) >= 1 and len(block) <= 2:
 			pass
 			#lower_bound.append ( [(block[0][start.gathered_on.epoch()]+3600 + block_seconds/2) * 1000,0] )
 		else:		
-			cur_min=min([(r.end_point.gathered_on - r.start_point.gathered_on) if r != 0 else 0 for r in block ])	
-			lower_bound.append ( [(block[0][start.gathered_on.epoch()]+3600 + block_seconds/2) * 1000,
-				int(cur_min.total_seconds()) * 1000] )
+			cur_min = min([ r['elapsed_time'] if r != 0 else 0 for r in block ])	
+			lower_bound.append ( [( EPOCH_M( block[0][start.gathered_on] ) + block_seconds/2) * 1000, cur_min * 1000] )
 	
 	return {'data': lower_bound,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
@@ -368,7 +364,8 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 				mdate = block[1][start.gathered_on]
 				seconds = (mdate-day).total_seconds()		
 			else:
-				seconds = block[1][start.gathered_on.epoch()]+3600
+				seconds = EPOCH_M(block[1][start.gathered_on])
+				#seconds = block[1][start.gathered_on.epoch()] #fix it +3600
 			mode.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
 		else:
 			# compute the horizontal seconds
@@ -376,21 +373,22 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 				mdate = block[0][start.gathered_on]
 				seconds = (mdate-day).total_seconds()		
 			else:
-				seconds = block[0][start.gathered_on.epoch()]+3600
+				seconds = block[0].start_point['epoch']
+				#seconds = block[0][start.gathered_on.epoch()]#fix it+3600
 
 			if len(block) >= 1 and len(block) <= 2:
-				# pass instead of plotting real value, otherwise it will draw odd valuea 
+				# pass instead of plotting real value, otherwise it will draw odd values 
 				pass
 				#mode.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
 			else:
-				initial_time_frame = min([(r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
-				end_time_frame = max( [ (r[end.gathered_on.epoch()] - r[start.gathered_on.epoch()])  for r in block ] )
+				initial_time_frame = min([ r['elapsed_time']  for r in block ] )
+				end_time_frame = 	 max([ r['elapsed_time']  for r in block ] )
+
 				n_windows = (end_time_frame - initial_time_frame) / vertical_block_seconds		
 				windows = [0] * (n_windows + 1)
 				values = ''
 				for ele in block:
-					diff = (ele[end.gathered_on.epoch()] - ele[start.gathered_on.epoch()])
-					cur_pos = (diff - initial_time_frame)  / vertical_block_seconds
+					cur_pos = (ele['elapsed_time'] - initial_time_frame)  / vertical_block_seconds
 					windows[cur_pos] += 1
 
 				tot = initial_time_frame + (vertical_block_seconds * windows.index(max(windows)))
