@@ -68,7 +68,7 @@ def add_station():
 		redirect(URL(f='index'))
 	return response.render('default/index.html', dict(form=form))
 
-@cache(request.env.path_info + (request.vars.id_origin or '') + (request.vars.id_destination or ''), time_expire=80000, cache_model=cache.ram)
+#@cache(request.env.path_info + (request.vars.id_origin or '') + (request.vars.id_destination or ''), time_expire=80000, cache_model=cache.ram)
 def compare():
 	response.files.append(URL('static','js/theme/default/style.css'))
 	response.files.append(URL('static','js/OpenLayers.js'))
@@ -79,7 +79,7 @@ def compare():
 id_origin = int(request.vars.id_origin) if request.vars.id_origin and request.vars.id_origin.isdigit() else 13
 id_destination = int(request.vars.id_destination) if request.vars.id_destination and request.vars.id_destination.isdigit() else 14
 
-@cache(request.env.path_info + '%s-%s' % (id_origin, id_destination) , time_expire=None, cache_model=cache.ram)
+#@cache(request.env.path_info + '%s-%s' % (id_origin, id_destination) , time_expire=None, cache_model=cache.ram)
 def get_lines():
 	session.forget(response)
 	line_type = request.vars.type or 'mode'
@@ -132,7 +132,7 @@ def origin_destination():
 	info = {'n': len(rows), 'n_start':n_start, 'n_end':n_end}
 	return response.render('default/diff.html', {'info':info})
 
-@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
+#@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
 def get_diff():
 	session.forget(response)
 
@@ -140,7 +140,7 @@ def get_diff():
 	
 	logs=[]
 	for row in rows:
-		logs.append( [ EPOCH_M(row[start.gathered_on]) * 1000, row['elapsed_time'] * 1000 ]	)
+		logs.append( [ row.start_point['epoch'] * 1000, row['elapsed_time'] * 1000 ]	)
 
 	all_logs = {'logs':{'data':logs, 'label': 'matches', 'id':'logs'}}	
 
@@ -327,13 +327,13 @@ def __get_lower_rows( rows, block_seconds, test=False ):
 	lower_bound=[]
 	for block in l:
 		if block[0] == 0:
-			lower_bound.append ( [( EPOCH_M( block[1][start.gathered_on] ) + block_seconds/2) * 1000, 0] )
+			lower_bound.append ( [( block[1].start_point['epoch'] + block_seconds/2) * 1000, 0] )
 		elif len(block) >= 1 and len(block) <= 2:
 			pass
 			#lower_bound.append ( [(block[0][start.gathered_on.epoch()]+3600 + block_seconds/2) * 1000,0] )
 		else:		
 			cur_min = min([ r['elapsed_time'] if r != 0 else 0 for r in block ])	
-			lower_bound.append ( [( EPOCH_M( block[0][start.gathered_on] ) + block_seconds/2) * 1000, cur_min * 1000] )
+			lower_bound.append ( [( block[0].start_point['epoch'] + block_seconds/2) * 1000, cur_min * 1000] )
 	
 	return {'data': lower_bound,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
@@ -364,7 +364,7 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 				mdate = block[1][start.gathered_on]
 				seconds = (mdate-day).total_seconds()		
 			else:
-				seconds = EPOCH_M(block[1][start.gathered_on])
+				seconds = block[1].start_point['epoch']
 				#seconds = block[1][start.gathered_on.epoch()] #fix it +3600
 			mode.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
 		else:
