@@ -179,7 +179,7 @@
 
 
 	$.ajax({
-            url: '{{=URL("default", "get_diff.json", args=request.args )}}',
+            url: '{{=URL("default", "get_diff.json", vars=request.get_vars, args=request.args )}}',
             method: 'GET',
             dataType: 'json',
             success: onDataReceived
