@@ -13,7 +13,7 @@
 	$('#loading').show();
 	</script>
 {{pass}}
-{{=content}}
+{{#=content}}
 
 <div class='span2'>
 <div class='well' style="padding: 7px 0px;">
@@ -63,8 +63,6 @@
 </div>
 </div>
 
-		<p id='loading' class="label label-info span4 offset4 center">Loading...</p>	
-		<p id='warning' class="label label-warning span4 offset2 center hide">No matches found</p>
 <div class="span10">
 <div class='row-fluid'>
 <ul class="nav nav-tabs" id="myTab">
@@ -73,6 +71,8 @@
 </ul>
 <div id="myTabContent" class="chart tab-content">
 	<div id="graph" class="tab-pane fade in active">
+		<p id='loading' class="label label-info span4 offset4 center">{{=T('Loading')}}...</p>	
+		<p id='warning' class="label label-warning span4 offset2 center hide">{{=T('No matches found')}}</p>		
 		<div id="traffic_chart_h"  style="height:370px"> </div>
 	</div>
 	

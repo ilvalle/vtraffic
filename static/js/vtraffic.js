@@ -39,10 +39,10 @@ var flot_global_option = {
 
 
 function onDataReceived (json) {
+	$('#loading').hide();	
 	if ( jQuery.isEmptyObject(json) ) {
 		$('#warning').show();
-	} 
-	$('#loading').hide();
+	}
 	data = []
 	for (var k in json) {
 			/*json[k]['label'] = $('#'+k).attr('title') ;*/
@@ -58,6 +58,8 @@ function onDataReceived (json) {
 }
 
 function plotAccordingToChoices() {
+	if ( jQuery.isEmptyObject(datasets) ) { return; }
+
 	if ( data.length == $(datasets).length ) {
 		$("#all").attr('checked', 'checked');
 	} 
