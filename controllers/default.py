@@ -68,19 +68,31 @@ def add_station():
 		redirect(URL(f='index'))
 	return response.render('default/index.html', dict(form=form))
 
-#@cache(request.env.path_info + (request.vars.id_origin or '') + (request.vars.id_destination or ''), time_expire=80000, cache_model=cache.ram)
-def compare():
-	response.files.append(URL('static','js/theme/default/style.css'))
-	response.files.append(URL('static','js/OpenLayers.js'))
-	content = auth.wiki(slug='compare', render='html')
-	stations = db(db.station).select(db.station.ALL)
-	return response.render('default/compare.html', {'content':content, 'stations':stations})
-
 id_origin = int(request.vars.id_origin) if request.vars.id_origin and request.vars.id_origin.isdigit() else 13
 id_destination = int(request.vars.id_destination) if request.vars.id_destination and request.vars.id_destination.isdigit() else 14
 
-#@cache(request.env.path_info + '%s-%s' % (id_origin, id_destination) , time_expire=None, cache_model=cache.ram)
-def get_lines():
+#@cache(request.env.path_info + (request.vars.id_origin or '') + (request.vars.id_destination or ''), time_expire=80000, cache_model=cache.ram)
+#def compare():
+#	response.files.append(URL('static','js/theme/default/style.css'))
+#	response.files.append(URL('static','js/OpenLayers.js'))
+#	content = auth.wiki(slug='compare', render='html')
+#	stations = db(db.station).select(db.station.ALL)
+#	return response.render('default/compare.html', {'content':content, 'stations':stations})
+
+#def origin_destination():
+#	session.forget(response)
+#	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
+#	except:	block_seconds = 900
+#
+#	rows = __get_rows_stations (id_origin, id_destination)
+#	n_start = db(db.record.station_id == id_origin).count( cache=(cache.ram, 3600))
+#	n_end = db(db.record.station_id == id_destination).count( cache=(cache.ram, 3600))
+#
+#	info = {'n': len(rows), 'n_start':n_start, 'n_end':n_end}
+#	return response.render('default/diff.html', {'info':info})
+
+@cache(request.env.path_info + '%s-%s' % (id_origin, id_destination) , time_expire=None, cache_model=cache.ram)
+def compare_series():
 	session.forget(response)
 	line_type = request.vars.type or 'mode'
 	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 900
@@ -121,20 +133,8 @@ def get_lines():
 		
 	return response.render('generic.json', {'series':out})
 
-def origin_destination():
-	session.forget(response)
-	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
-	except:	block_seconds = 900
-
-	rows = __get_rows_stations (id_origin, id_destination)
-	n_start = db(db.record.station_id == id_origin).count( cache=(cache.ram, 3600))
-	n_end = db(db.record.station_id == id_destination).count( cache=(cache.ram, 3600))
-
-	info = {'n': len(rows), 'n_start':n_start, 'n_end':n_end}
-	return response.render('default/diff.html', {'info':info})
-
-#@cache(request.env.path_info,time_expire=None,cache_model=cache.ram)
-def get_diff():
+@cache(request.env.path_info + '%s-%s' % (id_origin, id_destination), time_expire=None, cache_model=cache.ram)
+def get_series():
 	session.forget(response)
 
 	rows = __get_rows_stations (id_origin,  id_destination)

@@ -9,7 +9,7 @@
 
 {{include 'plot/form_stations.html'}}
 	<ul class="nav nav-list">
-		<li><label class="checkbox"><input id='all' type="checkbox" checked='checked'>Hide/Show all</label></li>
+		<li><label class="checkbox"><input id='all' name='all' type="checkbox" checked='checked'>Hide/Show all</label></li>
 		<li class='nav-header'>{{=T('Days')}}</li>
 	</ul>
 	<ul id='' class="data_list nav nav-list" >
@@ -37,7 +37,6 @@
 	<div id="compare_chart"  style="height:370px"> </div>
 </div>
 </div>
-<!--div><div id="traffic_chart_m" style="width:900px;height:300px"> </div-->
 
 <script>    
 	$('#warning').hide();
@@ -85,22 +84,6 @@
 		plot_compare.plotAccordingToChoices();	
 	});*/
 
-	$('#tab_compare').on('click', '#all', function() {
-		plot_compare.data = [];
-		for (pos in plot_compare.datasets) {
-			var current = plot_compare.datasets[pos];
-			var id = current.id;
-			if ( $(this).is (':checked') ) {
-				$('#' + id).removeClass('muted');
-				plot_compare.data.push(current);
-			} else {
-				$('#' + id).addClass('muted');
-				$('#' + id + ' .legend_box_color').css('background-color', "rgb(204,204,204)");			
-			}
-		}
-		plot_compare.plotAccordingToChoices();
-	});
-
    $("#clearSelection").click(function () {
         $.plot.clearSelection(true);
     });
@@ -108,7 +91,7 @@
 	$("#tab_compare").on('click', '.update', function() {
 		var id_origin = $("#tab_compare #select_o option:selected").val();
 		var id_destination = $("#tab_compare #select_d option:selected").val();		
-		var url = "{{=URL("default", "get_lines.json", vars={'id_origin':'id_originJs', 'id_destination':'id_destinationJs'} )}}".replace(/id_originJs/, id_origin).replace(/id_destinationJs/, id_destination);
+		var url = "{{=URL("default", "compare_series.json", vars={'id_origin':'id_originJs', 'id_destination':'id_destinationJs'} )}}".replace(/id_originJs/, id_origin).replace(/id_destinationJs/, id_destination);
 		plot_compare.loadData(url);
 	});
 
@@ -132,7 +115,7 @@
 	$(document).on('shown', 'a[data-toggle="tab"][href="#originDestination"]', function (e) {
 		if (first) return;
 		first = true;
-		var url = "{{=URL("default", "get_lines.json", vars=request.get_vars, args=request.args )}}"
+		var url = "{{=URL("default", "compare_series.json", vars=request.get_vars, args=request.args )}}"
 		plot_compare.getData(url);
 	});
 	</script>

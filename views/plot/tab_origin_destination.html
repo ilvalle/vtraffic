@@ -1,6 +1,10 @@
 <div class='span2'>
 <div class='well' style="padding: 7px 0px;">
 {{include 'plot/form_stations.html'}}
+	<ul class="nav nav-list">
+		<li><label class="checkbox"><input id='all' type="checkbox" name='all' checked='checked'>Hide/Show all</label></li>
+		<li class='nav-header'>{{=T('Series')}}</li>
+	</ul>
 	<ul id='' class="data_list nav nav-list">
 	
 	</ul>
@@ -81,8 +85,6 @@
 		plot_origin_destination.plotAccordingToChoices();
 	}*/
 
-
-
 	$("#originDestination").on('click', '.update', function() {
 		var id_origin = $("#originDestination #select_o option:selected").val();
 		var id_destination = $("#originDestination #select_d option:selected").val();		
@@ -142,14 +144,14 @@
     });
 
 	function add_line(type) {
-		var url = '{{=URL("default", "get_line.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val());
+		var url = '{{=URL("default", "get_series.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val());
 		plot_origin_destination.getData(url);
 	}
 	var first = false;
 	$(document).on('shown', 'a[data-toggle="tab"][href="#originDestination"]', function (e) {
 		if (first) return;
 		first = true;
-		var url = '{{=URL("default", "get_diff.json", vars=request.get_vars, args=request.args )}}';
+		var url = '{{=URL("default", "get_series.json", vars=request.get_vars, args=request.args )}}';
 		plot_origin_destination.loadData(url);
 	});
 </script>

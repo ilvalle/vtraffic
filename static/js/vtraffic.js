@@ -54,13 +54,12 @@ function lplot (ph, options) {
 		if ( thatClass.data.length == $(thatClass.datasets).length ) {
 			$("#all").attr('checked', 'checked');
 		} 
-		console.log(thatClass.placeholder, thatClass.data, thatClass.options);
+
 		var plot = $.plot(thatClass.placeholder, thatClass.data, thatClass.options);
 		if ( jQuery.isEmptyObject(thatClass.datasets) ) { return; }
 		var dataPlotted = plot.getData();
-		console.log (dataPlotted);
+
 		for (var d in dataPlotted) {
-			console.log('indice', d, dataPlotted[d] )
 			$('#' + dataPlotted[d].id).children('span.legend_box_color').css('background-color', dataPlotted[d].color);
 		}
 	};
@@ -69,7 +68,6 @@ function lplot (ph, options) {
 		var tab = thatClass.placeholder.split('_chart')[0];
 		var data_placeholder = $(tab + ' .data_list');
 		var series = json['series'];
-		console.log( 'onDataReceived', jQuery.isEmptyObject(series), jQuery.isEmptyObject(thatClass.datasets) );
 
 		if ( jQuery.isEmptyObject(series) ) {
 			$( tab + ' .label-warning').show();
@@ -144,7 +142,6 @@ function lplot (ph, options) {
 		var key = $(this).attr("id");	
 		$(this).toggleClass('muted');	
 		var current = thatClass.getObj(key);
-		console.log(current);
 		var index = jQuery.inArray(current, thatClass.data);
 		if ( index > -1 ) {	// Current element is shown	
 			$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
@@ -154,6 +151,24 @@ function lplot (ph, options) {
 		}
 		thatClass.plotAccordingToChoices();	
 	});
+
+	$(tab).on('click', '[name="all"]', function() {
+		thatClass.data = [];
+		for (pos in thatClass.datasets) {
+			var current = thatClass.datasets[pos];
+			var id = current.id;
+			if ( $(this).is (':checked') ) {
+				$('#' + id).removeClass('muted');
+				thatClass.data.push(current);
+			} else {
+				$('#' + id).addClass('muted');
+				$('#' + id + ' .legend_box_color').css('background-color', "rgb(204,204,204)");			
+			}
+		}
+		thatClass.plotAccordingToChoices();
+	});
+
+
 
 	/*this.init = function(placeholder) {
     };
