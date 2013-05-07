@@ -1,127 +1,130 @@
 {{extend 'layout.html'}}
-<section>
-{{#include 'plot/choose.html'}}
-<div class='span3'>
-<div class='well' style="padding: 7px 0px;">
-	<ul id='logs' class="nav nav-list">
-		<li class="nav-header">Monitoring stations</li>
-		{{for station in stations:}}
-			<li><a id='station_{{=station['id']}}' title="{{='%s %s' % (T('Station'), station['name']) }}" href="#" class="muted" data-content="{{=get_static_img( station['lat'], station['lgt'])}}">
-				<span class="legend_box_color"> </span>
-				{{=station['name']}}
-			</a></li>	
-		{{pass}}
+<section class="span12">
+<span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
+	<ul class="nav nav-tabs " id="myTab">
+	<li class="active"><a href="#vehiclesDetected" data-toggle="tab">{{=T('Vehicles detected')}}</a></li>
+	<li><a href="#compare" data-toggle="tab">{{=T('Compare')}}</a></li>
+	<li><a href="#maps" data-toggle="tab">Map</a></li>
+	<!--li><a href="#stations" data-toggle="tab">{{#='Stations'}}</a></li-->
+	<li><a href="#stats" data-toggle="tab">{{='Stats'}}</a></li>
+	<li><a href="#originDestination" data-toggle="tab">{{='Origin destination'}}</a></li>
 	</ul>
-</div>
-</div>
-<div class="span9">
-<div class='rdow-fluid'>
-<ul class="nav nav-tabs" id="myTab">
-<li class="active"><a href="#graph" data-toggle="tab">Graph</a></li>
-<li><a href="#maps" data-toggle="tab">Map</a></li>
-</ul>
-	<div id="myTabContent" class="tab-content">
-	<div id='graph' class="chart tab-pane fade in active">
-		<span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
-		<!--a id="print" title="{{=T('Save image')}}" href="#" class="btn pull-right"><i class="icon-print"></i></a-->
-		<form class="pull-right">
-			<label class="radio inline"><input name="graph" type='radio' value="bars" checked='checked' class='graph' id="bars_1"/>bars
-			</label>
-			<label class="radio inline"><input name="graph" type='radio' value="lines" class='graph' id="lines_6"/>lines
-			</label>
-		</form>
-		<ul class="nav nav-pills"> 
-		<li class="{{='active' if not(request.vars.interval) or request.vars.interval not in [str(7),str(24)] else ''}}"><a class='group' href="#" id="group_1">group by 1hour</a></li>
-		<li class="{{='active' if request.vars.interval == str(6) else ''}}"><a href="#" class='group' id="group_6">group by 6hour</a></li>
-		<li class="{{='active' if request.vars.interval == str(24) else ''}}"><a href="#" class='group' id="group_24">group by  1day</a></li>
+
+<div id="myTabContent" class="tab-content">
+<section id='vehiclesDetected' class="tab-pane fade in active row-fluid">
+	<div class='span2'>
+	<div class='well' style="padding: 7px 0px;">
+		<ul id='stations' class="nav nav-list">
+			<li class="nav-header">Monitoring stations</li>
+			{{for station in stations:}}
+				<li><a id='station_{{=station['id']}}' title="{{='%s %s' % (T('Station'), station['name']) }}" href="#" class="muted" data-content="{{=get_static_img( station['lat'], station['lgt'])}}">
+					<span class="legend_box_color"> </span>
+					{{=station['name']}}
+				</a></li>	
+			{{pass}}
 		</ul>
-		<div id="traffic_chart_h"  style="height:370px"></div>
-	</div>
-	<div id="maps" class="tab-pane fade">
-		{{include 'default/map.html'}}
 	</div>
 	</div>
+	<div class="span10">
+		<div class="chart" style="height:370px">
+			<!--a id="print" title="{{=T('Save image')}}" href="#" class="btn pull-right"><i class="icon-print"></i></a-->
+			<form class="pull-right">
+				<label class="radio inline"><input name="graph" type='radio' value="bars" checked='checked' class='graph' id="bars_1"/>bars
+				</label>
+				<label class="radio inline"><input name="graph" type='radio' value="lines" class='graph' id="lines_6"/>lines
+				</label>
+			</form>
+			<ul class="nav nav-pills"> 
+			<li class="{{='active' if not(request.vars.interval) or request.vars.interval not in [str(7),str(24)] else ''}}"><a class='group' href="#" id="group_1">group by 1hour</a></li>
+			<li class="{{='active' if request.vars.interval == str(6) else ''}}"><a href="#" class='group' id="group_6">group by 6hour</a></li>
+			<li class="{{='active' if request.vars.interval == str(24) else ''}}"><a href="#" class='group' id="group_24">group by  1day</a></li>
+			</ul>
+			<div id="chart_vehicles_detected" style="height:100%" ></div>
+		</div>
+	</div>
+</section>
+<div id="compare" class="row-fluid tab-pane fade">
+	{{include 'plot/tab_compare.html'}}
 </div>
-<div class='row-fluid'>
-	<div class="well">{{=LOAD('plot', 'figures', ajax=True)}}</div>
+<section id="maps" class="tab-pane fade row-fluid">
+	{{include 'default/map.html'}}
+</section>
+<!--section id="stations" class="tab-pane fade row-fluid">
+	{{#include 'plot/tab_stations.html'}}
+</section-->
+<section id="stats" class="tab-pane fade row-fluid">
+	{{include 'plot/tab_stats.html'}}
+</section>
+<section id="originDestination" class="tab-pane fade row-fluid">
+	{{include 'plot/tab_origin_destination.html'}}
+</section>
 </div>
+
+
 </div>
-<script>    
+<script> 
+	$('a[data-toggle="tab"]').on('shown', function (e) {
+		tab = $(e.target).attr('href');		
+		if (tab === '#compare') {
+			plot_compare.plotAccordingToChoices();
+		} else if (tab === '#originDestination') {
+			plot_origin_destination.plotAccordingToChoices();		
+		} else {
+			plot_vehicles_detected.plotAccordingToChoices();
+		}
+	  e.relatedTarget // previous tab
+	});
+
+
+   
 	//$('#loading').hide();
 	/*var d = new Date();
 	m_seconds = d.getTime();
 	console.log(m_seconds);
 	var min_seconds = m_seconds-1000*60*60*24*7;
 	console.log(m_seconds, min_seconds);*/
+	var interval = {{=request.vars.interval if request.vars.interval and request.vars.interval in [6,24] else 1}}; 	// Default 7 days	
 	timezoneJS.timezone.zoneFileBasePath = '{{=URL('vtraffic', 'static/js', 'tz')}}';
-	var options = { 
+	var options_vehicles_detected = { 
 		xaxis: { 
 			mode: "time", timezone: false, alignTicksWithAxis:true,
 			dayNames: ['{{=T('Sun')}}', '{{=T('Mon')}}', '{{=T('Tue')}}', '{{=T('Wen')}}', '{{=T('Thu')}}', '{{=T('Fri')}}', '{{=T('Sat')}}'] 
 		},
-		yaxis: { position: 'left', axisLabel: "{{=T('Vehicles detected')}}", zoomRange: false, panRange: false, },
+		yaxis: { axisLabel: "{{=T('Vehicles detected')}}", zoomRange: false, panRange: false,},
 		series:{ lines: { show: false, fill: false },
 				 points: { show: false },
 				 bars: {show: true},
 				},
-		crosshair: { mode: null },
-		pan: { interactive: true },
-		zoom: { interactive: true},
-		tooltip: true, 
-		legend: {show: false, backgroundOpacity: 0},    
-		tooltipOpts: {
-			content:      "%s |  %x |  %y",
-			xDateFormat: "%a, %b %d, %H:%M",
-			defaultTheme:  true,
-		},
-		grid: {
-			color: "#444444",
-			/*	backgroundColor: "#DDDDDD",*/
-			backgroundColor: {
-				colors: ["#fff", "#e4f4f4"]
-			},
-			borderColor: "#FFFFFF",
-			tickColor: "#CCCCCC",
-			//aboveData: false,
-			borderWidth: 1,
-			clickable: true,
-			hoverable: true,
-			autoHighlight: true,
-			markings: function(axes) {
-				var markings = [];
-				var xaxis = axes.xaxis;
-				for (var x = Math.floor(xaxis.min); x < xaxis.max; x += xaxis.tickSize * 2) {
-					markings.push({ xaxis: { from: x, to: x + xaxis.tickSize }, color: "rgba(232, 232, 255, 0.2)" });
-				}
-				return markings;
-			}
-		},
-		touch: {autoHeight: false, autoWidth: false},
+		addDynamically: true,
 	}
-	var placeholder = $("#traffic_chart_h");
-	var datasets = {};	// All data available
-	var data = [];		// All data shown
-	var interval = {{=request.vars.interval if request.vars.interval and request.vars.interval in [6,24] else 1}}; 	// Default 7 days
+	var plot_vehicles_detected = new lplot('chart_vehicles_detected', options_vehicles_detected, true);
+	//var options = plot_compare.default_options;
 
-	function onDataReceived (json) {
+	//var placeholder = $("#chart_vehicles_detected");
+	//var datasets = {};	// All data available
+	//var data = [];		// All data shown
+	
+
+	/*function onDataReceived (json) {
 		var n = Object.keys(datasets).length;
 		for (var k in json) {
-			/*json[k]['label'] = $('#'+k).attr('title') ;*/
+			//json[k]['label'] = $('#'+k).attr('title') ;
 			data.push(json[k]);
 			json[k]['color'] = n;
 			n = n + 1;
 		}
 		$.extend(datasets, json);
 		interval = $("li.active a[class='group']").attr('id').split('_')[1];
-		options.series.bars.barWidth = 60*60*1000*interval;
-		plotAccordingToChoices();
-	}
+		options_vehicles_detected.series.bars.barWidth = 60*60*1000*interval;
+		plotAccordingToChoices(placeholder, options_vehicles_detected);
+	}*/
 
-	$(document).on('click', '#logs a', function() {
+	$("#vehiclesDetected").on('click', '#stations a', function() {
 		var key = $(this).attr("id");	
 		$(this).toggleClass('muted');
-
-		if (typeof datasets[key] === "undefined") {
+		var current = plot_vehicles_detected.getObj(key);
+		console.log('vehiclesDetected-ONCLICK', current, key);
+		if (typeof current === "undefined") {
 			if ( ! $(this).hasClass('muted')) { 
 				return get_station_history(key.split('_')[1])
 			} else { 
@@ -129,33 +132,30 @@
 				$(this).toggleClass('muted');
 			}
 		} else {
-			if ($(this).hasClass('muted')) {
-				if (key && datasets[key]) {
-					$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
-					var index = jQuery.inArray(datasets[key], data);
-					data.splice(index, 1);
-				}
+			var index = jQuery.inArray(current, plot_vehicles_detected.data);
+			if ( index > -1 ) {
+				$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
+				plot_vehicles_detected.data.splice(index, 1);
 			} else {
-				if (key && datasets[key])
-					data.push(datasets[key]);
+				plot_vehicles_detected.data.push(current);
 			}
 		}
-		plotAccordingToChoices();	
+		plot_vehicles_detected.plotAccordingToChoices();	
 	});
 
 	$(document).on('click', "input[name='graph']", function() {
 		serie = $(this).attr('value');
 		if (serie == 'bars') {
-			options.series.lines.show = false;
-			options.series.bars.show = true;
+			plot_vehicles_detected.options.series.lines.show = false;
+			plot_vehicles_detected.options.series.bars.show = true;
 		} else {
-			options.series.lines.show = true;
-			options.series.bars.show = false;
+			plot_vehicles_detected.options.series.lines.show = true;
+			plot_vehicles_detected.options.series.bars.show = false;
 		}
-		plotAccordingToChoices();	
+		plot_vehicles_detected.plotAccordingToChoices();	
 	});
 
-	function plotAccordingToChoices() {
+	/*function plotAccordingToChoices() {
 		if (data.length>1) {
 			options.crosshair.mode = 'x';
 		} else {
@@ -163,12 +163,12 @@
 		}
 		$('#loading').hide(); $('body').css("cursor", "auto");
 		var plot = $.plot($(placeholder), data, options);
-		/* get color assigned to the data series */
+		// get color assigned to the data series 
 		var dataPlotted = plot.getData();
 		for (var d in dataPlotted) {
 			$('#station_' + dataPlotted[d].station_id).children('span.legend_box_color').css('background-color', dataPlotted[d].color);
 		}
-	}
+	}*/
 
 	$(document).on('click', "li a[class='group']", function() {
 		$(this).parent().siblings().removeClass('active');
@@ -176,14 +176,14 @@
 		var next_interval = $(this).attr('id').split('_')[1];
 		if (next_interval === interval) return;
 		interval = next_interval;
-		datasets = {};	//errase different interval data TODO fix it
+		plot_vehicles_detected.datasets = {};	//errase different interval data TODO fix it
 		keys=[]
-		for (key in data) {
+		for (key in plot_vehicles_detected.data) {
 /*			console.log(data[key]['station_id']);
 			keys.push (data[key]['station_id']);*/
-			get_station_history(data[key]['station_id']);
+			get_station_history(plot_vehicles_detected.data[key]['station_id']);
 		}
-		data = [];
+		plot_vehicles_detected.data = [];
 		for (key in keys) {
 			console.log(key);
 			get_station_history(key);	
@@ -191,23 +191,32 @@
 	});
 
 	$(document).on('click', '#print', function() {
-		canvas = $(placeholder).children('canvas')[0];
+		canvas = $(plot_compare.placeholder).children('canvas')[0];
 		dataUrl = canvas.toDataURL();
 		//window.open(dataUrl, "toDataURL() image", "width=1000, height=600");
 		rawImageData = dataUrl.replace("image/png", "image/octet-stream")
         document.location.href = rawImageData;
 	});
+
 	function get_station_history(station_id) {
-		$('#loading').show();
-		$('body').css("cursor", "progress");
-		$.ajax({
-			url: '{{=URL("plot", "get_history.json", args=['station_idJS'], vars={'interval':'intervalJs'} )}}'.replace(/station_idJS/,station_id).replace(/intervalJs/, interval),
-			method: 'GET',
-		    dataType: 'json',
-		    success: onDataReceived
-		});
+		var url = '{{=URL("plot", "get_history.json", args=['station_idJS'], vars={'interval':'intervalJs'} )}}'.replace(/station_idJS/,station_id).replace(/intervalJs/, interval);
+		plot_vehicles_detected.loadData(url);
+
 	}
 	// Starting call
 	$("#station_" + {{=station_id}}).click();
+
+	// Tab select
+	$(function(){
+		var hash = window.location.hash;
+		hash && $('ul.nav a[href="' + hash + '"]').tab('show');
+
+		$('.nav-tabs a').click(function (e) {
+			$(this).tab('show');
+			window.location.hash = this.hash;
+		});
+	});
+
+
 </script>
 </section>
