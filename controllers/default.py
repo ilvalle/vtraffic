@@ -94,7 +94,7 @@ def get_lines():
 						groupby=day,
 						cache=(cache.ram, 3600),
 						cacheable = True)	
-	out={}
+	out=[]
 	# make the mode day by day
 	for d in days:
 		year, month, day  = d[start.gathered_on.year()], d[start.gathered_on.month()], d[start.gathered_on.day()]
@@ -116,9 +116,10 @@ def get_lines():
 			dd = __get_mode_rows(rows_pos, block_seconds, test=True)
 			if len(dd['data']) != 0:
 				dd['id'] = dd['id'] + '%s' % day
-				out['%s' % dd['id']]=dd
+				#out['%s' % dd['id']]=dd
+				out.append(dd)
 		
-	return response.render('generic.json', out)
+	return response.render('generic.json', {'series':out})
 
 def origin_destination():
 	session.forget(response)
@@ -142,32 +143,31 @@ def get_diff():
 	for row in rows:
 		logs.append( [ row.start_point['epoch'] * 1000, row['elapsed_time'] * 1000 ]	)
 
-	all_logs = {'logs':{'data':logs, 'label': 'matches', 'id':'logs'}}	
+	all_logs = []
+	all_logs.append( {'data':logs, 'label': 'matches', 'id':'logs'} )
 
 	for seconds in xrange(900, 1000, 100):
-		out = __get_lower_rows(rows, seconds )
-		all_logs[out['id']] = out
+		all_logs.append( __get_lower_rows(rows, seconds ) )
 	
 	for seconds in xrange(900, 1000, 100):
-		out_m = __get_mode_rows(rows, seconds)
-		all_logs[out_m['id']] = out_m
+		all_logs.append( __get_mode_rows(rows, seconds) )
 
 	# single trends
 	hours = __get_trend(id_origin, 3600)
 	#tens = __get_trend(id_start, 600)
 	fifteens = __get_trend(id_origin, 900)
-	all_logs['trendstart_h'] = {'data':hours, 'label': 'trend start h', 'id':'trendstart_h', 'yaxis': 2, 'bars':{'show':'true', 'fill': 'true', 'align':'center', 'barWidth': 60*60*1000}, 'lines': {'show':'false'}}
+	all_logs.append( {'data':hours, 'label': 'trend start h', 'id':'trendstart_h', 'yaxis': 2, 'bars':{'show':'true', 'fill': 'true', 'align':'center', 'barWidth': 60*60*1000}, 'lines': {'show':'false'}} )
 	#all_logs['trendstart_10'] = {'data':tens, 'label': 'trend start 10m', 'id':'trendstart_10', 'yaxis': 2 }
-	all_logs['trendstart_15'] = {'data':fifteens, 'label': 'trend start 15m', 'id':'trendstart_15', 'yaxis': 2 }
+	all_logs.append( {'data':fifteens, 'label': 'trend start 15m', 'id':'trendstart_15', 'yaxis': 2 } )
 
 	hours = __get_trend(id_destination, 3600)
 	#tens = __get_trend(id_end, 600)
 	fifteens = __get_trend(id_destination, 900)
-	all_logs['trendend_h'] = {'data':hours, 'label': 'trend end h', 'id':'trendend_h', 'yaxis': 2 }
+	all_logs.append( {'data':hours, 'label': 'trend end h', 'id':'trendend_h', 'yaxis': 2 } )
 	#all_logs['trendend_10'] = {'data':tens, 'label': 'trend end 10m', 'id':'trendend_10', 'yaxis': 2 }
-	all_logs['trendend_15'] = {'data':fifteens, 'label': 'trend end 15m', 'id':'trendend_15', 'yaxis': 2 }
+	all_logs.append( {'data':fifteens, 'label': 'trend end 15m', 'id':'trendend_15', 'yaxis': 2 } )
 
-	return response.render('generic.json', all_logs)
+	return response.render('generic.json', {'series':all_logs})
 
 # external request, might be ajax too
 def get_line():
@@ -374,7 +374,6 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 				seconds = (mdate-day).total_seconds()		
 			else:
 				seconds = block[0].start_point['epoch']
-				#seconds = block[0][start.gathered_on.epoch()]#fix it+3600
 
 			if len(block) >= 1 and len(block) <= 2:
 				# pass instead of plotting real value, otherwise it will draw odd values 
