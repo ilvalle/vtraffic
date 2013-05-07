@@ -1,9 +1,12 @@
-var flot_global_option = { 
+function lplot (ph, options) {
+	
+	this.default_options = { 
 		xaxis: { mode: "time", timezone: false, alignTicksWithAxis:true },
-		yaxis: { mode: 'time', position: 'left', axisLabel: "{{=T('Travel time')}}", zoomRange: false, panRange: false, },			
+		yaxis: { mode: 'time', position: 'left', zoomRange: false, panRange: false, },			
 		y2axis:{ mode: null},
 		series:{ lines: { show: true, fill: true },
-				points: { show: true }},
+				 points: { show: true },
+				 bars: {show: false}},
 		legend: {show: false},
 		pan: { interactive: true },
 		zoom: { interactive: true},
@@ -34,68 +37,125 @@ var flot_global_option = {
 				}
 				return markings;
 			}
+		},
+		addDynamically: false,
+	};
+
+	this.datasets = [];	// All series available
+	this.data = [];		// All series shown	
+	this.placeholder;
+	this.options;
+	var addDynamically;
+
+	this.plotAccordingToChoices = function () {
+		$('#loading').hide(); $('body').css("cursor", "auto");		
+		//options.crosshair.mode = data.length>1 ? 'x' : null;
+
+		if ( thatClass.data.length == $(thatClass.datasets).length ) {
+			$("#all").attr('checked', 'checked');
+		} 
+		console.log(thatClass.placeholder, thatClass.data, thatClass.options);
+		var plot = $.plot(thatClass.placeholder, thatClass.data, thatClass.options);
+		if ( jQuery.isEmptyObject(thatClass.datasets) ) { return; }
+		var dataPlotted = plot.getData();
+		console.log (dataPlotted);
+		for (var d in dataPlotted) {
+			console.log('indice', d, dataPlotted[d] )
+			$('#' + dataPlotted[d].id).children('span.legend_box_color').css('background-color', dataPlotted[d].color);
 		}
-	}
+	};
 
+	this.onDataReceived = function (json) {
+		var tab = thatClass.placeholder.split('_chart')[0];
+		var data_placeholder = $(tab + ' .data_list');
+		var series = json['series'];
+		console.log( 'onDataReceived', jQuery.isEmptyObject(series), jQuery.isEmptyObject(thatClass.datasets) );
 
-function onDataReceived (json) {
-	$('#loading').hide();	
-	if ( jQuery.isEmptyObject(json) ) {
-		$('#warning').show();
-	}
-	data = []
-	for (var k in json) {
+		if ( jQuery.isEmptyObject(series) ) {
+			$( tab + ' .label-warning').show();
+		} else { 
+			$( tab + ' .label-warning').hide();
+		}
+		if (thatClass.options.addDynamically === false) {
+			thatClass.data = [];		// Reset data
+			thatClass.datasets = [];	
+		}
+	
+		var n = Object.keys(thatClass.datasets).length;
+		for (var k in series) {
+			current = series[k];
+			if ( typeof current.id === 'undefined' ) {
+				current.id = k;
+			} 
+			current['color'] = n;
+			n = n + 1;
 			/*json[k]['label'] = $('#'+k).attr('title') ;*/
-			data.push(json[k]);
-	}
-	datasets = json;
-
-	for (var i in datasets) {
-		splits = datasets[i].id.split('_')
-		$('#'+splits[0]).append("<li><a id='idJS' title='labelJS' href='#' class=''><span class='legend_box_color'> </span>labelJS</a></li>".replace(/labelJS/g, datasets[i].label ).replace(/idJS/, datasets[i].id ));
-	}
-	plotAccordingToChoices();
-}
-
-function plotAccordingToChoices() {
-	if ( jQuery.isEmptyObject(datasets) ) { return; }
-
-	if ( data.length == $(datasets).length ) {
-		$("#all").attr('checked', 'checked');
-	} 
-	var plot = $.plot($(placeholder_h), data, options);
-	var dataPlotted = plot.getData();
-	for (var d in dataPlotted) {
-		$('#' + dataPlotted[d].id).children('span.legend_box_color').css('background-color', dataPlotted[d].color);
-	}
-}
-
-$(document).on('click', '#all', function() {
-	data = [];
-	if ( $(this).is (':checked') ) {
-		for (key in datasets) {
-			$('#' + key).removeClass('muted');
-			data.push(datasets[key]);
+			thatClass.data.push(current);
 		}
-	} else {
-		for (key in datasets) {
-			$('#' + key).addClass('muted');
-			$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");			
+
+		if (thatClass.options.addDynamically === true) {	
+			$.merge(thatClass.datasets, series);
+		}  else {
+			thatClass.datasets = series;
+			$(data_placeholder).empty();
+			
+			for (var i in thatClass.datasets) {
+				current = thatClass.datasets[i];
+				$(data_placeholder).append( $("<li><a id='idJS' title='labelJS' href='#' class=''><span class='legend_box_color'> </span>labelJS</a></li>".replace(/labelJS/g, current.label ).replace(/idJS/, current.id)) );
+			}
 		}
-	} 
-	plotAccordingToChoices();
-});
+		interval = $("li.active a[class='group']").attr('id').split('_')[1];
+		thatClass.options.series.bars.barWidth = 60*60*1000*interval;
+		thatClass.plotAccordingToChoices();
+	};
 
+	this.loadData = function(url) {
+		$('#loading').show();
+		$('body').css("cursor", "progress");
+		$.ajax({
+			url: url,
+			method: 'GET',
+		    dataType: 'json',
+		    success: thatClass.onDataReceived
+		});
+	};
 
-/*function showTooltip(x, y, contents) {
-	$('<div id="tooltip">' + contents + '</div>').css( {
-	    position: 'absolute',
-	    display: 'none',
-	    top: y + 5,
-	    left: x + 5,
-	    border: '1px solid #fdd',
-	    padding: '2px',
-	    'background-color': '#fee',
-	    opacity: 0.80
-	}).appendTo("body").fadeIn(200);
-}*/
+	this.getData = function () {
+		return thatClass.data;
+	};
+
+	this.getObj = function (key) {
+		var current;
+		for (k in thatClass.datasets) {
+			current = thatClass.datasets[k];
+			if (current.id == key) {
+				return current;			
+			}
+		}
+		return undefined;
+	};
+	
+	this.options = $.extend(this.default_options, options);
+	this.placeholder = ("#" + ph);
+	var thatClass = this;
+	var tab = this.placeholder.split('_chart')[0];
+
+	$(tab).on('click', '.data_list a', function() {
+		var key = $(this).attr("id");	
+		$(this).toggleClass('muted');	
+		var current = thatClass.getObj(key);
+		console.log(current);
+		var index = jQuery.inArray(current, thatClass.data);
+		if ( index > -1 ) {	// Current element is shown	
+			$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
+			thatClass.data.splice(index, 1);
+		} else {
+			thatClass.data.push(current);
+		}
+		thatClass.plotAccordingToChoices();	
+	});
+
+	/*this.init = function(placeholder) {
+    };
+	this.init();*/
+}
