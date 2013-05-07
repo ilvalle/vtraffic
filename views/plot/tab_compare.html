@@ -1,0 +1,141 @@
+{{#extend 'layout.html'}}
+<section id="tab_compare">
+
+
+{{#=content}}
+
+<div class='span2'>
+<div class='well' style="padding: 7px 0px;">
+
+{{include 'plot/form_stations.html'}}
+	<ul class="nav nav-list">
+		<li><label class="checkbox"><input id='all' type="checkbox" checked='checked'>Hide/Show all</label></li>
+		<li class='nav-header'>{{=T('Days')}}</li>
+	</ul>
+	<ul id='' class="data_list nav nav-list" >
+		<!--div id="slider-range-min_modes"></div-->
+		<!--div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('mode')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div-->
+	</ul>
+
+	<!--ul id='lower' class="nav nav-list">
+		<li class='nav-header'>Lower Bound</li>
+		<div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('lower')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div>
+
+	</ul-->
+</div>
+</div>
+
+<p id='warning' class="label label-warning span4 offset2 center">{{=T('No matches found')}}</p>
+<div class="span10">
+<div id="graph" class=" chart">	
+	<div id="compare_chart"  style="height:370px"> </div>
+</div>
+</div>
+<!--div><div id="traffic_chart_m" style="width:900px;height:300px"> </div-->
+
+<script>    
+	$('#warning').hide();
+	var options_compare = { 
+		yaxis: { mode: 'time', position: 'left', axisLabel: "{{=T('Travel time')}}", zoomRange: false, panRange: false,},
+		addDynamically: false
+	}
+	var plot_compare = new lplot('compare_chart', options_compare);
+
+	//var datasets, plot, data, range_from, range_to;	
+	/*function onDataReceived_single(json) {
+		if ( jQuery.isEmptyObject(json) ) {
+			console.log('empty');
+		} else {
+			console.log('non empty');		
+		}
+		//console.log(json);
+		//for (var attrname in json) { datasets[attrname] = json[attrname]; }
+		for (var i in json) {
+			datasets[i] = json[i]
+			if ($('#' + json[i].id))
+				$('#' + json[i].id).parent().remove();
+			//var str = "<label class='checkbox'><input id='idJS' type='checkbox' checked='checkek'>labelJS</label>".replace(/labelJS/, json[i].label ).replace(/idJS/, json[i].id );
+			var str = "<li><a id='idJS' title='labelJS' href='#' class='muted'><span class='legend_box_color'> </span>labelJS</a></li>".replace(/labelJS/, json[i].label ).replace(/idJS/, json[i].id );
+			console.log(	json[i].id );		
+			splits = json[i].id.split('_')
+			$('#'+splits[0]).append(str).hide().slideDown();
+		}
+		plotAccordingToChoices(placeholder_compare, options);
+	}*/
+
+	
+	/*$('#tab_compare').on('click', '.data_list a', function() {
+		var key = $(this).attr("id");	
+		$(this).toggleClass('muted');
+		var current = plot_compare.getObj(key);
+		var index = jQuery.inArray(current, plot_compare.data);
+		if ( index > -1 ) {	// Current element is shown
+			$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
+			plot_compare.data.splice(index, 1);
+		} else {
+			plot_compare.data.push(current);
+		}
+
+		plot_compare.plotAccordingToChoices();	
+	});*/
+
+	$('#tab_compare').on('click', '#all', function() {
+		plot_compare.data = [];
+		for (pos in plot_compare.datasets) {
+			var current = plot_compare.datasets[pos];
+			var id = current.id;
+			if ( $(this).is (':checked') ) {
+				$('#' + id).removeClass('muted');
+				plot_compare.data.push(current);
+			} else {
+				$('#' + id).addClass('muted');
+				$('#' + id + ' .legend_box_color').css('background-color', "rgb(204,204,204)");			
+			}
+		}
+		plot_compare.plotAccordingToChoices();
+	});
+
+   $("#clearSelection").click(function () {
+        $.plot.clearSelection(true);
+    });
+
+	$("#tab_compare").on('click', '.update', function() {
+		var id_origin = $("#tab_compare #select_o option:selected").val();
+		var id_destination = $("#tab_compare #select_d option:selected").val();		
+		var url = "{{=URL("default", "get_lines.json", vars={'id_origin':'id_originJs', 'id_destination':'id_destinationJs'} )}}".replace(/id_originJs/, id_origin).replace(/id_destinationJs/, id_destination);
+		plot_compare.loadData(url);
+	});
+
+
+	/*
+	function add_line(type) {
+		if ( ! $( '#' + type + " #amount" ).val()) return;
+		$.ajax({
+		    url: '{{=URL("default", "get_lines.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val()),
+		    method: 'GET',
+		    dataType: 'json',
+		    success: onDataReceived_single
+		});
+	}*/
+
+</script>
+{{if not(request.vars.id_origin) or not(request.vars.id_destination):}} 
+	{{#include 'plot/choose.html'}}
+{{else:}}
+	<script>
+	$(document).on('shown', 'a[data-toggle="tab"][href="#originDestination"]', function (e) {
+		if (first) return;
+		first = true;
+		var url = "{{=URL("default", "get_lines.json", vars=request.get_vars, args=request.args )}}"
+		plot_compare.getData(url);
+	});
+	</script>
+{{pass}}
+
+</section>

@@ -1,0 +1,155 @@
+<div class='span2'>
+<div class='well' style="padding: 7px 0px;">
+{{include 'plot/form_stations.html'}}
+	<ul id='' class="data_list nav nav-list">
+	
+	</ul>
+	<!--ul id='mode_od' class="nav nav-list">
+		<li class='nav-header'>Mode</li>
+		<div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('mode')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div>
+	</ul>
+
+	<ul id='lower' class="nav nav-list">
+		<li class='nav-header'>Lower Bound</li>
+		<div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('lower')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div>
+	</ul>
+
+	<ul id='trendstart' class="nav nav-list">
+		<li class='nav-header'>Trend start</li>
+		<div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('trendstart')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div>
+	</ul>
+
+	<ul id='trendend' class="nav nav-list">
+		<li class='nav-header'>Trend end</li>
+		<div class="input-append">
+			<input class="span2" id="amount" type="text" value='' style='width: 90px;'>
+			<a href='#' onclick="add_line('trendend')" class="add-on pointer"><i class='icon-plus'></i></a>
+		</div>
+		<label class="checkbox"><input id='all' type="checkbox" checked='checked'>All</label>
+	</ul>
+	<ul id='logs' class="nav nav-list">
+		
+	</ul-->
+</div>
+</div>
+
+<div class="span10">
+	<div class="chart">
+		<div class="clearfix">
+			<!--input type="submit" id='clearSelection' value="Clear zoom" class=''-->
+			<!--div class='span4'>Total matches<span class='label label-info'>{{#=info['n']}}</span></div>
+			<div class='span4'>Devices detected by start<span class='label label-info'>{{#=info['n_start']}}</span></div>
+			<div class='span4'>Devices detected by end<span class='label label-info'>{{#=info['n_end']}}</span></div-->
+			<!--a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(0)})}}'>Start trend</a>
+			<a href='{{=URL('traffic', 'default', 'read', vars={'id':request.args(1)})}}'>End trend</a-->
+		</div>
+		<div id="originDestination_chart"  style="height:370px"> </div>
+	</div>
+</div>
+
+
+<!--div><div id="traffic_chart_m" style="width:900px;height:300px"> </div-->
+
+<script>    
+	var options_origin_destination = { 
+		yaxis: { mode: 'time', position: 'left', axisLabel: "{{=T('Travel time')}}", zoomRange: false, panRange: false,},
+		y2axis: { mode: null, position: 'right', axisLabel: "{{=T('Vehicles detected')}}", zoomRange: false, panRange: false,},
+		addDynamically: false,
+	}
+	var plot_origin_destination = new lplot('originDestination_chart', options_origin_destination, true);
+
+	/*function onDataReceived_single(json) {
+
+		for (var i in json) {
+			datasets[i] = json[i]
+			if ($('#' + json[i].id))
+				$('#' + json[i].id).parent().remove();
+			var str = "<label class='checkbox'><input id='idJS' type='checkbox' checked='checkek'>labelJS</label>".replace(/labelJS/, json[i].label ).replace(/idJS/, json[i].id );
+
+			splits = json[i].id.split('_')
+			$('#'+splits[0]).append(str).hide().slideDown();
+		}
+		plot_origin_destination.plotAccordingToChoices();
+	}*/
+
+
+
+	$("#originDestination").on('click', '.update', function() {
+		var id_origin = $("#originDestination #select_o option:selected").val();
+		var id_destination = $("#originDestination #select_d option:selected").val();		
+		var url = "{{=URL("default", "get_diff.json", vars={'id_origin':'id_originJs', 'id_destination':'id_destinationJs'} )}}".replace(/id_originJs/, id_origin).replace(/id_destinationJs/, id_destination);
+		plot_origin_destination.loadData(url);
+	});
+	/*$(document).on('click', 'input', function() {
+		var key = $(this).attr("id");		
+		if (key === 'all') {
+			that = $(this)
+			$(document).find("input:checked").each(function () {
+				if ($(this) !== $(that)) {
+					$(this).removeAttr('checked');				
+				}
+			});
+			data = [];
+		} else {
+			if ($("#all").attr('checked') === 'checked'){
+				data = []						
+			}
+			$("#all").removeAttr('checked');
+			if ($(this).attr('checked') === 'checked'){
+				if (key && datasets[key])
+					data.push(datasets[key]);
+			} else {
+				if (key && datasets[key])
+					var index = data.indexOf(datasets[key]);
+					data.splice(index, 1);
+			}
+		}
+		plotAccordingToChoices();	
+	}); */
+
+
+   /* 
+	function plotAccordingToChoices() {
+		if ( data.length == 0 ) {
+			for (var i in datasets) {
+				data.push(datasets[i]);
+			}
+			$("#all").attr('checked', 'checked');
+		} 
+		$.plot($(placeholder_h), data, options);
+	}
+
+    $(placeholder_h).bind("plotclick", function (event, pos, item) {
+	//console.log('plotclick'); 
+	//console.log(item)
+	//console.log(pos)
+        if (item) {
+       		$.plot.highlight(item.series, item.datapoint);
+        }
+    });
+*/
+	$("#clearSelection").click(function () {
+        $.plot.clearSelection(true);
+    });
+
+	function add_line(type) {
+		var url = '{{=URL("default", "get_line.json", args=request.args, vars={'type':'typeJS', 'diff_temp':'diff_temp_js'})}}'.replace(/typeJS/, type).replace(/diff_temp_js/,$( '#' + type + " #amount" ).val());
+		plot_origin_destination.getData(url);
+	}
+	var first = false;
+	$(document).on('shown', 'a[data-toggle="tab"][href="#originDestination"]', function (e) {
+		if (first) return;
+		first = true;
+		var url = '{{=URL("default", "get_diff.json", vars=request.get_vars, args=request.args )}}';
+		plot_origin_destination.loadData(url);
+	});
+</script>
