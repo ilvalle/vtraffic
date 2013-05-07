@@ -21,7 +21,7 @@ def get_history():
 	station_id = request.args(0) or 'index'
 	#n_days = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 7
 	n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
-	station = db(db.station.id == station_id).select(db.station.name, cache=(cache.ram, 3600))
+	station = db(db.station.id == station_id).select(db.station.name)
 	if not(station_id and station_id.isdigit()) or len(station) != 1: raise HTTP(404)
 	station = station.first()
 	#now = request.now
@@ -36,13 +36,12 @@ def get_history():
 			).select(db.record.gathered_on, orderby=db.record.gathered_on) #, cache=(cache.memcache, 3600))
 	t1 = time.time()
 	output = []
-
 	for key, group in groupby(data, lambda x: (EPOCH_M(x.gathered_on)) / ( 60 * 60 * n_hours)):
-		l = list(group)
-		output.append( [ key*60*60*1000*n_hours, len(l)] ) 
+		output.append( [ key*60*60*1000*n_hours, len(list(group))] ) 
 	t2 = time.time()
 	#print 'T', t2-t0, 't0', t1-t0, 't1', t2-t1
-	return response.render('generic.json', {'station_%s' % station_id:{'data':output, 'station_id':station_id, 'label': station.name}})	
+	return response.render('generic.json', {'series': [{'data':output, 'id': 'station_%s' % station_id, 'station_id':station_id, 'label': station.name}]})
+
 
 @cache('figures', time_expire=80000, cache_model=cache.memcache)
 def figures():
