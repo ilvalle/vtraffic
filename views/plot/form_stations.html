@@ -1,0 +1,21 @@
+<div class="clearfix">
+<form class="form-inline">
+		<div class="control-group success">
+			<label class="control-label" for="inputWarning">Starting station</label>
+			<div class="controls"><select class="input-block-level" name="id_origin" id="select_o"><option></option>
+			{{for station in stations:}}
+				<option {{='selected' if str(station.id) == request.vars.id_origin else ''}} value="{{=station.id}}">{{=station.name}}</option>
+			{{pass}}
+			</select></div>
+		</div>
+		<div class="control-group success">
+			<label class="control-label" for="inputWarning">Destination station</label>
+			<div class="controls"><select class="input-block-level" name="id_destination" id="select_d"><option></option>
+			{{for station in stations:}}
+				<option {{='selected' if str(station.id) == request.vars.id_destination else ''}} value="{{=station.id}}">{{=station.name}}</option>
+			{{pass}}
+			</select></div>
+		</div>
+		<a id='' type="submit" class="update btn btn-success pull-right">Update</a>
+</form>
+</div>
