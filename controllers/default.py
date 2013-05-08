@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from applications.vtraffic.modules.tools import EPOCH_M
 from datetime import timedelta
+from gluon.utils import md5_hash
 import datetime, time
 
 start = db.record.with_alias('start_point')
@@ -104,7 +105,6 @@ def compare_series():
 						start.gathered_on.month(), 
 						start.gathered_on.day(),
 						groupby=day,
-						cache=(cache.ram, 3600),
 						cacheable = True)	
 	out=[]
 	# make the mode day by day
@@ -121,7 +121,7 @@ def compare_series():
 			 (end.station_id == id_destination))
 
 		rows_pos = __get_rows(query)
-		
+
 		if line_type == 'lower':
 			out = __get_lower_rows(rows_pos, block_seconds )
 		else:
@@ -196,20 +196,25 @@ def __get_rows_stations(station_id_start, station_id_end):
 	query = (start.station_id == station_id_start) & (end.station_id == station_id_end)
 	return __get_rows(query)
 
-def __get_rows(query):
-	rows = db( query ).select(start.ALL, end.ALL, 
-							  orderby=start.gathered_on,
-							  left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
-							  cache=(cache.ram, 3600),
-							  cacheable = True)
-	matches = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(hours=1)) ]
-	matches = __remove_dup(matches)
-	# Compute the elapsed_time 	
-	for m in matches:
-		m.start_point['epoch'] = EPOCH_M(m[start.gathered_on])
-		m.end_point['epoch']   = EPOCH_M(m[end.gathered_on])
-		m['elapsed_time']      = m.end_point['epoch'] - m.start_point['epoch']
 
+def __get_rows(query):
+	def __get_rows_local(query):
+		rows = db( query ).select(start.ALL, end.ALL, 
+								  orderby=start.gathered_on,
+								  left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
+								  cacheable = True)
+		matches = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(hours=1)) ]
+		matches = __remove_dup(matches)
+		# Compute the elapsed_time 	
+		for m in matches:
+			m.start_point['epoch'] = EPOCH_M(m[start.gathered_on])
+			m.end_point['epoch']   = EPOCH_M(m[end.gathered_on])
+			m['elapsed_time']      = m.end_point['epoch'] - m.start_point['epoch']
+		return matches
+	key = '%s' % query
+	if len(key)>200:
+		key = md5_hash(key)
+	matches = cache.ram( key, lambda: __get_rows_local(query), time_expire=3600)
 	return matches
 
 ### issue 1

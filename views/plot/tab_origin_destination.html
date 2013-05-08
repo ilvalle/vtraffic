@@ -88,7 +88,7 @@
 	$("#originDestination").on('click', '.update', function() {
 		var id_origin = $("#originDestination #select_o option:selected").val();
 		var id_destination = $("#originDestination #select_d option:selected").val();		
-		var url = "{{=URL("default", "get_diff.json", vars={'id_origin':'id_originJs', 'id_destination':'id_destinationJs'} )}}".replace(/id_originJs/, id_origin).replace(/id_destinationJs/, id_destination);
+		var url = "{{=URL("default", "get_series.json", vars={'id_origin':'id_originJs', 'id_destination':'id_destinationJs'} )}}".replace(/id_originJs/, id_origin).replace(/id_destinationJs/, id_destination);
 		plot_origin_destination.loadData(url);
 	});
 	/*$(document).on('click', 'input', function() {
