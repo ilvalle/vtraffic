@@ -184,9 +184,9 @@ def __get_rows(query):
 		matches = __remove_dup(matches)	# Remove matches based on the same timestamp
 		# Compute the elapsed_time 	
 		for m in matches:
-			m.start_point['epoch'] = EPOCH_M(m[start.gathered_on])
-			m.end_point['epoch']   = EPOCH_M(m[end.gathered_on])
-			m['elapsed_time']      = m.end_point['epoch'] - m.start_point['epoch']
+			m.start_point.epoch = EPOCH_M(m[start.gathered_on])
+			m.end_point.epoch   = EPOCH_M(m[end.gathered_on])
+			m.elapsed_time      = m.end_point.epoch - m.start_point.epoch
 	
 		matches = __filter_twins(matches) # Remove matches with the same elapsed_time at the same time
 		return matches
@@ -262,7 +262,7 @@ def __filter_twins(rows):
 	out = []
 	for pos, row in enumerate(rows):
 		next = rows[pos + 1 ] if pos != len(rows) -1 else None
-		if not (next) or row.start_point['epoch'] != next.start_point['epoch'] or row['elapsed_time'] != next['elapsed_time']:
+		if not (next) or row.start_point.epoch != next.start_point.epoch or row.elapsed_time != next.elapsed_time:
 			out.append(row)
 	return rows
 
@@ -344,7 +344,7 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 				mdate = block[1][start.gathered_on]
 				seconds = (mdate-day).total_seconds()		
 			else:
-				seconds = block[1].start_point['epoch']
+				seconds = block[1].start_point.epoch
 				#seconds = block[1][start.gathered_on.epoch()] #fix it +3600
 			mode.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
 		else:
@@ -353,7 +353,7 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 				mdate = block[0][start.gathered_on]
 				seconds = (mdate-day).total_seconds()		
 			else:
-				seconds = block[0].start_point['epoch']
+				seconds = block[0].start_point.epoch
 
 			if len(block) <= 2:
 				# pass instead of plotting real value, otherwise it will draw odd values 
@@ -361,17 +361,17 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 			else:
 				# Compute the mode
 				block = sorted(block, key=operator.itemgetter('elapsed_time'))
-				initial_time_frame = block[0]['elapsed_time']
-				end_time_frame = 	 block[len(block)-1]['elapsed_time']
+				initial_time_frame = block[0].elapsed_time
+				end_time_frame = 	 block[len(block)-1].elapsed_time
 				mode_value = {'counter':0, 'seconds':0}
 				for second in range(0,end_time_frame-initial_time_frame, MODE_STEP):
 					current_initial = initial_time_frame + second
 					current_end     = current_initial + vertical_block_seconds
 					counter = 0
 					for ele in block:
-						if current_initial <= ele['elapsed_time'] < current_end:
+						if current_initial <= ele.elapsed_time < current_end:
 							counter = counter + 1 
-						elif current_end < ele['elapsed_time']:
+						elif current_end < ele.elapsed_time:
 							break
 					if counter > mode_value['counter']:
 						mode_value['counter'] = counter
