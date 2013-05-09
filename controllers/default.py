@@ -336,7 +336,7 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 
 	block_list = __split2time_frame(rows, block_seconds)
 	mode=[]
-	fdate = l[0][0][start.gathered_on]
+	fdate = block_list[0][0][start.gathered_on]
 	day = datetime.datetime(fdate.date().year, fdate.date().month, fdate.date().day)
 	for block in block_list:
 		if block[0] == 0:
