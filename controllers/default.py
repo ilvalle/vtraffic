@@ -6,6 +6,8 @@ import datetime, time
 
 start = db.record.with_alias('start_point')
 end = db.record.with_alias('end_point')
+CACHE_TIME_EXPIRE=1
+MODE_STEP=5
 
 # temp fix due to double menu
 zero = request.args(0) or 'index'
@@ -70,34 +72,13 @@ def add_station():
 	return response.render('default/index.html', dict(form=form))
 
 id_origin = int(request.vars.id_origin) if request.vars.id_origin and request.vars.id_origin.isdigit() else 13
-id_destination = int(request.vars.id_destination) if request.vars.id_destination and request.vars.id_destination.isdigit() else 14
+id_destination  = int(request.vars.id_destination) if request.vars.id_destination and request.vars.id_destination.isdigit() else 14
+time_frame_size = int(request.vars.diff_temp) if request.vars.diff_temp and request.vars.id_destination.isdigit() else 900
 
-#@cache(request.env.path_info + (request.vars.id_origin or '') + (request.vars.id_destination or ''), time_expire=80000, cache_model=cache.ram)
-#def compare():
-#	response.files.append(URL('static','js/theme/default/style.css'))
-#	response.files.append(URL('static','js/OpenLayers.js'))
-#	content = auth.wiki(slug='compare', render='html')
-#	stations = db(db.station).select(db.station.ALL)
-#	return response.render('default/compare.html', {'content':content, 'stations':stations})
-
-#def origin_destination():
-#	session.forget(response)
-#	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 500
-#	except:	block_seconds = 900
-#
-#	rows = __get_rows_stations (id_origin, id_destination)
-#	n_start = db(db.record.station_id == id_origin).count( cache=(cache.ram, 3600))
-#	n_end = db(db.record.station_id == id_destination).count( cache=(cache.ram, 3600))
-#
-#	info = {'n': len(rows), 'n_start':n_start, 'n_end':n_end}
-#	return response.render('default/diff.html', {'info':info})
-
-@cache(request.env.path_info + '%s-%s' % (id_origin, id_destination) , time_expire=None, cache_model=cache.ram)
+@cache(request.env.path_info + '%s-%s-%s' % (id_origin, id_destination, time_frame_size) , time_expire=None, cache_model=cache.ram)
 def compare_series():
 	session.forget(response)
-	line_type = request.vars.type or 'mode'
-	try: block_seconds = int(request.vars.diff_temp) if request.vars.diff_temp else 900
-	except:	block_seconds = 900
+	
 	day = start.gathered_on.year() | start.gathered_on.month() | start.gathered_on.day()  
 	# Gets the days with data 
 	days = db( (start.station_id == id_origin)  ).select(
@@ -105,6 +86,7 @@ def compare_series():
 						start.gathered_on.month(), 
 						start.gathered_on.day(),
 						groupby=day,
+						orderby=day,
 						cacheable = True)	
 	out=[]
 	# make the mode day by day
@@ -120,17 +102,13 @@ def compare_series():
 			 (start.station_id == id_origin) &
 			 (end.station_id == id_destination))
 
-		rows_pos = __get_rows(query)
+		rows = __get_rows(query)
+		data = __get_mode_rows(rows, time_frame_size, test=True)
 
-		if line_type == 'lower':
-			out = __get_lower_rows(rows_pos, block_seconds )
-		else:
-			dd = __get_mode_rows(rows_pos, block_seconds, test=True)
-			if len(dd['data']) != 0:
-				dd['id'] = dd['id'] + '%s' % day
-				#out['%s' % dd['id']]=dd
-				out.append(dd)
-		
+		if len(data['data']) != 0:
+			data['id'] = data['id'] + '%s%s%s' % (year,month,day)
+			out.append(data)
+
 	return response.render('generic.json', {'series':out})
 
 @cache(request.env.path_info + '%s-%s' % (id_origin, id_destination), time_expire=None, cache_model=cache.ram)
@@ -203,18 +181,19 @@ def __get_rows(query):
 								  orderby=start.gathered_on,
 								  left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
 								  cacheable = True)
-		matches = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(hours=1)) ]
-		matches = __remove_dup(matches)
+		matches = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(minutes=30)) ]
+		matches = __remove_dup(matches)	# Remove matches based on the same timestamp
 		# Compute the elapsed_time 	
 		for m in matches:
 			m.start_point['epoch'] = EPOCH_M(m[start.gathered_on])
 			m.end_point['epoch']   = EPOCH_M(m[end.gathered_on])
 			m['elapsed_time']      = m.end_point['epoch'] - m.start_point['epoch']
+	
 		return matches
-	key = '%s' % query
+	key = 'rows_%s' % query
 	if len(key)>200:
-		key = md5_hash(key)
-	matches = cache.ram( key, lambda: __get_rows_local(query), time_expire=3600)
+		key = 'rows_%s' % md5_hash(key)
+	matches = cache.ram( key, lambda: __get_rows_local(query), time_expire=CACHE_TIME_EXPIRE)
 	return matches
 
 ### issue 1
@@ -380,24 +359,29 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 			else:
 				seconds = block[0].start_point['epoch']
 
-			if len(block) >= 1 and len(block) <= 2:
+			if len(block) <= 2:
 				# pass instead of plotting real value, otherwise it will draw odd values 
 				pass
-				#mode.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
 			else:
-				initial_time_frame = min([ r['elapsed_time']  for r in block ] )
-				end_time_frame = 	 max([ r['elapsed_time']  for r in block ] )
+				# Compute the mode
+				block = sorted(block, key=lambda b: b['elapsed_time'])
+				initial_time_frame = block[0]['elapsed_time']
+				end_time_frame = 	 block[len(block)-1]['elapsed_time']
+				mode_value = {'counter':0, 'seconds':0}
+				for second in range(0,end_time_frame-initial_time_frame, MODE_STEP):
+					current_initial = initial_time_frame + second
+					current_end     = current_initial + vertical_block_seconds
+					counter = 0
+					for ele in block:
+						if current_initial <= ele['elapsed_time'] < current_end:
+							counter = counter + 1 
+						elif current_end < ele['elapsed_time']:
+							break
+					if counter > mode_value['counter']:
+						mode_value['counter'] = counter
+						mode_value['seconds'] = current_initial
 
-				n_windows = (end_time_frame - initial_time_frame) / vertical_block_seconds		
-				windows = [0] * (n_windows + 1)
-				values = ''
-				for ele in block:
-					cur_pos = (ele['elapsed_time'] - initial_time_frame)  / vertical_block_seconds
-					windows[cur_pos] += 1
-
-				tot = initial_time_frame + (vertical_block_seconds * windows.index(max(windows)))
-				mode.append ( [(seconds + block_seconds/2) * 1000,
-						 (tot + (vertical_block_seconds/2))  * 1000] )
+				mode.append ( [(seconds + block_seconds/2) * 1000, (mode_value['seconds'] + (vertical_block_seconds/2)) * 1000] )
 	if test:
 		label = fdate.strftime('%a %d, %b' )
 		#label += " [M(%(name)s)]" % {'name':block_seconds}
