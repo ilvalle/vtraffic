@@ -188,6 +188,7 @@ def __get_rows(query):
 			m.end_point['epoch']   = EPOCH_M(m[end.gathered_on])
 			m['elapsed_time']      = m.end_point['epoch'] - m.start_point['epoch']
 	
+		matches = __filter_twins(matches) # Remove matches with the same elapsed_time at the same time
 		return matches
 	key = 'rows_%s' % query
 	if len(key)>200:
@@ -256,6 +257,15 @@ def __remove_dup(rows):
 	rows = [r for pos, r in enumerate(rows) if pos not in remove]
 	return rows
 
+# Remove matches with the same elapsed_time computed at the same time (issue: vehicle with more than one device onboard)
+def __filter_twins(rows):
+	out = []
+	for pos, row in enumerate(rows):
+		next = rows[pos + 1 ] if pos != len(rows) -1 else None
+		if not (next) or row.start_point['epoch'] != next.start_point['epoch'] or row['elapsed_time'] != next['elapsed_time']:
+			out.append(row)
+	return rows
+
 def __get_trend(station_id, block_seconds):
 	query = db.record.station_id == station_id
 	rows = db(query).select(db.record.gathered_on, 
@@ -292,23 +302,10 @@ def __get_mode( id_start, id_end, block_seconds=800, vertical_block_seconds=30 )
 	return __get_mode_rows(rows, block_seconds, vertical_block_seconds, False)
 
 def __get_lower_rows( rows, block_seconds, test=False ):
-	l = []
-	first=True
-	prev = rows[0]
-	for r in rows:
-		if not first and r.start_point.gathered_on < limit:
-			l[len(l)-1].append(r)
-		elif (prev.start_point.gathered_on + (datetime.timedelta(seconds=block_seconds) * 2)) < r.start_point.gathered_on:
-			l.append([0, prev])
-			l.append([0, r])
-		else:
-			limit = r.start_point.gathered_on + datetime.timedelta(seconds=block_seconds)
-			l[len(l):] = [[r]]
-			first = False
-		prev = r
+	block_list = __split2time_frame(rows, block_seconds)
 
 	lower_bound=[]
-	for block in l:
+	for block in block_list:
 		if block[0] == 0:
 			lower_bound.append ( [( block[1].start_point['epoch'] + block_seconds/2) * 1000, 0] )
 		elif len(block) >= 1 and len(block) <= 2:
@@ -336,25 +333,12 @@ def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare
 def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=False):
 	if (len(rows) == 0):
 		return  {'data': [],'label':'No matches', 'id':'mode_%s' %  block_seconds };
-	l = [] 
-	first=True
-	prev = rows[0]
-	for r in rows:
-		if not first and r.start_point.gathered_on < limit:
-			l[len(l)-1].append(r)
-		elif (prev.start_point.gathered_on + (datetime.timedelta(seconds=block_seconds) * 2)) < r.start_point.gathered_on:
-			l.append([0, prev])
-			l.append([0, r])
-		else:
-			limit = r.start_point.gathered_on + datetime.timedelta(seconds=block_seconds)
-			l[len(l):] = [[r]]
-			first = False
-		prev = r
 
+	block_list = __split2time_frame(rows, block_seconds)
 	mode=[]
 	fdate = l[0][0][start.gathered_on]
 	day = datetime.datetime(fdate.date().year, fdate.date().month, fdate.date().day)
-	for block in l:
+	for block in block_list:
 		if block[0] == 0:
 			if test:
 				mdate = block[1][start.gathered_on]
@@ -400,6 +384,26 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 	else:
 		label = "Mode (%ss)" % block_seconds
 	return {'data': mode,'label':label, 'id':'mode_%s' %  block_seconds };
+
+# Return matches grouped to the specific time_frame they belong to 
+def __split2time_frame(matches, time_frame_size):
+	l = [] 
+	first=True
+	prev = matches[0]
+
+	for match in matches:
+		if not first and match.start_point.gathered_on < limit:
+			l[len(l)-1].append(match)
+		elif (prev.start_point.gathered_on + (datetime.timedelta(seconds=time_frame_size) * 2)) < match.start_point.gathered_on:
+			l.append([0, prev])
+			l.append([0, match])
+		else:
+			limit = match.start_point.gathered_on + datetime.timedelta(seconds=time_frame_size)
+			l[len(l):] = [[match]]
+			first = False
+		prev = match
+
+	return l
 
 def user():
     return dict(form=auth())
