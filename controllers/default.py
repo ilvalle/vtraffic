@@ -392,13 +392,13 @@ def __split2time_frame(matches, time_frame_size):
 	prev = matches[0]
 
 	for match in matches:
-		if not first and match.start_point.gathered_on < limit:
+		if not first and (match.start_point.epoch < limit):
 			l[len(l)-1].append(match)
-		elif (prev.start_point.gathered_on + (datetime.timedelta(seconds=time_frame_size) * 2)) < match.start_point.gathered_on:
+		elif (prev.start_point.epoch + time_frame_size * 2) < match.start_point.epoch:
 			l.append([0, prev])
 			l.append([0, match])
 		else:
-			limit = match.start_point.gathered_on + datetime.timedelta(seconds=time_frame_size)
+			limit = match.start_point.epoch + time_frame_size
 			l[len(l):] = [[match]]
 			first = False
 		prev = match
