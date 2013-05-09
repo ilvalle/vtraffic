@@ -3,6 +3,7 @@ from applications.vtraffic.modules.tools import EPOCH_M
 from datetime import timedelta
 from gluon.utils import md5_hash
 import datetime, time
+import operator
 
 start = db.record.with_alias('start_point')
 end = db.record.with_alias('end_point')
@@ -75,7 +76,7 @@ id_origin = int(request.vars.id_origin) if request.vars.id_origin and request.va
 id_destination  = int(request.vars.id_destination) if request.vars.id_destination and request.vars.id_destination.isdigit() else 14
 time_frame_size = int(request.vars.diff_temp) if request.vars.diff_temp and request.vars.id_destination.isdigit() else 900
 
-@cache(request.env.path_info + '%s-%s-%s' % (id_origin, id_destination, time_frame_size) , time_expire=None, cache_model=cache.ram)
+#@cache(request.env.path_info + '%s-%s-%s' % (id_origin, id_destination, time_frame_size) , time_expire=None, cache_model=cache.ram)
 def compare_series():
 	session.forget(response)
 	
@@ -102,9 +103,7 @@ def compare_series():
 			 (start.station_id == id_origin) &
 			 (end.station_id == id_destination))
 
-		rows = __get_rows(query)
-		data = __get_mode_rows(rows, time_frame_size, test=True)
-
+		data = __compute_mode(query, time_frame_size, 30, compare=True)
 		if len(data['data']) != 0:
 			data['id'] = data['id'] + '%s%s%s' % (year,month,day)
 			out.append(data)
@@ -321,6 +320,19 @@ def __get_lower_rows( rows, block_seconds, test=False ):
 	
 	return {'data': lower_bound,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
+def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare=False):
+	rows = __get_rows(query)
+	key = 'mode_%s%s%s%s' % (block_seconds, vertical_block_seconds, compare, query)
+	if len(key)>200:
+		key = 'mode_%s' % md5_hash(key)
+	# Cache the mode for each day, so we need to compute only the last day
+	data = cache.ram( key, lambda: __get_mode_rows(rows,
+                                                   block_seconds, 
+                                                   vertical_block_seconds=30, 
+                                                   test=compare),  
+                      time_expire=CACHE_TIME_EXPIRE)
+	return data
+
 def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=False):
 	if (len(rows) == 0):
 		return  {'data': [],'label':'No matches', 'id':'mode_%s' %  block_seconds };
@@ -364,7 +376,7 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 				pass
 			else:
 				# Compute the mode
-				block = sorted(block, key=lambda b: b['elapsed_time'])
+				block = sorted(block, key=operator.itemgetter('elapsed_time'))
 				initial_time_frame = block[0]['elapsed_time']
 				end_time_frame = 	 block[len(block)-1]['elapsed_time']
 				mode_value = {'counter':0, 'seconds':0}
