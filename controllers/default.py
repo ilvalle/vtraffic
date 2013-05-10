@@ -76,7 +76,7 @@ id_origin = int(request.vars.id_origin) if request.vars.id_origin and request.va
 id_destination  = int(request.vars.id_destination) if request.vars.id_destination and request.vars.id_destination.isdigit() else 14
 time_frame_size = int(request.vars.diff_temp) if request.vars.diff_temp and request.vars.id_destination.isdigit() else 900
 
-#@cache(request.env.path_info + '%s-%s-%s' % (id_origin, id_destination, time_frame_size) , time_expire=None, cache_model=cache.ram)
+@cache(request.env.path_info + '%s-%s-%s' % (id_origin, id_destination, time_frame_size) , time_expire=None, cache_model=cache.ram)
 def compare_series():
 	session.forget(response)
 	
@@ -362,7 +362,7 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 				# Compute the mode
 				block = sorted(block, key=operator.itemgetter('elapsed_time'))
 				initial_time_frame = block[0].elapsed_time
-				end_time_frame = 	 block[len(block)-1].elapsed_time
+				end_time_frame     = block[len(block)-1].elapsed_time
 				mode_value = {'counter':0, 'seconds':0}
 				for second in range(0,end_time_frame-initial_time_frame, MODE_STEP):
 					current_initial = initial_time_frame + second

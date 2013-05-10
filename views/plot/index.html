@@ -123,7 +123,6 @@
 		var key = $(this).attr("id");	
 		$(this).toggleClass('muted');
 		var current = plot_vehicles_detected.getObj(key);
-		console.log('vehiclesDetected-ONCLICK', current, key);
 		if (typeof current === "undefined") {
 			if ( ! $(this).hasClass('muted')) { 
 				return get_station_history(key.split('_')[1])
