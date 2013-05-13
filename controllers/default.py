@@ -2,6 +2,7 @@
 from applications.vtraffic.modules.tools import EPOCH_M
 from datetime import timedelta
 from gluon.utils import md5_hash
+from itertools import groupby
 import datetime, time
 import operator
 
@@ -110,7 +111,7 @@ def compare_series():
 
 	return response.render('generic.json', {'series':out})
 
-@cache(request.env.path_info + '%s-%s' % (id_origin, id_destination), time_expire=None, cache_model=cache.ram)
+#@cache(request.env.path_info + '%s-%s' % (id_origin, id_destination), time_expire=None, cache_model=cache.ram)
 def get_series():
 	session.forget(response)
 
@@ -298,37 +299,41 @@ def __get_lower( id_start, id_end, block_seconds ):
 	return __get_lower_rows(rows, block_seconds)
 
 def __get_mode( id_start, id_end, block_seconds=800, vertical_block_seconds=30 ):
-	rows = __get_rows_stations (id_start, id_end)
-	return __get_mode_rows(rows, block_seconds, vertical_block_seconds, False)
+	query = (start.station_id == id_start) & (end.station_id ==  id_end)
+	data = __compute_mode( query, block_seconds=block_seconds, vertical_block_seconds=vertical_block_seconds, compare=False)
+	return data
 
-def __get_lower_rows( rows, block_seconds, test=False ):
-	block_list = __split2time_frame(rows, block_seconds)
-
-	lower_bound=[]
-	for block in block_list:
-		if block[0] == 0:
-			lower_bound.append ( [( block[1].start_point['epoch'] + block_seconds/2) * 1000, 0] )
-		elif len(block) >= 1 and len(block) <= 2:
-			pass
-			#lower_bound.append ( [(block[0][start.gathered_on.epoch()]+3600 + block_seconds/2) * 1000,0] )
-		else:		
-			cur_min = min([ r['elapsed_time'] if r != 0 else 0 for r in block ])	
-			lower_bound.append ( [( block[0].start_point['epoch'] + block_seconds/2) * 1000, cur_min * 1000] )
-	
-	return {'data': lower_bound,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
+def __get_lower_rows( rows, block_seconds, compare=False ):
+	blocks_list = __split2time_frame(rows, block_seconds)
+	data = []	
+	if (len(rows) != 0):
+		data = __compute_wrapper( blocks_list,
+                                  __lower,
+                                  block_seconds, 
+                                  compare=compare)
+	return {'data': data,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
 def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare=False):
 	rows = __get_rows(query)
+	if (len(rows) == 0):
+		return  {'data': [],'label':'No matches', 'id':'mode_%s' %  block_seconds }
+	blocks_list = __split2time_frame(rows, block_seconds)
 	key = 'mode_%s%s%s%s' % (block_seconds, vertical_block_seconds, compare, query)
 	if len(key)>200:
 		key = 'mode_%s' % md5_hash(key)
 	# Cache the mode for each day, so we need to compute only the last day
-	data = cache.ram( key, lambda: __get_mode_rows(rows,
-                                                   block_seconds, 
-                                                   vertical_block_seconds=30, 
-                                                   test=compare),  
+	data = cache.ram( key, lambda: __compute_wrapper(blocks_list,
+                                                     __mode,
+                                                     block_seconds, 
+                                                     vertical_block_seconds=vertical_block_seconds, 
+                                                     compare=compare),  
                       time_expire=CACHE_TIME_EXPIRE)
-	return data
+	if compare:
+		fdate = rows[0][start.gathered_on]
+		label = fdate.strftime('%a %d, %b' )
+	else:
+		label = "Mode (%ss)" % block_seconds
+	return {'data': data,'label':label, 'id':'mode_%s' %  block_seconds }
 
 def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=False):
 	if (len(rows) == 0):
@@ -413,6 +418,62 @@ def __split2time_frame2(matches, time_frame_size):
 		prev = match
 	
 	return l
+
+### Functions
+# return the mode along a list of rows (block)
+def __mode(block, block_seconds, vertical_block_seconds):
+	block = sorted(block, key=operator.itemgetter('elapsed_time'))
+	initial_time_frame = block[0].elapsed_time
+	end_time_frame     = block[len(block)-1].elapsed_time
+	mode_value = {'counter':0, 'seconds':0}
+	for second in range(0,end_time_frame-initial_time_frame, MODE_STEP):
+		current_initial = initial_time_frame + second
+		current_end     = current_initial + vertical_block_seconds
+		counter = 0
+		for ele in block:
+			if current_initial <= ele.elapsed_time < current_end:
+				counter = counter + 1 
+			elif current_end < ele.elapsed_time:
+				break
+			if counter > mode_value['counter']:
+				mode_value['counter'] = counter
+				mode_value['seconds'] = current_initial
+	return mode_value['seconds'] + (vertical_block_seconds/2)
+
+# return the min elapsed_time across the current block of rows
+def __lower(block, block_seconds, vertical_block_seconds):
+	value = min([ row['elapsed_time'] if row != 0 else 0 for row in block ])
+	return value
+
+# return the min elapsed_time across the current block of rows
+def __trend(block, block_seconds, vertical_block_seconds):
+	value = len(block)
+	return value
+
+# This skeleton allows to run easily statistical analysis across rows splitted into frames
+def __compute_wrapper( blocks_list, 
+                       function, 
+                       block_seconds=800, 
+                       vertical_block_seconds=30, 
+                       compare=False):	
+	if compare:
+		first_date = blocks_list[0][0][start.gathered_on]
+		day = datetime.datetime(first_date.date().year, first_date.date().month, first_date.date().day)
+		reference_seconds = EPOCH_M(day)
+	else:
+		reference_seconds = 0
+	output=[]
+	for block in blocks_list:
+		if block[0] == 0:
+			seconds = block[1].start_point.epoch - reference_seconds
+			output.append ( [ (seconds + block_seconds/2) * 1000,	0] )
+		elif len(block) <= 2:		# two values are not enough, lets pass
+			pass
+		else:
+			seconds = block[0].start_point.epoch - (block[0].start_point.epoch % block_seconds) - reference_seconds
+			value = function(block, block_seconds, vertical_block_seconds)
+			output.append ( [(seconds + block_seconds/2) * 1000, value * 1000] )
+	return output
 
 def user():
     return dict(form=auth())
