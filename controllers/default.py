@@ -8,7 +8,7 @@ import operator
 
 start = db.record.with_alias('start_point')
 end = db.record.with_alias('end_point')
-CACHE_TIME_EXPIRE=1
+CACHE_TIME_EXPIRE=10
 MODE_STEP=5
 
 # temp fix due to double menu
@@ -116,7 +116,7 @@ def get_series():
 	session.forget(response)
 
 	rows = __get_rows_stations (id_origin,  id_destination)
-	
+	query = (start.station_id == id_origin) & (end.station_id == id_destination)
 	logs=[]
 	for row in rows:
 		logs.append( [ row.start_point['epoch'] * 1000, row['elapsed_time'] * 1000 ]	)
@@ -128,7 +128,8 @@ def get_series():
 		all_logs.append( __get_lower_rows(rows, seconds ) )
 	
 	for seconds in xrange(900, 1000, 100):
-		all_logs.append( __get_mode_rows(rows, seconds) )
+		all_logs.append( __compute_mode(query) )
+		#all_logs.append( __get_mode_rows(rows, seconds) )
 
 	# single trends
 	hours = __get_trend(id_origin, 3600)
@@ -335,61 +336,6 @@ def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare
 		label = "Mode (%ss)" % block_seconds
 	return {'data': data,'label':label, 'id':'mode_%s' %  block_seconds }
 
-def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=False):
-	if (len(rows) == 0):
-		return  {'data': [],'label':'No matches', 'id':'mode_%s' %  block_seconds };
-
-	block_list = __split2time_frame(rows, block_seconds)
-	mode=[]
-	fdate = block_list[0][0][start.gathered_on]
-	day = datetime.datetime(fdate.date().year, fdate.date().month, fdate.date().day)
-	for block in block_list:
-		if block[0] == 0:
-			if test:
-				mdate = block[1][start.gathered_on]
-				seconds = (mdate-day).total_seconds()		
-			else:
-				seconds = block[1].start_point.epoch
-				#seconds = block[1][start.gathered_on.epoch()] #fix it +3600
-			mode.append ( [ (seconds  + block_seconds/2) * 1000,	0] )
-		else:
-			# compute the horizontal seconds
-			if test:
-				mdate = block[0][start.gathered_on]
-				seconds = (mdate-day).total_seconds()		
-			else:
-				seconds = block[0].start_point.epoch
-
-			if len(block) <= 2:
-				# pass instead of plotting real value, otherwise it will draw odd values 
-				pass
-			else:
-				# Compute the mode
-				block = sorted(block, key=operator.itemgetter('elapsed_time'))
-				initial_time_frame = block[0].elapsed_time
-				end_time_frame     = block[len(block)-1].elapsed_time
-				mode_value = {'counter':0, 'seconds':0}
-				for second in range(0,end_time_frame-initial_time_frame, MODE_STEP):
-					current_initial = initial_time_frame + second
-					current_end     = current_initial + vertical_block_seconds
-					counter = 0
-					for ele in block:
-						if current_initial <= ele.elapsed_time < current_end:
-							counter = counter + 1 
-						elif current_end < ele.elapsed_time:
-							break
-					if counter > mode_value['counter']:
-						mode_value['counter'] = counter
-						mode_value['seconds'] = current_initial
-
-				mode.append ( [(seconds + block_seconds/2) * 1000, (mode_value['seconds'] + (vertical_block_seconds/2)) * 1000] )
-	if test:
-		label = fdate.strftime('%a %d, %b' )
-		#label += " [M(%(name)s)]" % {'name':block_seconds}
-	else:
-		label = "Mode (%ss)" % block_seconds
-	return {'data': mode,'label':label, 'id':'mode_%s' %  block_seconds };
-
 # Return matches grouped to the specific time_frame they belong to 
 def __split2time_frame(matches, time_frame_size):	
 	l = []	
@@ -445,7 +391,7 @@ def __lower(block, block_seconds, vertical_block_seconds):
 	value = min([ row['elapsed_time'] if row != 0 else 0 for row in block ])
 	return value
 
-# return the min elapsed_time across the current block of rows
+# return the number of matches for each block given as input
 def __trend(block, block_seconds, vertical_block_seconds):
 	value = len(block)
 	return value
