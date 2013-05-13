@@ -125,10 +125,10 @@ def get_series():
 	all_logs.append( {'data':logs, 'label': 'matches', 'id':'logs'} )
 
 	for seconds in xrange(900, 1000, 100):
-		all_logs.append( __get_lower_rows(rows, seconds ) )
+		all_logs.append( __compute_lower(query, seconds ) )
 	
 	for seconds in xrange(900, 1000, 100):
-		all_logs.append( __compute_mode(query) )
+		all_logs.append( __compute_mode(query, seconds) )
 		#all_logs.append( __get_mode_rows(rows, seconds) )
 
 	# single trends
@@ -198,6 +198,18 @@ def __get_rows(query):
 	matches = cache.ram( key, lambda: __get_rows_local(query), time_expire=CACHE_TIME_EXPIRE)
 	return matches
 
+def __get_blocks(query, block_seconds):
+	def __get_blocks_local(query, block_seconds):
+		rows   = __get_rows(query)
+		blocks = __split2time_frame(rows, block_seconds)
+		return blocks
+	key = 'blocks_%s%s' % (query, block_seconds)
+	if len(key)>200:
+		key = 'blocks_%s' % md5_hash(key)
+	blocks = cache.ram( key, lambda: __get_blocks_local(query, block_seconds), time_expire=CACHE_TIME_EXPIRE)
+	return blocks
+
+	
 ### issue 1
 # station_id mac datetime
 # 1          'a' 12:00
@@ -304,10 +316,10 @@ def __get_mode( id_start, id_end, block_seconds=800, vertical_block_seconds=30 )
 	data = __compute_mode( query, block_seconds=block_seconds, vertical_block_seconds=vertical_block_seconds, compare=False)
 	return data
 
-def __get_lower_rows( rows, block_seconds, compare=False ):
-	blocks_list = __split2time_frame(rows, block_seconds)
+def __compute_lower( query, block_seconds, compare=False ):
+	blocks_list = __get_blocks (query, block_seconds)
 	data = []	
-	if (len(rows) != 0):
+	if (len(blocks_list) != 0):
 		data = __compute_wrapper( blocks_list,
                                   __lower,
                                   block_seconds, 
@@ -315,10 +327,10 @@ def __get_lower_rows( rows, block_seconds, compare=False ):
 	return {'data': data,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
 def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare=False):
-	rows = __get_rows(query)
-	if (len(rows) == 0):
+	blocks_list = __get_blocks (query, block_seconds)
+	if (len(blocks_list) == 0):
 		return  {'data': [],'label':'No matches', 'id':'mode_%s' %  block_seconds }
-	blocks_list = __split2time_frame(rows, block_seconds)
+
 	key = 'mode_%s%s%s%s' % (block_seconds, vertical_block_seconds, compare, query)
 	if len(key)>200:
 		key = 'mode_%s' % md5_hash(key)
