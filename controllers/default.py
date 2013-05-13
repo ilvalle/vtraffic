@@ -386,7 +386,16 @@ def __get_mode_rows( rows, block_seconds=800, vertical_block_seconds=30, test=Fa
 	return {'data': mode,'label':label, 'id':'mode_%s' %  block_seconds };
 
 # Return matches grouped to the specific time_frame they belong to 
-def __split2time_frame(matches, time_frame_size):
+def __split2time_frame(matches, time_frame_size):	
+	l = []	
+	for key, group in groupby(matches, lambda row: row.start_point.epoch // time_frame_size):
+		ll = list(group)
+		l.append( ll ) 
+	return l
+
+# Return matches grouped to the specific time_frame they belong to 
+# if the gap between two matches is higher time_frame_size * 2, the put a 0 (useful for plotting chart)
+def __split2time_frame2(matches, time_frame_size):
 	l = [] 
 	first=True
 	prev = matches[0]
@@ -402,7 +411,7 @@ def __split2time_frame(matches, time_frame_size):
 			l[len(l):] = [[match]]
 			first = False
 		prev = match
-
+	
 	return l
 
 def user():
