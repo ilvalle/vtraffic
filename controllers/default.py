@@ -77,7 +77,7 @@ id_origin = int(request.vars.id_origin) if request.vars.id_origin and request.va
 id_destination  = int(request.vars.id_destination) if request.vars.id_destination and request.vars.id_destination.isdigit() else 14
 time_frame_size = int(request.vars.diff_temp) if request.vars.diff_temp and request.vars.id_destination.isdigit() else 900
 
-@cache(request.env.path_info + '%s-%s-%s' % (id_origin, id_destination, time_frame_size) , time_expire=None, cache_model=cache.ram)
+#@cache(request.env.path_info + '%s-%s-%s' % (id_origin, id_destination, time_frame_size) , time_expire=None, cache_model=cache.ram)
 def compare_series():
 	session.forget(response)
 	
@@ -281,6 +281,17 @@ def __filter_twins(rows):
 	return rows
 
 def __get_trend(station_id, block_seconds):
+	query = start.station_id == station_id
+	rows = db(query).select(start.gathered_on, 
+							orderby=start.gathered_on,
+							cache=(cache.ram, 3600),
+			        		cacheable=True )
+	blocks = __split2time_frame2(rows, block_seconds)
+
+	out = [ [ ( EPOCH_M (block[0][db.record.gathered_on]) + block_seconds/2) * 1000, len(block) ] for block in blocks]
+	return out
+
+def __get_trend2(station_id, block_seconds):
 	query = db.record.station_id == station_id
 	rows = db(query).select(db.record.gathered_on, 
 							db.record.gathered_on.epoch(),
@@ -342,7 +353,7 @@ def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare
                                                      compare=compare),  
                       time_expire=CACHE_TIME_EXPIRE)
 	if compare:
-		fdate = rows[0][start.gathered_on]
+		fdate = blocks_list[0][0][start.gathered_on]
 		label = fdate.strftime('%a %d, %b' )
 	else:
 		label = "Mode (%ss)" % block_seconds
@@ -351,7 +362,9 @@ def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare
 # Return matches grouped to the specific time_frame they belong to 
 def __split2time_frame(matches, time_frame_size):	
 	l = []	
-	for key, group in groupby(matches, lambda row: row.start_point.epoch // time_frame_size):
+
+	f = lambda row: row.start_point.epoch // time_frame_size
+	for key, group in groupby(matches, f):
 		ll = list(group)
 		l.append( ll ) 
 	return l
@@ -364,13 +377,13 @@ def __split2time_frame2(matches, time_frame_size):
 	prev = matches[0]
 
 	for match in matches:
-		if not first and (match.start_point.epoch < limit):
+		if not first and (match.gathered_on < limit):
 			l[len(l)-1].append(match)
-		elif (prev.start_point.epoch + time_frame_size * 2) < match.start_point.epoch:
-			l.append([0, prev])
-			l.append([0, match])
+		elif (prev.gathered_on + (datetime.timedelta(seconds=time_frame_size) * 2)) < match.gathered_on:
+			l.append([prev])
+			l.append([match])
 		else:
-			limit = match.start_point.epoch + time_frame_size
+			limit = match.gathered_on + datetime.timedelta(seconds=time_frame_size)
 			l[len(l):] = [[match]]
 			first = False
 		prev = match
@@ -420,17 +433,19 @@ def __compute_wrapper( blocks_list,
 		reference_seconds = EPOCH_M(day)
 	else:
 		reference_seconds = 0
-	output=[]
+	output = []
+	prev   = None
 	for block in blocks_list:
-		if block[0] == 0:
-			seconds = block[1].start_point.epoch - reference_seconds
-			output.append ( [ (seconds + block_seconds/2) * 1000,	0] )
-		elif len(block) <= 2:		# two values are not enough, lets pass
-			pass
-		else:
-			seconds = block[0].start_point.epoch - (block[0].start_point.epoch % block_seconds) - reference_seconds
-			value = function(block, block_seconds, vertical_block_seconds)
-			output.append ( [(seconds + block_seconds/2) * 1000, value * 1000] )
+		if len(block) <= 2:		# two values are not enough, lets pass
+			continue
+		current = block[0]
+		seconds = block[0].start_point.epoch - (block[0].start_point.epoch % block_seconds) - reference_seconds
+		if prev and current.start_point.epoch > prev.start_point.epoch + (block_seconds*3):	#fill the gap with three empty values
+			output.append ( [ (prev_seconds + block_seconds + block_seconds/2) * 1000,	0] )
+			output.append ( [ (seconds - block_seconds/2) * 1000,	0] )
+		value = function(block, block_seconds, vertical_block_seconds)
+		output.append ( [(seconds + block_seconds/2) * 1000, value * 1000] )
+		prev, prev_seconds = current, seconds
 	return output
 
 def user():
