@@ -1,6 +1,19 @@
 {{extend 'layout.html'}}
 <section class="span12">
 <span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
+	
+	<div class="btn-group pull-right">
+		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+			<span class="">Period: </span><strong class="">{{=PERIODS['%s' % requested_period]}}</strong>
+			<span class="caret"></span>
+		</a>
+		<ul id="period" class="dropdown-menu">
+			{{for key, value in PERIODS.items():}}
+			<li class=""><a href="{{=URL(args=request.args, vars={'period':key}, )}}">{{=value}}</a></li>
+			{{pass}}
+		</ul>
+	</div>
+
 	<ul class="nav nav-tabs " id="myTab">
 	<li class="active"><a href="#vehiclesDetected" data-toggle="tab">{{=T('Vehicles detected')}}</a></li>
 	<li><a href="#compare" data-toggle="tab">{{=T('Compare')}}</a></li>
@@ -25,6 +38,7 @@
 		</ul>
 	</div>
 	</div>
+	<p id='' class="label label-warning span4 offset2 hide center">{{=T('No data for the selected period')}}</p>
 	<div class="span10">
 		<div class="chart" style="height:370px">
 			<!--a id="print" title="{{=T('Save image')}}" href="#" class="btn pull-right"><i class="icon-print"></i></a-->
@@ -39,7 +53,7 @@
 			<li class="{{='active' if request.vars.interval == str(6) else ''}}"><a href="#" class='group' id="group_6">group by 6hour</a></li>
 			<li class="{{='active' if request.vars.interval == str(24) else ''}}"><a href="#" class='group' id="group_24">group by  1day</a></li>
 			</ul>
-			<div id="chart_vehicles_detected" style="height:100%" ></div>
+			<div id="vehiclesDetected_chart" style="height:100%" ></div>
 		</div>
 	</div>
 </section>
@@ -75,14 +89,13 @@
 	  e.relatedTarget // previous tab
 	});
 
+	$(document).on('click', '#period a', function(e) {
+		e.preventDefault();
+		anchor = $('li.active a[data-toggle="tab"]').attr('href');
+		url    = $(this).attr('href');
+		window.location = url + anchor;
+	});
 
-   
-	//$('#loading').hide();
-	/*var d = new Date();
-	m_seconds = d.getTime();
-	console.log(m_seconds);
-	var min_seconds = m_seconds-1000*60*60*24*7;
-	console.log(m_seconds, min_seconds);*/
 	var interval = {{=request.vars.interval if request.vars.interval and request.vars.interval in [6,24] else 1}}; 	// Default 7 days	
 	timezoneJS.timezone.zoneFileBasePath = '{{=URL('vtraffic', 'static/js', 'tz')}}';
 	var options_vehicles_detected = { 
@@ -97,27 +110,7 @@
 				},
 		addDynamically: true,
 	}
-	var plot_vehicles_detected = new lplot('chart_vehicles_detected', options_vehicles_detected, true);
-	//var options = plot_compare.default_options;
-
-	//var placeholder = $("#chart_vehicles_detected");
-	//var datasets = {};	// All data available
-	//var data = [];		// All data shown
-	
-
-	/*function onDataReceived (json) {
-		var n = Object.keys(datasets).length;
-		for (var k in json) {
-			//json[k]['label'] = $('#'+k).attr('title') ;
-			data.push(json[k]);
-			json[k]['color'] = n;
-			n = n + 1;
-		}
-		$.extend(datasets, json);
-		interval = $("li.active a[class='group']").attr('id').split('_')[1];
-		options_vehicles_detected.series.bars.barWidth = 60*60*1000*interval;
-		plotAccordingToChoices(placeholder, options_vehicles_detected);
-	}*/
+	var plot_vehicles_detected = new lplot('vehiclesDetected_chart', options_vehicles_detected, true);
 
 	$("#vehiclesDetected").on('click', '#stations a', function() {
 		var key = $(this).attr("id");	
@@ -154,32 +147,15 @@
 		plot_vehicles_detected.plotAccordingToChoices();	
 	});
 
-	/*function plotAccordingToChoices() {
-		if (data.length>1) {
-			options.crosshair.mode = 'x';
-		} else {
-			options.crosshair.mode = null;
-		}
-		$('#loading').hide(); $('body').css("cursor", "auto");
-		var plot = $.plot($(placeholder), data, options);
-		// get color assigned to the data series 
-		var dataPlotted = plot.getData();
-		for (var d in dataPlotted) {
-			$('#station_' + dataPlotted[d].station_id).children('span.legend_box_color').css('background-color', dataPlotted[d].color);
-		}
-	}*/
-
 	$(document).on('click', "li a[class='group']", function() {
 		$(this).parent().siblings().removeClass('active');
 		$(this).parent().addClass('active');
 		var next_interval = $(this).attr('id').split('_')[1];
 		if (next_interval === interval) return;
 		interval = next_interval;
-		plot_vehicles_detected.datasets = {};	//errase different interval data TODO fix it
+		plot_vehicles_detected.datasets = [];
 		keys=[]
 		for (key in plot_vehicles_detected.data) {
-/*			console.log(data[key]['station_id']);
-			keys.push (data[key]['station_id']);*/
 			get_station_history(plot_vehicles_detected.data[key]['station_id']);
 		}
 		plot_vehicles_detected.data = [];
@@ -198,7 +174,7 @@
 	});
 
 	function get_station_history(station_id) {
-		var url = '{{=URL("plot", "get_history.json", args=['station_idJS'], vars={'interval':'intervalJs'} )}}'.replace(/station_idJS/,station_id).replace(/intervalJs/, interval);
+		var url = '{{=URL("plot", "get_history.json", args=['station_idJS'], vars={'period':requested_period,'interval':'intervalJs'} )}}'.replace(/station_idJS/,station_id).replace(/intervalJs/, interval);
 		plot_vehicles_detected.loadData(url);
 
 	}

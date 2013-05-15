@@ -91,7 +91,7 @@
 	$("#tab_compare").on('click', '.update', function() {
 		var id_origin = $("#tab_compare #select_o option:selected").val();
 		var id_destination = $("#tab_compare #select_d option:selected").val();		
-		var url = "{{=URL("default", "compare_series.json", vars={'id_origin':'id_originJs', 'id_destination':'id_destinationJs'} )}}".replace(/id_originJs/, id_origin).replace(/id_destinationJs/, id_destination);
+		var url = "{{=URL("default", "compare_series.json", vars={'period':requested_period, 'id_origin':'id_originJs', 'id_destination':'id_destinationJs'} )}}".replace(/id_originJs/, id_origin).replace(/id_destinationJs/, id_destination);
 		plot_compare.loadData(url);
 	});
 
@@ -112,7 +112,7 @@
 	{{#include 'plot/choose.html'}}
 {{else:}}
 	<script>
-	$(document).on('shown', 'a[data-toggle="tab"][href="#originDestination"]', function (e) {
+	$(document).on('shown', 'a[data-toggle="tab"][href="#compare"]', function (e) {
 		if (first) return;
 		first = true;
 		var url = "{{=URL("default", "compare_series.json", vars=request.get_vars, args=request.args )}}"

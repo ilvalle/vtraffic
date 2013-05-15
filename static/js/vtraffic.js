@@ -48,7 +48,16 @@ function lplot (ph, options) {
 	var addDynamically;
 
 	this.plotAccordingToChoices = function () {
+		var tab = thatClass.placeholder.split('_chart')[0];
 		$('#loading').hide(); $('body').css("cursor", "auto");		
+
+		if ( jQuery.isEmptyObject(thatClass.data) ) {
+			$( tab + ' .label-warning').show();
+			$(thatClass.placeholder).parent().hide();
+		} else { 
+			$( tab + ' .label-warning').hide();
+			$(thatClass.placeholder).parent().show();
+		}
 		//options.crosshair.mode = data.length>1 ? 'x' : null;
 
 		if ( thatClass.data.length == $(thatClass.datasets).length ) {
@@ -69,11 +78,7 @@ function lplot (ph, options) {
 		var data_placeholder = $(tab + ' .data_list');
 		var series = json['series'];
 
-		if ( jQuery.isEmptyObject(series) ) {
-			$( tab + ' .label-warning').show();
-		} else { 
-			$( tab + ' .label-warning').hide();
-		}
+
 		if (thatClass.options.addDynamically === false) {
 			thatClass.data = [];		// Reset data
 			thatClass.datasets = [];	
