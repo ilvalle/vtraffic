@@ -8,6 +8,8 @@ import operator
 
 start = db.record.with_alias('start_point')
 end = db.record.with_alias('end_point')
+start._common_filter = lambda query: start.gathered_on > period_limit
+
 CACHE_TIME_EXPIRE=10
 MODE_STEP=5
 
@@ -75,7 +77,8 @@ def add_station():
 
 id_origin = int(request.vars.id_origin) if request.vars.id_origin and request.vars.id_origin.isdigit() else 13
 id_destination  = int(request.vars.id_destination) if request.vars.id_destination and request.vars.id_destination.isdigit() else 14
-time_frame_size = int(request.vars.diff_temp) if request.vars.diff_temp and request.vars.id_destination.isdigit() else 900
+time_frame_size = int(request.vars.diff_temp) if request.vars.diff_temp and request.vars.diff_temp.isdigit() else 900
+
 
 #@cache(request.env.path_info + '%s-%s-%s' % (id_origin, id_destination, time_frame_size) , time_expire=None, cache_model=cache.ram)
 def compare_series():
@@ -116,7 +119,7 @@ def get_series():
 	session.forget(response)
 
 	rows = __get_rows_stations (id_origin,  id_destination)
-	query = (start.station_id == id_origin) & (end.station_id == id_destination)
+	query = (start.station_id == id_origin) & (end.station_id == id_destination) 
 	logs=[]
 	for row in rows:
 		logs.append( [ row.start_point['epoch'] * 1000, row['elapsed_time'] * 1000 ]	)
@@ -373,6 +376,7 @@ def __split2time_frame(matches, time_frame_size):
 # if the gap between two matches is higher time_frame_size * 2, the put a 0 (useful for plotting chart)
 def __split2time_frame2(matches, time_frame_size):
 	l = [] 
+	if len(matches) == 0: return l
 	first=True
 	prev = matches[0]
 

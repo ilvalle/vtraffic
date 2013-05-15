@@ -2,6 +2,8 @@ from applications.vtraffic.modules.tools import EPOCH_M
 from itertools import groupby
 from datetime import timedelta
 
+db.record._common_filter = lambda query: db.record.gathered_on > period_limit
+
 if request.function != 'wiki':
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth).menu(controller="default", function="wiki")
@@ -14,7 +16,7 @@ def index():
 station_id = request.args(0) or 'index'
 n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
 
-@cache('get_history_%s_%s' % (station_id, n_hours), time_expire=80000, cache_model=cache.memcache)
+#@cache('get_history_%s_%s' % (station_id, n_hours), time_expire=80000, cache_model=cache.memcache)
 def get_history():
 	session.forget()
 	if not(request.ajax): raise HTTP(403)
@@ -39,8 +41,10 @@ def get_history():
 	for key, group in groupby(data, lambda x: (EPOCH_M(x.gathered_on)) / ( 60 * 60 * n_hours)):
 		output.append( [ key*60*60*1000*n_hours, len(list(group))] ) 
 	t2 = time.time()
+	
+	series = [{'data':output, 'id': 'station_%s' % station_id, 'station_id':station_id, 'label': station.name}]	if len(output) != 0 else []
 	#print 'T', t2-t0, 't0', t1-t0, 't1', t2-t1
-	return response.render('generic.json', {'series': [{'data':output, 'id': 'station_%s' % station_id, 'station_id':station_id, 'label': station.name}]})
+	return response.render('generic.json', {'series': series})
 
 
 @cache('figures', time_expire=80000, cache_model=cache.memcache)
