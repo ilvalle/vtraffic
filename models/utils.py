@@ -16,5 +16,4 @@ if request.vars.period:
 	if not ("%s" % requested_period in PERIODS):
 		requested_period = 90
 
-print requested_period
 period_limit = request.now - datetime.timedelta(days=requested_period)
