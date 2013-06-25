@@ -4,7 +4,7 @@
 	
 	<div class="btn-group pull-right">
 		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-			<span class="">Period: </span><strong class="">{{=PERIODS['%s' % requested_period]}}</strong>
+			<span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period]}}</strong>
 			<span class="caret"></span>
 		</a>
 		<ul id="period" class="dropdown-menu">
@@ -40,14 +40,24 @@
 	</div>
 	<p id='' class="label label-warning span4 offset2 hide center">{{=T('No data for the selected period')}}</p>
 	<div class="span10">
-		<div class="chart" style="height:370px">
+	<div class="chart" style="height:370px">
+		<form class="pull-right">
+			<label class="radio inline"><input name="graph" type='radio' value="bars" checked='checked' class='graph' id="bars_1"/>bars
+			</label>
+			<label class="radio inline"><input name="graph" type='radio' value="lines" class='graph' id="lines_6"/>lines
+			</label>
+		</form>
 			<!--a id="print" title="{{=T('Save image')}}" href="#" class="btn pull-right"><i class="icon-print"></i></a-->
-			<form class="pull-right">
-				<label class="radio inline"><input name="graph" type='radio' value="bars" checked='checked' class='graph' id="bars_1"/>bars
-				</label>
-				<label class="radio inline"><input name="graph" type='radio' value="lines" class='graph' id="lines_6"/>lines
-				</label>
-			</form>
+		<div class="btn-group pull-left">
+		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+			<span class=""><i class="icon-cog"></i>
+		</a>
+		<ul role="menu" class="dropdown-menu">
+			<li class=""><a id="print" href="#" class=""><i class="icon-print"></i> Save chart as image</a></li>
+		</ul>
+	</div>
+		
+			
 			<ul class="nav nav-pills"> 
 			<li class="{{='active' if not(request.vars.interval) or request.vars.interval not in [str(7),str(24)] else ''}}"><a class='group' href="#" id="group_1">group by 1hour</a></li>
 			<li class="{{='active' if request.vars.interval == str(6) else ''}}"><a href="#" class='group' id="group_6">group by 6hour</a></li>

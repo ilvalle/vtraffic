@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import division
 from applications.vtraffic.modules.tools import EPOCH_M
 from datetime import timedelta
 from gluon.utils import md5_hash
@@ -98,16 +99,19 @@ def compare_series():
 	for d in days:
 		year, month, day  = d[start.gathered_on.year()], d[start.gathered_on.month()], d[start.gathered_on.day()]
 
-		query = ((start.gathered_on.year() == year) &
+		query_g = ((start.gathered_on.year() == year) &
 			 (start.gathered_on.month() == month) &
 			 (start.gathered_on.day() == day) &
 			 (end.gathered_on.year() == year) &
 			 (end.gathered_on.month() == month) &
-			 (end.gathered_on.day() == day) &
-			 (start.station_id == id_origin) &
-			 (end.station_id == id_destination))
+			 (end.gathered_on.day() == day) )
 
-		data = __compute_mode(query, time_frame_size, 30, compare=True)
+		query_mode = (query_g & (start.station_id == id_origin) & (end.station_id == id_destination))
+		#query_od = (query_g & (start.station_id == id_origin) & (end.station_id == id_destination))
+		#query_do = (query_g & (start.station_id == id_destination) & (end.station_id == id_origin))
+				
+		data = __compute_mode(query_mode, time_frame_size, 30, compare=True)
+		#data = __compute_frequency(query_a, query_b, time_frame_size, compare=True)
 		if len(data['data']) != 0:
 			data['id'] = data['id'] + '%s%s%s' % (year,month,day)
 			out.append(data)
@@ -179,12 +183,14 @@ def __get_rows_stations(station_id_start, station_id_end):
 	return __get_rows(query)
 
 
-def __get_rows(query):
+def __get_rows(query, use_cache=True, limitby=None):
 	def __get_rows_local(query):
 		rows = db( query ).select(start.ALL, end.ALL, 
-								  orderby=start.gathered_on,
-								  left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
-								  cacheable = True)
+		                          orderby=start.gathered_on,
+		                          left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
+		                          limitby=limitby,
+		                          cacheable = True)
+		print 'LEN initial rows', len(rows)
 		matches = [r for r in rows if (r.end_point.gathered_on - r.start_point.gathered_on < datetime.timedelta(minutes=30)) ]
 		matches = __remove_dup(matches)	# Remove matches based on the same timestamp
 		# Compute the elapsed_time 	
@@ -195,10 +201,14 @@ def __get_rows(query):
 	
 		matches = __filter_twins(matches) # Remove matches with the same elapsed_time at the same time
 		return matches
-	key = 'rows_%s' % query
-	if len(key)>200:
-		key = 'rows_%s' % md5_hash(key)
-	matches = cache.ram( key, lambda: __get_rows_local(query), time_expire=CACHE_TIME_EXPIRE)
+	if use_cache:
+		key = 'rows_%s' % query
+		if len(key)>200:
+			key = 'rows_%s' % md5_hash(key)
+		matches = cache.ram( key, lambda: __get_rows_local(query), time_expire=CACHE_TIME_EXPIRE)
+	else: 
+		matches	= __get_rows_local(query)
+	#__save_match(matches)
 	return matches
 
 def __get_blocks(query, block_seconds):
@@ -468,3 +478,69 @@ def data():
 #
 #def restoreDb():
 #    db.import_from_csv_file(open(request.folder+'backup.csv', 'rb'))
+
+def __compute_frequency( query_a, query_r, block_seconds=800, compare=False):
+	rows = __get_rows(query_a)
+	if (len(rows) == 0):
+		return  {'data': [],'label':'No matches', 'id':'mode_%s' %  block_seconds };
+
+	block_list = __split2time_frame(rows, block_seconds)
+
+	# get detected
+	start_time = rows[0].start_point.gathered_on
+	end_time   = rows[len(rows)-1].start_point.gathered_on
+	station    = rows[0].start_point.station_id
+	
+	detected = db( 
+			(db.record.station_id == station) & 
+			(db.record.gathered_on > start_time) & 
+			(db.record.gathered_on <= end_time) ).select(db.record.id, db.record.gathered_on, orderby=db.record.gathered_on)
+	#print station, start_time, end_time, 'N: ', len(detected)
+	reverse = __get_rows(query_r)
+	
+	remove = []	
+	for d in detected:
+		for r in reverse:
+			if d.id == r.end_point.id:			#the start is the actual end in the reverse
+				remove.append(d.id)
+
+	detected_2 = [d for d in detected if d.id not in remove]
+	print len(detected), len(remove), len(detected_2)
+	detected_2 = sorted(detected_2, key=lambda d: d.gathered_on)
+
+	if compare:
+		first_date = block_list[0][0][start.gathered_on]
+		day = datetime.datetime(first_date.date().year, first_date.date().month, first_date.date().day)
+		reference_seconds = EPOCH_M(day)
+		label = 'frequency_%s' % first_date.strftime('%a %d, %b' )
+	else:
+		reference_seconds = 0
+		label = "Mode (%ss)" % block_seconds
+
+	frequency=[]
+	for block in block_list:
+		if block[0] == 0:
+			pass
+			#seconds = block[1].start_point.epoch - reference_seconds
+			#frequency.append ( [ (seconds + block_seconds/2) * 1000,	0] )
+		elif len(block) <= 3:		# two values are not enough, lets pass
+			pass
+		else:
+			seconds = block[0].start_point.epoch - (block[0].start_point.epoch % block_seconds) - reference_seconds
+			start_block = block[0].start_point.gathered_on
+			end_block = block[len(block)-1].start_point.gathered_on
+			counter = 0
+			for row in detected_2:
+				if start_block <= row.gathered_on <= end_block:
+					counter = counter + 1 
+				elif end_block < row.gathered_on:
+					break
+			value = (len(block)/counter) * 100
+			if value > 100:		
+				print block, len(block), counter
+			frequency.append ( [(seconds + block_seconds/2) * 1000, value] )
+
+	return {'data': frequency,'label':label, 'id':'frequency_%s' %  block_seconds, 'yaxis': 2, 'bars':{'show':True, 'fill': 'true', 'align':'center', 'barWidth': block_seconds*1000}, 'lines': {'show':False, 'fill':False}, 'points': {'show':False} }
+
+
+

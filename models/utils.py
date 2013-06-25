@@ -17,3 +17,6 @@ if request.vars.period:
 		requested_period = 90
 
 period_limit = request.now - datetime.timedelta(days=requested_period)
+
+
+

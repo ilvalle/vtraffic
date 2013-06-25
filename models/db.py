@@ -24,11 +24,12 @@ if not request.is_local:
 
 ## (optional) optimize handling of static files
 response.optimize_css = 'concat,minify'
-response.optimize_js = 'concat,minify'
+#response.optimize_js = 'concat,minify'
 from gluon.tools import Auth
 auth = Auth(db)
+
 ## create all tables needed by auth if not custom tables
-auth.define_tables(username=True, migrate=MIGRATE)
+auth.define_tables(username=True, migrate=False)
 
 ## configure email
 mail = auth.settings.mailer
@@ -52,12 +53,14 @@ db.define_table('station',
 	Field('log_file', 'upload'),
 	auth.signature,
 	format='%(name)s'
+	, migrate=False
 )
 
 db.define_table('log',
 	Field('station_id', 'reference station'),
 	Field('log_file', 'upload'),
 	auth.signature
+	, migrate=False
 )
 
 db.define_table('record',
@@ -65,8 +68,21 @@ db.define_table('record',
 	Field('log_id', 'reference log'),
 	Field('mac', 'string', length=18),
 	Field('gathered_on', 'datetime'),
+	migrate=False
 )	
-	
+
+db.define_table('match',
+	Field('station_id_orig', 'reference station'),
+	Field('station_id_dest', 'reference station'),
+	Field('epoch_orig', 'integer' ),
+	Field('epoch_dest', 'integer' ),
+	Field('elapsed_time', 'integer' ),
+	Field('record_id_orig', 'reference record' ),
+	Field('record_id_dest', 'reference record' ),
+)
+
+db.define_table('mytable',Field('myfield','string', default="ciao"), migrate=True)
+
 
 ## after defining tables, uncomment below to enable auditing
 # auth.enable_record_versioning(db)
