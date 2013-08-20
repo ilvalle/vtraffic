@@ -363,6 +363,7 @@ def __compute_wrapper( blocks_list,
 	return output
 
 def user():
+    response.view = 'default/login.html'
     return dict(form=auth())
 
 @auth.requires_login()

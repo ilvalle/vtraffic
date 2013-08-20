@@ -1,0 +1,18 @@
+{{extend 'layout.html'}}
+<div class="row">
+<div id="web2py_user_form">
+<img src="/vtraffic/static/images/logo.jpg"></img>
+
+{{=form.custom.begin}}
+{{=form.custom.widget.username}}
+{{=form.custom.widget.password}}
+<label class="checkbox">
+         <input class="" id="auth_user_remember" name="remember" type="checkbox" value="on"> Remember me
+</label>
+<button class="btn btn-large btn-primary " type="submit">Sign in</button>
+
+{{=form.custom.end}}
+
+
+</div>
+</div>
