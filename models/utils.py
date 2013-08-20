@@ -1,6 +1,8 @@
 from collections import OrderedDict
 import datetime
 openstreatmap_static_link="http://ojw.dev.openstreetmap.org/StaticMap/?lat=%(lat)s&lon=%(lon)s&mlat0=%(lat)s&att=none&mlon0=%(lon)s&z=%(zoom)s&h=%(height)s&w=%(width)s&layer=mapnik&mode=Export&show=1"
+CACHE_TIME_EXPIRE=300
+
 
 def get_static_img(lat, lon, width='170', height='170', zoom=14):
 	if not(lat and lon): return ''
@@ -11,12 +13,14 @@ PERIODS=OrderedDict([('1', T('1 day')), ('7', T('1 week')), ('30', T('1 month'))
 
 requested_period = 90
 if request.vars.period:
-	print request.vars.period
+#	print request.vars.period
 	requested_period = int(request.vars.period) if request.vars.period.isdigit() else 90
 	if not ("%s" % requested_period in PERIODS):
 		requested_period = 90
 
 period_limit = request.now - datetime.timedelta(days=requested_period)
+start = db.record.with_alias('start_point')
+end = db.record.with_alias('end_point')
 
 
 
