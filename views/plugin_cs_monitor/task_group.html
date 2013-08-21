@@ -1,0 +1,104 @@
+
+
+<div class="row">
+    <div class="span2">
+        <div class="btn-group" id="tasks_actions">
+            <button class="btn" id="tasks_all_toggler">Toggle <input type="checkbox" style="margin: 0;"></button>
+            <button class="btn dropdown-toggle" data-toggle="dropdown">
+            <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="#" data-action="disable">Disable</a></li>
+                <li><a href="#" data-action="enable">Enable</a></li>
+                <li><a href="#" data-action="delete">Delete</a></li>
+                <li><a href="#" data-action="clone">Clone (and Requeue)</a></li>
+                <li><a href="#" data-action="stop">Stop</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="span4">
+        <div class="input-append">
+            <input class="span2" id="qfilter" type="text" name="qfilter">
+            <button id="qfilter_submit" class="btn" type="button">Search</button>
+        </div>
+    </div>
+</div>
+
+<table id="{{=request.args(0)}}" class="task_status table table-condensed table-hover table-bordered">
+    <thead>
+        <tr>
+            <th>
+                <input id="current_page" name="current_page" class="hidden" type="string" value="none"/>
+                <input id="tchosen_action" name="action" class="hidden" type="string" value="none"/>
+            </th>
+            <th>Task Name</th>
+            <th>Status</th>
+            <th>Function</th>
+            <th>UUID</th>
+            <th>Enabled</th>
+            <th>Start Time</th>
+            <th>Stop Time</th>
+            <th>Run #</th>
+            <th>Failed #</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{for t_ in tasks:}}
+        <tr>
+            <td>{{=INPUT(_type="checkbox", _name="t_records", _value=t_.id, value=request.vars.t_records)}}</td>
+            <td>{{=t_.task_name}}</td>
+            <td>{{=t_.status_}}</td>
+            <td>{{=t_.function_name}}</td>
+            <td>{{=A(t_.uuid, _href=URL('task_details', args=t_.id, user_signature=True))}}</td>
+            <td>{{=t_.enabled}}</td>
+            <td>{{=t_.start_time}}</td>
+            <td>{{=t_.stop_time}}</td>
+            <td>{{=t_.times_run}}</td>
+            <td>{{=t_.times_failed}}</td>
+        </tr>
+        {{pass}}
+    </tbody>
+<table>
+
+{{if total > len(tasks):}}
+<ul class="pager">
+    <li class="{{='' if page else 'disabled'}}">{{=A('Previous',
+                    _href=URL(r=request, args=request.args, vars={'page': page and page or 1, 'qfilter':request.vars.qfilter or ''}, user_signature=True),
+                    cid=request.cid)
+                    }}</li>
+    <li>{{=A(page+1)}}</li>
+    <li class="{{='' if total/paginate > page else 'disabled'}}">{{=A('Next',
+                    _href=URL(r=request, args=request.args, vars={'page' : page and page+2 or 2, 'qfilter':request.vars.qfilter or ''}, user_signature=True),
+                    cid=request.cid)
+                    }}</li>
+</ul>
+{{pass}}
+
+
+<script>
+$(function() {
+    $('#qfilter_submit').on('click', function(e) {
+        e.preventDefault();
+        var link = '{{=URL(r=request, args=request.args, user_signature=True)}}';
+        web2py_ajax_page('post', link, $('#qfilter').serialize(), '{{=request.cid}}')
+    });
+    $("#tasks_all_toggler").on('click', function(e) {
+        var checkb = $(this).find('input');
+        var all_checkb = $("#task_group input[type='checkbox']");
+        checkb.attr('checked') ? all_checkb.attr('checked', false) : all_checkb.attr('checked', true);
+    });
+    $('.task_status tbody tr').on('click', function(e) {
+        if (e.target.type !== 'checkbox') {
+            var inp = $(this).find('input');
+            inp.attr('checked') ? inp.attr('checked', false) : inp.attr('checked', true);
+        }
+    });
+    $('#tasks_actions li a').on('click', function(e) {
+        e.preventDefault();
+        $('#tchosen_action').val($(this).data('action'));
+        $('#current_page').val('{{=URL(args=(request.args(0),request.args(1)), user_signature=True)}}');
+        var link = '{{=BASEURL}}';
+        web2py_ajax_page('post', link, $('.task_status input').serialize(), '{{=request.cid}}')
+    });
+});
+</script>

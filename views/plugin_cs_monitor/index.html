@@ -1,0 +1,51 @@
+{{extend 'layout.html'}}
+
+<div id="cs_monitor_plugin_utilities">
+    <div class="btn-group">
+        <button class="btn">Delete Tasks</button>
+        <button class="btn dropdown-toggle" data-toggle="dropdown">
+        <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+            <li><a href="{{=URL('delete_tasks', args='1d', user_signature=True)}}" data-toggle="modal" data-target="#tasks_confirm_delete">Older than 1 day</a></li>
+            <li><a href="{{=URL('delete_tasks', args='3d', user_signature=True)}}" data-toggle="modal" data-target="#tasks_confirm_delete">Older than 3 days</a></li>
+            <li><a href="{{=URL('delete_tasks', args='1w', user_signature=True)}}" data-toggle="modal" data-target="#tasks_confirm_delete">Older than 1 week</a></li>
+            <li><a href="{{=URL('delete_tasks', args='1m', user_signature=True)}}" data-toggle="modal" data-target="#tasks_confirm_delete">Older than 1 month</a></li>
+            <li><a href="{{=URL('delete_tasks', args='3m', user_signature=True)}}" data-toggle="modal" data-target="#tasks_confirm_delete">Older than 3 months</a></li>
+        </ul>
+    </div>
+    <a class="btn" href="{{=URL('edit_task', args=(0, 'new'), user_signature=True)}}">New Task</a>
+</div>
+
+<div id="tasks_confirm_delete" class="modal hide fade">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Delete Tasks</h3>
+    </div>
+    <div class="modal-body">
+        <p>Are You sure?</p>
+    </div>
+
+</div>
+
+
+
+{{autorefresh = request.vars.autorefresh == '1'}}
+
+{{if autorefresh:}}
+    {{=LOAD('plugin_cs_monitor', 'workers', ajax=True, user_signature=True, target="worker_window", times='Infinity', timeout=3000)}}
+    {{=LOAD('plugin_cs_monitor', 'tasks', ajax=True, user_signature=True, target="tasks_window", times='Infinity', timeout=3500)}}
+{{else:}}
+    {{=LOAD('plugin_cs_monitor', 'workers', ajax=True, user_signature=True, target="worker_window")}}
+    {{=LOAD('plugin_cs_monitor', 'tasks', ajax=True, user_signature=True, target="tasks_window")}}
+{{pass}}
+
+<div id="task_group"></div>
+
+<script>
+$(function() {
+    $('#tasks_confirm_delete').on('hidden', function () {
+        $(this).removeData('modal');
+    })
+})
+</script>

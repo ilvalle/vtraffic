@@ -1,0 +1,8 @@
+
+Are you sure you want to delete 'COMPLETED', 'FAILED', 'EXPIRED', 'STOPPED' tasks
+that got QUEUED before {{=limit}} ?
+
+<div>
+    <a href="#" data-dismiss="modal" class="btn">Close</a>
+    <a href="{{=URL(r=request, args=request.args, vars={'confirm' : 1}, user_signature=True)}}" class="btn btn-primary">Delete Tasks</a>
+</div>

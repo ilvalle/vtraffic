@@ -1,0 +1,81 @@
+
+<h3>Workers</h3>
+
+<div class="btn-group" id="worker_actions">
+    <button class="btn" id="worker_all_toggler">Toggle <input type="checkbox" style="margin: 0;"></button>
+    <button class="btn dropdown-toggle" data-toggle="dropdown">
+    <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+        <li><a href="#" data-action="ACTIVE">Resume</a></li>
+        <li><a href="#" data-action="DISABLED">Disable</a></li>
+        <li><a href="#" data-action="TERMINATE">Terminate</a></li>
+        <li><a href="#" data-action="KILL">Kill</a></li>
+    </ul>
+</div>
+<button id="workers_autorefresh" type="button" class="btn" data-toggle="button">Auto-Refresh</button>
+<button id="clear_cache" type="button" class="btn">Clear Cache</button>
+
+
+<table id="worker_status" class="table table-condensed table-hover table-bordered">
+    <thead>
+        <tr>
+            <th><input id="wchosen_action" name="action" class="hidden" type="string" value="none"/></th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Started On</th>
+            <th>Last Update</th>
+            <th>Group Names</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{for w_ in w:}}
+        <tr>
+            <td>{{=INPUT(_type="checkbox", _name="w_records", _value=w_.id, value=request.vars.w_records)}}</td>
+            <td>{{=w_.is_ticker and B('TICKER: ', w_.worker_name, ) or w_.worker_name}}</td>
+            <td>{{=w_.status_}}</td>
+            <td>{{=w_.first_heartbeat}}</td>
+            <td>{{=w_.last_heartbeat}}</td>
+            <td>{{=', '.join(w_.group_names)}}</td>
+        </tr>
+        {{pass}}
+    </tbody>
+<table>
+
+<script>
+$(function() {
+    if (window.location.search.indexOf('autorefresh=1') != -1) $('#workers_autorefresh').addClass('active')
+    $("#worker_all_toggler").on('click', function(e) {
+        $('#worker_window').addClass('w2p_component_stop');
+        var checkb = $(this).find('input');
+        var all_checkb = $("#worker_window input[type='checkbox']");
+        checkb.attr('checked') ? all_checkb.attr('checked', false) : all_checkb.attr('checked', true);
+    });
+    $('#worker_status tbody tr').on('click', function(e) {
+        $('#worker_window').addClass('w2p_component_stop');
+        if (e.target.type !== 'checkbox') {
+            var inp = $(this).find('input');
+            inp.attr('checked') ? inp.attr('checked', false) : inp.attr('checked', true);
+        }
+    });
+    $('#worker_actions li a').on('click', function(e) {
+        e.preventDefault();
+        $('#wchosen_action').val($(this).data('action'));
+        var link = '{{=BASEURL}}';
+        web2py_ajax_page('post', link, $('#worker_status input').serialize(), 'worker_window')
+    });
+    $('#workers_autorefresh').on('click', function(e) {
+        newlocation = window.location.search.replace('?autorefresh=1', '') + '?autorefresh=1'
+        if ($(this).hasClass('active')) {
+            $('#worker_window').addClass('w2p_component_stop');
+            $('#tasks_window').addClass('w2p_component_stop');
+        } else {
+            window.location = window.location.pathname + newlocation;
+        }
+    });
+    $('#clear_cache').on('click', function(e) {
+        e.preventDefault();
+        web2py_ajax_page('post', '{{=URL("clear_cache", user_signature=True)}}', null, 'a');
+    });
+});
+</script>

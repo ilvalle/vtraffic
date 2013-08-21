@@ -1,0 +1,38 @@
+{{extend 'layout.html'}}
+<h3>Task</h3>
+
+
+<div class="btn-group">
+    {{=A("Create New", _class="btn btn-success", _href=URL('edit_task', args=[task.id, 'new'], user_signature=True))}}
+    {{=A("Edit", _class="btn btn-info", _href=URL('edit_task', args=task.id, user_signature=True))}}
+    {{=A("Clone and Requeue", _class="btn btn-warning", _href=URL('edit_task', args=[task.id, 'clone'], user_signature=True))}}
+    {{=A("Delete", _class="btn btn-danger", _href=URL('edit_task', args=[task.id, 'delete'], user_signature=True))}}
+    {{=A("Stop Task", _class="btn btn-danger", _href=URL('edit_task', args=[task.id, 'stop'], user_signature=True))}}
+    {{=A("Analyze", _class="btn btn-primary", _href=URL('analyze_task', args=task.id, user_signature=True))}}
+</div>
+
+<table class="task_details table table-condensed table-hover table-bordered">
+    {{fields = [a for a in st.fields]}}
+    <tbody>
+    {{while len(fields)>0:}}
+        <tr>
+        {{k=fields.pop(0)}}
+        <td><b>{{=db.scheduler_task[k].label}}</b></td>
+        {{if k == 'status':}}
+            <td>{{=task['status_']}}</td>
+        {{else:}}
+            <td>{{=task[k]}}</td>
+        {{pass}}
+        {{k=fields.pop(0)}}
+        <td><b>{{=db.scheduler_task[k].label}}</b></td>
+        {{if k == 'status':}}
+            <td>{{=task['status_']}}</td>
+        {{else:}}
+            <td>{{=task[k]}}</td>
+        {{pass}}
+        <tr>
+    {{pass}}
+    </tbody>
+</table>
+
+{{=LOAD('plugin_cs_monitor', 'run_details', args=task.id, ajax=True, user_signature=True, target="run_window")}}

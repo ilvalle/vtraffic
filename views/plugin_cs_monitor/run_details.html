@@ -1,0 +1,78 @@
+
+<div class="input-append">
+    <input class="span2" id="qfilter" type="text" name="qfilter">
+    <button id="qfilter_submit" class="btn" type="button">Search</button>
+</div>
+
+<table id="run_details" class="table table-condensed table-hover table-bordered">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Task id</th>
+            <th>Status</th>
+            <th>Start Time</th>
+            <th>Stop Time</th>
+            <th>Output</th>
+            <th>Result</th>
+            <th>Traceback</th>
+            <th>Worker Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{for r_ in runs:}}
+        <tr>
+            <td>{{=INPUT(_type="checkbox", _name="r_records", _value=r_.id, value=request.vars.r_records)}}</td>
+            <td>{{=r_.task_id}}</td>
+            <td>{{=r_.status_}}</td>
+            <td>{{=r_.start_time}}</td>
+            <td>{{=r_.stop_time}}</td>
+            <td>{{=r_.run_output}}</td>
+            <td>{{=r_.run_result}}</td>
+            {{traceback = r_.traceback}}
+            {{if traceback:}}
+            <td>{{=A("Details...", _href=URL('run_traceback', args=r_.id, user_signature=True), _class="traceback", _id="run_%s" % r_.id, **{'_data-toggle' : 'modal', '_data-target': '#myModal'})}}</td>
+            {{else:}}
+            <td></td>
+            {{pass}}
+            <td>{{=r_.worker_name}}</td>
+        </tr>
+        {{pass}}
+    </tbody>
+<table>
+
+{{if total > len(runs):}}
+<ul class="pager">
+    <li class="{{='' if page else 'disabled'}}">{{=A('Previous',
+                    _href=URL(r=request, args=request.args, vars={'page': page and page or 1, 'qfilter':request.vars.qfilter or ''}, user_signature=True),
+                    cid=request.cid)
+                    }}</li>
+    <li>{{=A(page+1)}}</li>
+    <li class="{{='' if total/paginate > page else 'disabled'}}">{{=A('Next',
+                    _href=URL(r=request, args=request.args, vars={'page' : page and page+2 or 2, 'qfilter':request.vars.qfilter or ''}, user_signature=True),
+                    cid=request.cid)
+                    }}</li>
+</ul>
+{{pass}}
+
+<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Traceback</h3>
+    </div>
+    <div class="modal-body">
+        <p></p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    </div>
+</div>
+
+<script>
+$(function() {
+    $('#qfilter_submit').on('click', function(e) {
+        e.preventDefault();
+        var link = '{{=URL(r=request, args=request.args, user_signature=True)}}';
+        web2py_ajax_page('post', link, $('#qfilter').serialize(), '{{=request.cid}}')
+    });
+});
+</script>

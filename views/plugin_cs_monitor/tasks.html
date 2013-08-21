@@ -1,0 +1,44 @@
+
+<h3>Tasks</h3>
+
+<table id="summary" class="task_status table table-condensed table-hover table-bordered">
+    <thead>
+        <th>Group</th>
+        <th>Status</th>
+        <th>#</th>
+    </thead>
+    <tbody>
+        {{for group in c.keys():}}
+            <tr>
+                <td rowspan="{{=len(c[group])}}">{{=A(group, _href=URL('task_group', args=group, user_signature=True))}}</td>
+                {{statuses = c[group].keys()}}
+                {{if statuses:}}
+                    {{status = statuses.pop()}}
+                    <td>{{=A(c[group][status]['pretty'], _href=URL('task_group', args=[group,status], user_signature=True))}}</td>
+                    <td>{{=c[group][status]['count']}}</td>
+                {{else:}}
+                    <td></td>
+                    <td></td>
+                {{pass}}
+            </tr>
+            {{while len(statuses)>0:}}
+                {{status = statuses.pop()}}
+                <tr>
+                    <td>{{=A(c[group][status]['pretty'], _href=URL('task_group', args=[group,status], user_signature=True))}}</td>
+                    <td>{{=c[group][status]['count']}}</td>
+                </tr>
+            {{pass}}
+        {{pass}}
+    </tbody>
+</table>
+
+
+
+<script>
+$(function() {
+    $('#summary a').on('click', function(e) {
+        e.preventDefault();
+        web2py_component($(this).attr('href'), 'task_group');
+        });
+})
+</script>

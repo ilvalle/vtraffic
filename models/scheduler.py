@@ -1,3 +1,8 @@
+
+from gluon.scheduler import Scheduler
+scheduler = Scheduler(db)
+
+
 ## For each possible origin/destination couple finds the matches
 def run_all():
 	stations = db(db.station.id).select(db.station.id, orderby=db.station.id)
