@@ -28,7 +28,7 @@ def find_matches (id_origin, id_destination, query=None):
 	query_od = (start.station_id == id_origin) & (end.station_id == id_destination) if not query  else query
 
 	if last_match:
-		initial_data = last_match.first().record.gathered_on - next_step()
+		initial_data = last_match.first().record.gathered_on - __next_step()
 
 	matches = []
 	n_prev_matches = 1
