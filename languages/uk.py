@@ -208,6 +208,7 @@
 'User %(id)s Profile updated': 'Параметри користувача %(id)s змінено',
 'User %(id)s Registered': 'Користувач %(id)s зареєструвався',
 'User ID': 'Ід.користувача',
+'Username': 'Username',
 'value already in database or empty': 'значення вже в базі даних або порожнє',
 'Verify Password': 'Повторити пароль',
 'Videos': 'Відео',
