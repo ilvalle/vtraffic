@@ -1,4 +1,7 @@
+{{show_title=False}}
 {{extend 'layout.html'}}
+{{#block header_title}}
+{{#end}}
 {{=content}}
 {{if False and request.args(0) in ['prototype', 'power-consumption']:}}
 <div class="clearfix"></div>
