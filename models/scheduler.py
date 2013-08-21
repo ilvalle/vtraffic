@@ -2,6 +2,8 @@
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db)
 
+from applications.vtraffic.modules.tools import EPOCH_M
+from datetime import timedelta
 
 ## For each possible origin/destination couple finds the matches
 def run_all():
