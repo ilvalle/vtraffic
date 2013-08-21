@@ -1,4 +1,4 @@
-import time
+#import time
 def __get_rows(query, use_cache=True, limitby=None):
 	def __get_rows_local(query):
 		query_1 = query & ((end.gathered_on.epoch() - start.gathered_on.epoch()) < 1800)
