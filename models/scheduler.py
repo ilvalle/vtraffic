@@ -13,6 +13,7 @@ def run_all():
 		for d in stations:
 			if o.id != d.id:
 				matches = find_matches(o.id, d.id)
+				__save_match(matches)
 				total   += len(matches)
 	return total
 
