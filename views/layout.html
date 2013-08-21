@@ -88,7 +88,7 @@
     </div>
   </div><!--/top navbar -->
 
-  
+{{block header_title}}
   <header class="mastheader" id="header">
     <div class='container'>
 	{{if response.header_msg:}}
@@ -100,11 +100,11 @@
 	<h1>{{=response.title}}</h1>
 	<h2 class='lead'>{{=response.subtitle}}</h2>	
     </div>
-    <a class='visible-desktop' id="githubSticker" href="https://github.com/ilvalle/vtraffic"><img src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
   </header>
-  
+{{end}}
     <!-- Masthead ================================================== -->
 <div class="container">
+    <a class='visible-desktop' id="githubSticker" href="https://github.com/ilvalle/vtraffic"><img src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
 
     <div class="row">
         {{if left_sidebar_enabled:}}

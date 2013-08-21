@@ -83,4 +83,5 @@ db.define_table('match',
 	Field('elapsed_time', 'integer' ),
 	Field('record_id_orig', 'reference record' ),
 	Field('record_id_dest', 'reference record' ),
+	migrate=False
 )
