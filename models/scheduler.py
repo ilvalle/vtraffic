@@ -36,7 +36,7 @@ def find_matches (id_origin, id_destination, query=None):
 		n_prev_matches = len(matches)
 		if last_match:
 			query = query_od & (start.gathered_on > initial_data )
-			initial_data = initial_data - next_step()
+			initial_data = initial_data - __next_step()
 			matches = __get_rows(query, use_cache=False)
 			matches = __clean_progress_matches(matches, last_match.first().record.gathered_on) 
 		else:
