@@ -6,7 +6,6 @@ MIGRATE=False
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
 #db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
-db = DAL('postgres://web2py:web2py@localhost:55432/postgis',  
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
 	lazy_tables=not(MIGRATE),
@@ -26,6 +25,7 @@ if not request.is_local:
 ## (optional) optimize handling of static files
 response.optimize_css = 'concat,minify'
 #response.optimize_js = 'concat,minify'
+#session.forget(response)
 from gluon.tools import Auth
 auth = Auth(db)
 

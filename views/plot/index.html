@@ -27,7 +27,7 @@
 <section id='vehiclesDetected' class="tab-pane fade in active row-fluid">
 	<div class='span2'>
 	<div class='well' style="padding: 7px 0px;">
-		<ul id='stations' class="nav nav-list">
+		<ul id='stations' class="load_data nav nav-list">
 			<li class="nav-header">Monitoring stations</li>
 			{{for station in stations:}}
 				<li><a id='station_{{=station['id']}}' title="{{='%s %s' % (T('Station'), station['name']) }}" href="#" class="muted" data-content="{{=get_static_img( station['lat'], station['lgt'])}}">
