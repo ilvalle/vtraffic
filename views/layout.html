@@ -116,7 +116,7 @@
         </div>
         {{pass}}
 
-        <div >
+        <div id="pajax-container">
             {{block center}}
             {{include}}
             {{end}}
@@ -149,6 +149,17 @@
 	<!--p>Designed and built by <a href='https://twitter.com/ilvalle' rel="popover"  data-content="" title='Paolo Valleri'>Paolo Valleri</a></p-->
 	</div>
         </footer>
+	<script src="{{=URL('static','js/jquery.pjax.js')}}"></script>
+	<script type="text/javascript">
+		$(document).pjax('.navbar a', '#pajax-container');
+		$(document).on('pjax:send', function(e, src, obj) {
+			target = obj.target;
+			$(target).parent().siblings().each( function() {
+				$(this).removeClass('active');
+			});
+			$(target).parent().addClass('active');
+		})
+	</script>
   {{if response.google_analytics_id and not request.is_local:}}
   <script src="{{=URL('static','js/analytics.min.js')}}"></script>
   <script type="text/javascript">

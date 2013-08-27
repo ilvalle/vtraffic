@@ -1,5 +1,5 @@
 {{show_title=False}}
-{{extend 'layout.html'}}
+{{extend 'layout.html' if 'http_x_pjax_container' not in request.env else 'empty.html'}}
 {{#block header_title}}
 {{#end}}
 {{=content}}

@@ -9,7 +9,7 @@ def get_static_img(lat, lon, width='170', height='170', zoom=14):
 	url = openstreatmap_static_link % {'lon':lon, 'lat':lat, 'height':150, 'width':width, 'zoom':zoom}
 	return str(IMG(_src=url, _title="map"))
 
-PERIODS=OrderedDict([('1', T('1 day')), ('7', T('1 week')), ('30', T('1 month')), ('90', T('3 month'))])
+PERIODS=OrderedDict([('1', T('1 day')), ('7', T('1 week')), ('30', T('1 month')), ('90', T('3 months')), ('150', T('5 months'))])
 
 requested_period = 90
 if request.vars.period:
