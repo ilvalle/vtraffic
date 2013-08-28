@@ -54,6 +54,8 @@ def __save_match(matches):
 		                 station_id_dest=r.end_point.station_id,
 		                 epoch_orig=r.start_point.epoch,
 		                 epoch_dest=r.end_point.epoch,
+		                 gathered_on_orig=r.start_point.gathered_on,
+		                 gathered_on_dest=r.end_point.gathered_on,
 		                 elapsed_time=r.elapsed_time,
 		                 record_id_orig=r.start_point.id,
 		                 record_id_dest=r.end_point.id )
