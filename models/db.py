@@ -46,6 +46,8 @@ auth.settings.registration_requires_approval = True
 auth.settings.reset_password_requires_verification = True
 auth.settings.actions_disabled.append('register')
 auth.settings.allow_basic_login = True
+auth.settings.wiki.controller = 'default'
+auth.settings.wiki.function   = 'wiki'
 db.auth_user.email.widget = lambda f,v: SQLFORM.widgets.string.widget(f, v,_placeholder=T('Email'), _class="input-block-level")
 db.auth_user.username.widget = lambda f,v: SQLFORM.widgets.string.widget(f, v,_placeholder=T('Username'), _class="input-block-level")
 db.auth_user.password.widget = lambda f,v: SQLFORM.widgets.string.widget(f, v, _placeholder=T('Password'), _class="input-block-level", _type="password")
@@ -87,5 +89,8 @@ db.define_table('match',
 	Field('elapsed_time', 'integer' ),
 	Field('record_id_orig', 'reference record' ),
 	Field('record_id_dest', 'reference record' ),
-	#migrate=False
+	#migrate=True
 )
+
+
+if "auth" in locals(): auth.wikimenu() 
