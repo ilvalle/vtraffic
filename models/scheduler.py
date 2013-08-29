@@ -1,12 +1,24 @@
 
 from gluon.scheduler import Scheduler
-scheduler = Scheduler(db)
+scheduler = Scheduler(db, migrate=False)
 
 from applications.vtraffic.modules.tools import EPOCH_M
 from datetime import timedelta
 
+
+def test_write():
+	db.define_table('test_write',
+		Field('value', 'integer' ),
+		migrate=True
+	)
+	insert_id = db.test_write.insert(value=123)
+	n_insert  = db(db.test_write).count()
+	db.commit()
+	return (insert_id, n_insert)
+
 ## For each possible origin/destination couple finds the matches
 def run_all():
+	print 'start'
 	stations = db(db.station.id).select(db.station.id, orderby=db.station.id)
 	total = 0
 	for o in stations:
@@ -31,7 +43,7 @@ def find_matches (id_origin, id_destination, query=None):
 
 	if last_match:
 		initial_data = last_match.first().record.gathered_on - __next_step()
-
+	print id_origin, id_destination, last_match
 	matches = []
 	n_prev_matches = 1
 	while len(matches) != n_prev_matches:
@@ -60,6 +72,8 @@ def __save_match(matches):
 		                 elapsed_time=r.elapsed_time,
 		                 record_id_orig=r.start_point.id,
 		                 record_id_dest=r.end_point.id )
+	if len(matches) != 0:	
+		db.commit()
 	return len(matches)
 
 # this constraint must be executed after remove_dup 
