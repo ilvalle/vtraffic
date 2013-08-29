@@ -7,8 +7,8 @@ from itertools import groupby
 import datetime, time
 import operator
 
-start._common_filter = lambda query: start.gathered_on > period_limit
-
+#start._common_filter = lambda query: start.gathered_on > period_limit
+db.match._common_filter = lambda query: db.match.gathered_on_orig > period_limit
 
 MODE_STEP=5
 
@@ -82,33 +82,39 @@ time_frame_size = int(request.vars.diff_temp) if request.vars.diff_temp and requ
 #@cache(request.env.path_info + '%s-%s-%s' % (id_origin, id_destination, time_frame_size) , time_expire=None, cache_model=cache.ram)
 def compare_series():
 	session.forget(response)
-	
-	day = start.gathered_on.year() | start.gathered_on.month() | start.gathered_on.day()  
+
+	day = db.match.gathered_on_orig.year() | db.match.gathered_on_orig.month() | db.match.gathered_on_orig.day()  
 	# Gets the days with data 
-	days = db( (start.station_id == id_origin)  ).select(
-						start.gathered_on.year(), 
-						start.gathered_on.month(), 
-						start.gathered_on.day(),
+	days = db( (db.match.station_id_orig == id_origin) ).select(
+						db.match.gathered_on_orig.year(), 
+						db.match.gathered_on_orig.month(), 
+						db.match.gathered_on_orig.day(),
 						groupby=day,
 						orderby=day,
 						cacheable = True)	
+
 	out=[]
 	# make the mode day by day
 	for d in days:
-		year, month, day  = d[start.gathered_on.year()], d[start.gathered_on.month()], d[start.gathered_on.day()]
+		year  = d[db.match.gathered_on_orig.year()]
+		month = d[db.match.gathered_on_orig.month()]
+		day   = d[db.match.gathered_on_orig.day()]
 
-		query_g = ((start.gathered_on.year() == year) &
-			 (start.gathered_on.month() == month) &
-			 (start.gathered_on.day() == day) &
-			 (end.gathered_on.year() == year) &
-			 (end.gathered_on.month() == month) &
-			 (end.gathered_on.day() == day) )
+		query = ((db.match.gathered_on_orig.year() == year) &
+			 (db.match.gathered_on_orig.month() == month) &
+			 (db.match.gathered_on_orig.day() == day) &
+			 (db.match.gathered_on_dest.year() == year) &
+			 (db.match.gathered_on_dest.month() == month) &
+			 (db.match.gathered_on_dest.day() == day) &
+			 (db.match.station_id_orig == id_origin) &
+			 (db.match.station_id_dest == id_destination))
 
-		query_mode = (query_g & (start.station_id == id_origin) & (end.station_id == id_destination))
+
+		#query_mode = (query_g & (start.station_id == id_origin) & (end.station_id == id_destination))
 		#query_od = (query_g & (start.station_id == id_origin) & (end.station_id == id_destination))
 		#query_do = (query_g & (start.station_id == id_destination) & (end.station_id == id_origin))
 				
-		data = __compute_mode(query_mode, time_frame_size, 30, compare=True)
+		data = __compute_mode(query, time_frame_size, 30, compare=True)
 		#data = __compute_frequency(query_a, query_b, time_frame_size, compare=True)
 		if len(data['data']) != 0:
 			data['id'] = data['id'] + '%s%s%s' % (year,month,day)
@@ -120,22 +126,23 @@ def compare_series():
 def get_series():
 	session.forget(response)
 
-	rows = __get_rows_stations (id_origin,  id_destination)
-	query = (start.station_id == id_origin) & (end.station_id == id_destination) 
+#	rows = __get_rows_stations (id_origin,  id_destination)
+#	query = (start.station_id == id_origin) & (end.station_id == id_destination) 
+	query = (db.match.station_id_orig == id_origin) & (db.match.station_id_dest == id_destination) 
 	logs=[]
-	for row in rows:
-		logs.append( [ row.start_point['epoch'] * 1000, row['elapsed_time'] * 1000 ]	)
+#	for row in rows:
+#		logs.append( [ row.start_point['epoch'] * 1000, row['elapsed_time'] * 1000 ]	)
 
 	all_logs = []
-	all_logs.append( {'data':logs, 'label': 'matches', 'id':'logs'} )
+	#all_logs.append( {'data':logs, 'label': 'matches', 'id':'logs'} )
 
-	for seconds in xrange(900, 1000, 100):
-		all_logs.append( __compute_lower(query, seconds ) )
+	#for seconds in xrange(900, 1000, 100):
+		#all_logs.append( __compute_lower(query, seconds ) )
 	
 	for seconds in xrange(900, 1000, 100):
 		all_logs.append( __compute_mode(query, seconds) )
 		#all_logs.append( __get_mode_rows(rows, seconds) )
-
+	return response.render('generic.json', {'series':all_logs})
 	# single trends
 	hours = __get_trend(id_origin, 3600)
 	#tens = __get_trend(id_start, 600)
@@ -179,18 +186,6 @@ def get_line():
 def __get_rows_stations(station_id_start, station_id_end):
 	query = (start.station_id == station_id_start) & (end.station_id == station_id_end)
 	return __get_rows(query)
-
-
-def __get_blocks(query, block_seconds, use_cache=True):
-	def __get_blocks_local(query, block_seconds, use_cache=True):
-		rows   = __get_rows(query, use_cache=use_cache)
-		blocks = __split2time_frame(rows, block_seconds)
-		return blocks
-	key = 'blocks_%s%s' % (query, block_seconds)
-	if len(key)>200:
-		key = 'blocks_%s' % md5_hash(key)
-	blocks = cache.ram( key, lambda: __get_blocks_local(query, block_seconds), time_expire=0)
-	return blocks
 
 
 def __get_trend(station_id, block_seconds):
@@ -241,17 +236,17 @@ def __get_mode( id_start, id_end, block_seconds=800, vertical_block_seconds=30 )
 	return data
 
 def __compute_lower( query, block_seconds, compare=False ):
-	blocks_list = __get_blocks (query, block_seconds)
+	blocks_list = __get_blocks_scheduler (query, block_seconds, reset_cache=False)
 	data = []	
 	if (len(blocks_list) != 0):
-		data = __compute_wrapper( blocks_list,
-                                  __lower,
-                                  block_seconds, 
-                                  compare=compare)
+		data = __wrapper_elaboration( blocks_list,
+                                      __lower,
+                                      block_seconds, 
+                                      compare=compare)
 	return {'data': data,'label':"Lower bound (%ss)" % block_seconds, 'id':'lower_bound_%s' %  block_seconds };
 
-def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare=False):
-	blocks_list = __get_blocks (query, block_seconds)
+def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare=False, use_cache=True):
+	blocks_list = __get_blocks_scheduler (query, block_seconds, reset_cache=False)
 	if (len(blocks_list) == 0):
 		return  {'data': [],'label':'No matches', 'id':'mode_%s' %  block_seconds }
 
@@ -259,50 +254,18 @@ def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare
 	if len(key)>200:
 		key = 'mode_%s' % md5_hash(key)
 	# Cache the mode for each day, so we need to compute only the last day
-	data = cache.ram( key, lambda: __compute_wrapper(blocks_list,
-                                                     __mode,
-                                                     block_seconds, 
-                                                     vertical_block_seconds=vertical_block_seconds, 
-                                                     compare=compare),  
+	data = cache.ram( key, lambda: __wrapper_elaboration( blocks_list,
+                                                          __mode,
+                                                          block_seconds, 
+                                                          vertical_block_seconds=vertical_block_seconds, 
+                                                          compare=compare),  
                       time_expire=CACHE_TIME_EXPIRE)
 	if compare:
-		fdate = blocks_list[0][0][start.gathered_on]
+		fdate = blocks_list[0][0][db.match.gathered_on_orig]
 		label = fdate.strftime('%a %d, %b' )
 	else:
 		label = "Mode (%ss)" % block_seconds
 	return {'data': data,'label':label, 'id':'mode_%s' %  block_seconds }
-
-# Return matches grouped to the specific time_frame they belong to 
-def __split2time_frame(matches, time_frame_size):	
-	l = []	
-
-	f = lambda row: row.start_point.epoch // time_frame_size
-	for key, group in groupby(matches, f):
-		ll = list(group)
-		l.append( ll ) 
-	return l
-
-# Return matches grouped to the specific time_frame they belong to 
-# if the gap between two matches is higher time_frame_size * 2, the put a 0 (useful for plotting chart)
-def __split2time_frame2(matches, time_frame_size):
-	l = [] 
-	if len(matches) == 0: return l
-	first=True
-	prev = matches[0]
-
-	for match in matches:
-		if not first and (match.gathered_on < limit):
-			l[len(l)-1].append(match)
-		elif (prev.gathered_on + (datetime.timedelta(seconds=time_frame_size) * 2)) < match.gathered_on:
-			l.append([prev])
-			l.append([match])
-		else:
-			limit = match.gathered_on + datetime.timedelta(seconds=time_frame_size)
-			l[len(l):] = [[match]]
-			first = False
-		prev = match
-	
-	return l
 
 ### Functions
 # return the mode along a list of rows (block)
@@ -336,13 +299,13 @@ def __trend(block, block_seconds, vertical_block_seconds):
 	return value
 
 # This skeleton allows to run easily statistical analysis across rows splitted into frames
-def __compute_wrapper( blocks_list, 
-                       function, 
-                       block_seconds=800, 
-                       vertical_block_seconds=30, 
-                       compare=False):	
+def __wrapper_elaboration( blocks_list, 
+                           function, 
+                           block_seconds=800, 
+                           vertical_block_seconds=30, 
+                           compare=False):	
 	if compare:
-		first_date = blocks_list[0][0][start.gathered_on]
+		first_date = blocks_list[0][0][db.match.gathered_on_orig]
 		day = datetime.datetime(first_date.date().year, first_date.date().month, first_date.date().day)
 		reference_seconds = EPOCH_M(day)
 	else:
@@ -353,8 +316,8 @@ def __compute_wrapper( blocks_list,
 		if len(block) <= 2:		# two values are not enough, lets pass
 			continue
 		current = block[0]
-		seconds = block[0].start_point.epoch - (block[0].start_point.epoch % block_seconds) - reference_seconds
-		if prev and current.start_point.epoch > prev.start_point.epoch + (block_seconds*3):	#fill the gap with three empty values
+		seconds = block[0].epoch_orig - (block[0].epoch_orig % block_seconds) - reference_seconds
+		if prev and current.epoch_orig > prev.epoch_orig + (block_seconds*3):	#fill the gap with three empty values
 			output.append ( [ (prev_seconds + block_seconds + block_seconds/2) * 1000,	0] )
 			output.append ( [ (seconds - block_seconds/2) * 1000,	0] )
 		value = function(block, block_seconds, vertical_block_seconds)
@@ -380,6 +343,7 @@ def data():
 #def restoreDb():
 #    db.import_from_csv_file(open(request.folder+'backup.csv', 'rb'))
 
+# 
 def __compute_frequency( query_a, query_r, block_seconds=800, compare=False):
 	rows = __get_rows(query_a)
 	if (len(rows) == 0):
