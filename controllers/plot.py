@@ -4,9 +4,9 @@ from datetime import timedelta
 
 db.record._common_filter = lambda query: db.record.gathered_on > period_limit
 
-#if request.function != 'wiki':
-#	from gluon.tools import Wiki
-#	response.menu += Wiki(auth).menu(controller="default", function="wiki")
+if request.function != 'wiki':
+	from gluon.tools import Wiki
+	response.menu += Wiki(auth).menu(controller="default", function="wiki")
 
  #@cache.action(time_expire=80000, cache_model=cache.memcache)
 def index():
