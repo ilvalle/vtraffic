@@ -23,7 +23,7 @@ def get_history():
 	station_id = request.args(0) or 'index'
 	#n_days = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 7
 	n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
-	station = db(db.station).select(db.station.name, cacheable=True, cache=(cache.memcache, 80000))
+	station = db(db.station.id == station_id).select(db.station.name, cacheable=True, cache=(cache.memcache, 80000))
 	if not(station_id and station_id.isdigit()) or len(station) != 1: raise HTTP(404)
 	station = station.first()
 	#now = request.now
@@ -47,7 +47,7 @@ def get_history():
 	return response.render('generic.json', {'series': series})
 
 
-@cache('figures_%s' % period_limit, time_expire=80000, cache_model=cache.memcache)
+@cache('figures_%s' % period_limit, time_expire=80000, cache_model=cache.ram)
 def figures():
 	session.forget()
 	stations = db(db.station).select(db.station.id, db.station.name, cache=(cache.ram, 3600))
@@ -70,7 +70,7 @@ def figures():
 		cur_station['max'] = max(values, key=lambda x: x['detected']) if len(values) else {'detected':'--', 'day':'0'}
 		cur_station['avg'] = sum(v['detected'] for v in values) / len(values) if len(values) else '--'
 
-		cur_station['total_detected'] = len(data) if len(values) else '--'
+		cur_station['total_detected'] = len(data) if len(values) else ' --'
 		cur_station['unique_detected'] = len( set(v[ db.record.mac] for v in data) ) if len(values) else '--'
 		if len(values):
 			cur_station['active'] = T('active')

@@ -37,8 +37,10 @@
   response.files.append(URL('static','css/bootstrap-responsive.min.css'))
   response.files.append(URL('static','css/web2py_bootstrap.css'))
   response.files.append(URL('static','css/app.css'))
+
   }}
 
+  {{response.files.append(URL('static','js/jquery.dataTables.min.js'))}}
   {{include 'web2py_ajax.html'}}
   <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="{{=URL('static','js/flashcanvas.js')}}"></script><![endif]-->
 
