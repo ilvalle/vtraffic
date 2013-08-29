@@ -15,8 +15,9 @@ def run_all():
 				matches = find_matches(o.id, d.id)
 				__save_match(matches)
 				total   += len(matches)
+				query = (db.match.station_id_orig == o.id) & (db.match.station_id_dest == d.id)
+				__get_blocks_scheduler(query, 900, reset_cache=True)
 	return total
-
 
 
 def find_matches (id_origin, id_destination, query=None):

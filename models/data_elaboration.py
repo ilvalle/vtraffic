@@ -112,3 +112,47 @@ def __filter_twins(rows):
 			out.append(row)
 	return rows
 
+# Query the matches and create a list of blocks, one block for each time_frame
+def __get_blocks_scheduler (query, block_seconds, reset_cache=False):
+	def __get_blocks_local(query, block_seconds):
+		matches = db(query).select(cacheable=False)
+		blocks  = __split_matches2time_frame( matches, block_seconds)
+		return blocks
+	key = 'blocks_%s%s' % (query, block_seconds)
+	if len(key)>200:
+		key = 'blocks_%s' % md5_hash(key)
+	blocks = cache.ram( key, lambda: __get_blocks_local(query, block_seconds), time_expire= 0 if reset_cache else 900)
+	return blocks
+
+# Return matches grouped to the specific time_frame they belong to 
+def __split_matches2time_frame(matches, time_frame_size):
+	l = []	
+	f = lambda row: row.epoch_orig // time_frame_size
+	for key, group in groupby(matches, f):
+		ll = list(group)
+		l.append( ll ) 
+	return l
+
+# Return matches grouped to the specific time_frame they belong to 
+# if the gap between two matches is higher time_frame_size * 2, the put a 0 (useful for plotting chart)
+def __split2time_frame2(matches, time_frame_size):
+	l = [] 
+	if len(matches) == 0: return l
+	first=True
+	prev = matches[0]
+
+	for match in matches:
+		if not first and (match.gathered_on < limit):
+			l[len(l)-1].append(match)
+		elif (prev.gathered_on + (datetime.timedelta(seconds=time_frame_size) * 2)) < match.gathered_on:
+			l.append([prev])
+			l.append([match])
+		else:
+			limit = match.gathered_on + datetime.timedelta(seconds=time_frame_size)
+			l[len(l):] = [[match]]
+			first = False
+		prev = match
+	
+	return l
+
+
