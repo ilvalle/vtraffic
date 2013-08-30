@@ -16,7 +16,7 @@ def index():
 station_id = request.args(0) or 'index'
 n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
 
-@cache('get_history_%s_%s_%s' % (station_id, n_hours, period_limit), time_expire=300, cache_model=cache.memcache)
+@cache('get_history_%s_%s_%s' % (station_id, n_hours, requested_period), time_expire=300, cache_model=cache.memcache)
 def get_history():
 	session.forget()
 	if not(request.ajax): raise HTTP(403)
@@ -36,7 +36,7 @@ def get_history():
 	series = [{'data':output, 'id': 'station_%s' % station_id, 'station_id':station_id, 'label': station.name}]	if len(output) != 0 else []
 	return response.render('generic.json', {'series': series})
 
-@cache('figures_%s' % period_limit, time_expire=80000, cache_model=cache.memcache)
+@cache('figures_%s' % requested_period, time_expire=80000, cache_model=cache.memcache)
 def figures():
 	session.forget()
 	stations = db(db.station).select(db.station.id, db.station.name, cache=(cache.ram, 3600))
