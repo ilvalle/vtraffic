@@ -5,14 +5,14 @@
 ## Customize your APP title, subtitle and menus here
 #########################################################################
 
-response.title = "Vehicular traffic monitoring"
+response.title = "Vehicle traffic monitoring"
 response.page_title = response.title
-response.subtitle = "A free and open source approach to vehicular traffic monitoring"
+response.subtitle = "A free and open source approach for vehicle traffic monitoring"
 #response.header_msg = " Join the presentation at FOSDEM 2013 conference! <a href='https://fosdem.org/2013/schedule/event/vehicular_traffic_estimation_through_bluetooth/'>read more</a>"
 
 ## read more at http://dev.w3.org/html5/markup/meta.name.html
 response.meta.author = 'Paolo Valleri'
-response.meta.description = 'Vehicular traffic monitoring through the detection of bluetooth signals'
+response.meta.description = 'Vehicle traffic monitoring through the detection of bluetooth signals'
 response.meta.generator = 'Web2py Web Framework'
 
 response.google_analytics_id = "UA-34703572-1"
