@@ -28,7 +28,8 @@ def get_history():
 	data = db( (db.record.station_id == station_id) ).select(db.record.gathered_on, 
                                                              orderby=db.record.gathered_on, 
                                                              cacheable=True, 
-                                                             cache=(cache.memcache, 300))
+#                                                             cache=(cache.memcache, 300)
+)
 	output = []
 	for key, group in groupby(data, lambda x: (EPOCH_M(x.gathered_on)) / ( 60 * 60 * n_hours)):
 		output.append( [ key*60*60*1000*n_hours, len(list(group))] ) 
