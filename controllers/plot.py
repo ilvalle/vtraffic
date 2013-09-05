@@ -8,10 +8,13 @@ if request.function != 'wiki':
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth).menu(controller="default", function="wiki")
 
- #@cache.action(time_expire=80000, cache_model=cache.memcache)
+@cache('plot_index_%s' % (requested_period), time_expire=5000, cache_model=cache.memcache)
 def index():
-	stations = db(db.station).select(db.station.ALL)
-	return response.render('plot/index.html', {'stations':stations, 'station_id':15})
+	stations = db(db.station.id == db.record.station_id).select(db.station.ALL,
+                                                                groupby=db.station.ALL,
+                                                                orderby=~db.record.station_id.count(),
+                                                                cacheable=True)
+	return response.render('plot/index.html', {'stations':stations, 'station_id':stations.first().id})
 
 station_id = request.args(0) or 'index'
 n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
