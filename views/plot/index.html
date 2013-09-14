@@ -38,7 +38,7 @@
 		</ul>
 	</div>
 	</div>
-	<p id='' class="label label-warning span4 offset2 hide center">{{=T('No data for the selected period')}}</p>
+	<p id='' class="label label-warning span4 offset2 hide center">{{=T('No stations selected')}}</p>
 	<div class="span10">
 	<div class="chart" style="height:370px">
 		<form class="pull-right">
@@ -93,10 +93,12 @@
 			plot_compare.plotAccordingToChoices();
 		} else if (tab === '#originDestination') {
 			plot_origin_destination.plotAccordingToChoices();		
+		} else if (tab === '#maps') {
+			map.updateSize(); 
 		} else {
 			plot_vehicles_detected.plotAccordingToChoices();
 		}
-	  e.relatedTarget // previous tab
+		//e.relatedTarget // previous tab
 	});
 
 	$(document).on('click', '#period a', function(e) {
