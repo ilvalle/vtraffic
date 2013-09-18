@@ -2,6 +2,7 @@
 {{extend 'layout.html' if 'http_x_pjax_container' not in request.env else 'empty.html'}}
 {{#block header_title}}
 {{#end}}
+{{if request.ajax:}}<title>{{=title}}</title>{{pass}}
 {{=content}}
 {{if False and request.args(0) in ['prototype', 'power-consumption']:}}
 <div class="clearfix"></div>
