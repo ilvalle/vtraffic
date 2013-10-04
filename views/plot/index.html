@@ -178,7 +178,8 @@
 	});
 
 	$(document).on('click', '#print', function() {
-		canvas = $(plot_compare.placeholder).children('canvas')[0];
+		current_tab_id = $("li.active a[data-toggle='tab']").attr('href');	
+		canvas = $(current_tab_id).find('canvas')[0];
 		dataUrl = canvas.toDataURL();
 		//window.open(dataUrl, "toDataURL() image", "width=1000, height=600");
 		rawImageData = dataUrl.replace("image/png", "image/octet-stream")
