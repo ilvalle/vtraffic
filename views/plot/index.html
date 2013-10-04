@@ -49,12 +49,8 @@
 		</form>
 			<!--a id="print" title="{{=T('Save image')}}" href="#" class="btn pull-right"><i class="icon-print"></i></a-->
 		<div class="btn-group pull-left">
-		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-			<span class=""><i class="icon-cog"></i>
-		</a>
-		<ul role="menu" class="dropdown-menu">
-			<li class=""><a id="print" href="#" class=""><i class="icon-print"></i> Save chart as image</a></li>
-		</ul>
+		<a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> </a>
+		<a class="btn" id="print"  href="#" title="{{=T('Save chart as image')}}" data-toggle="tooltip"><i class="icon-print"></i> </a>
 	</div>
 		
 			
@@ -172,9 +168,13 @@
 		}
 		plot_vehicles_detected.data = [];
 		for (key in keys) {
-			console.log(key);
 			get_station_history(key);	
 		}
+	});
+
+	$(document).on('click', '#reload', function() {
+		interval = -1; // Forse reload
+		$("li.active a.group").click();
 	});
 
 	$(document).on('click', '#print', function() {

@@ -169,7 +169,8 @@
   });</script>
   {{pass}}
   <script>
-	$('.container .row a').popover({trigger:'hover', placement:'bottom', html:true});
+	$(".container .row a:not([data-toggle='tooltip'])").popover({trigger:'hover', placement:'bottom', html:true});
+	$(".container .row a[data-toggle='tooltip']").tooltip({trigger:'hover'});
   </script>
 </body>
 </html>
