@@ -1,4 +1,3 @@
-from applications.vtraffic.modules.tools import EPOCH_M
 from itertools import groupby
 from datetime import timedelta
 import time
