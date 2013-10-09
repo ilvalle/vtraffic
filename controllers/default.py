@@ -16,7 +16,7 @@ MODE_STEP=5
 zero = request.args(0) or 'index'
 if request.function != 'wiki' and zero and not(zero.isdigit()):
 	from gluon.tools import Wiki
-	response.menu += Wiki(auth).menu(controller="default", function="wiki")
+	response.menu += Wiki(auth, migrate=False).menu(function="wiki")
 
 def index():
 	#return response.render('default/wiki.html', auth.wiki())
@@ -406,6 +406,3 @@ def __compute_frequency( query_a, query_r, block_seconds=800, compare=False):
 			frequency.append ( [(seconds + block_seconds/2) * 1000, value] )
 
 	return {'data': frequency,'label':label, 'id':'frequency_%s' %  block_seconds, 'yaxis': 2, 'bars':{'show':True, 'fill': 'true', 'align':'center', 'barWidth': block_seconds*1000}, 'lines': {'show':False, 'fill':False}, 'points': {'show':False} }
-
-
-

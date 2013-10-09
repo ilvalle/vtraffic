@@ -76,6 +76,8 @@ db.define_table('record',
 	Field('log_id', 'reference log'),
 	Field('mac', 'string', length=18),
 	Field('gathered_on', 'datetime'),
+	Field('utc_in_ms', 'integer'),
+	Field('version', 'integer'),
 	migrate=False
 )	
 
@@ -93,4 +95,4 @@ db.define_table('match',
 )
 
 
-if "auth" in locals(): auth.wikimenu() 
+#if "auth" in locals(): auth.wikimenu()
