@@ -10,6 +10,7 @@ MIGRATE=False
 db = DAL('postgres://web2py:web2py@10.8.0.26:5432/postgis', 
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
+#	fake_migrate_all=True,
 	lazy_tables=not(MIGRATE),
 	pool_size=3
 )
@@ -53,32 +54,38 @@ db.auth_user.username.widget = lambda f,v: SQLFORM.widgets.string.widget(f, v,_p
 db.auth_user.password.widget = lambda f,v: SQLFORM.widgets.string.widget(f, v, _placeholder=T('Password'), _class="input-block-level", _type="password")
 T.is_writable = False
 
+
+db.define_table('station_type',
+	Field('name'),
+	auth.signature,
+	format='%(name)s'
+)
+
 db.define_table('station',
 	Field('name'),
 	Field("lat", "double", label=T('Latitude')),
-        Field("lgt", "double", label=T('Longitude')),
-        Field("alt", "double", label=T('altitude')),
-	Field('log_file', 'upload'),
+	Field("lgt", "double", label=T('Longitude')),
+	Field("alt", "double", label=T('altitude')),
+	Field("station_type", 'reference station_type'),
+#	Field('log_file', 'upload'),
 	auth.signature,
 	format='%(name)s'
-	, migrate=False
 )
 
-db.define_table('log',
-	Field('station_id', 'reference station'),
-	Field('log_file', 'upload'),
-	auth.signature
-	, migrate=False
-)
+#db.define_table('log',
+#	Field('station_id', 'reference station'),
+#	Field('log_file', 'upload'),
+#	auth.signature
+#	, migrate=False
+#)
 
 db.define_table('record',
 	Field('station_id', 'reference station'),
-	Field('log_id', 'reference log'),
+#	Field('log_id', 'reference log'),
 	Field('mac', 'string', length=18),
 	Field('gathered_on', 'datetime'),
 	Field('utc_in_ms', 'integer'),
 	Field('version', 'integer'),
-	migrate=False
 )	
 
 db.define_table('match',
