@@ -115,7 +115,7 @@ def __filter_twins(rows):
 # Query the matches and create a list of blocks, one block for each time_frame
 def __get_blocks_scheduler (query, block_seconds, reset_cache=False):
 	def __get_blocks_local(query, block_seconds):
-		matches = db(query).select(cacheable=False)
+		matches = db(query).select(cacheable=False, orderby=db.match.epoch_orig)
 		blocks  = __split_matches2time_frame( matches, block_seconds)
 		return blocks
 	key = 'blocks_%s%s' % (query, block_seconds)
