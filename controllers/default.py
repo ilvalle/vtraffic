@@ -254,8 +254,8 @@ def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare
     if len(key)>200:
         key = 'mode_%s' % md5_hash(key)
 
-	# Cache the mode for each day, so we need to compute only the last day
-	data = cache.ram( key, lambda: __wrapper_elaboration( blocks_list,
+    # Cache the mode for each day, so we need to compute only the last day
+    data = cache.ram( key, lambda: __wrapper_elaboration( blocks_list,
                                                           __mode,
                                                           block_seconds, 
                                                           vertical_block_seconds=vertical_block_seconds, 
@@ -411,6 +411,3 @@ def __compute_frequency( query_a, query_r, block_seconds=800, compare=False):
 			frequency.append ( [(seconds + block_seconds/2) * 1000, value] )
 
 	return {'data': frequency,'label':label, 'id':'frequency_%s' %  block_seconds, 'yaxis': 2, 'bars':{'show':True, 'fill': 'true', 'align':'center', 'barWidth': block_seconds*1000}, 'lines': {'show':False, 'fill':False}, 'points': {'show':False} }
-
-
-
