@@ -254,8 +254,8 @@ def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare
     if len(key)>200:
         key = 'mode_%s' % md5_hash(key)
 
-	# Cache the mode for each day, so we need to compute only the last day
-	data = cache.ram( key, lambda: __wrapper_elaboration( blocks_list,
+    # Cache the mode for each day, so we need to compute only the last day
+    data = cache.ram( key, lambda: __wrapper_elaboration( blocks_list,
                                                           __mode,
                                                           block_seconds, 
                                                           vertical_block_seconds=vertical_block_seconds, 
