@@ -8,7 +8,7 @@ if request.function != 'wiki':
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth).menu(controller="default", function="wiki")
 
-#@cache('plot_index_%s' % (requested_period), time_expire=5000, cache_model=cache.memcache)
+@cache('plot_index_%s' % (requested_period), time_expire=5000, cache_model=cache.memcache)
 def index():
 	stations = db(db.station.id == db.record.station_id).select(db.station.ALL,
                                                                 groupby=db.station.ALL,
@@ -21,24 +21,24 @@ n_hours = int(request.vars.interval) if request.vars.interval and request.vars.i
 
 @cache('get_history_%s_%s_%s' % (station_id, n_hours, requested_period), time_expire=300, cache_model=cache.memcache)
 def get_history():
-	session.forget()
-	if not(request.ajax): raise HTTP(403)
-	station_id = request.args(0) or 'index'
-	n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
-	station = db(db.station.id == station_id).select(db.station.name, cacheable=True, cache=(cache.memcache, 80000))
-	if not(station_id and station_id.isdigit()) or len(station) != 1: raise HTTP(404)
-	station = station.first()
+    session.forget()
+    if not(request.ajax): raise HTTP(403)
+    station_id = request.args(0) or 'index'
+    n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
+    station = db(db.station.id == station_id).select(db.station.name, cacheable=True, cache=(cache.memcache, 80000))
+    if not(station_id and station_id.isdigit()) or len(station) != 1: raise HTTP(404)
+    station = station.first()
 
-	data = db( (db.record.station_id == station_id) ).select(db.record.utc_in_ms,
-                                                             orderby=db.record.utc_in_ms,
-                                                             cacheable=True )
+    query = db( (db.record.station_id == station_id) )._select(db.record.utc_in_ms,
+                                                               orderby=db.record.utc_in_ms)
+    data = db.executesql(query, as_dict=True)
 
-	output = []
-	for key, group in groupby(data, lambda x: (x.utc_in_ms) / ( 60 * 60 * n_hours * 1000)):
-		output.append( [ key*60*60*1000*n_hours, len(list(group))] ) 
+    output = []
+    for key, group in groupby(data, lambda x: (x['utc_in_ms']) / ( 60 * 60 * n_hours * 1000)):
+        output.append( [ key*60*60*1000*n_hours, len(list(group))] )
 
-	series = [{'data':output, 'id': 'station_%s' % station_id, 'station_id':station_id, 'label': station.name}]	if len(output) != 0 else []
-	return response.render('generic.json', {'series': series})
+    series = [{'data':output, 'id': 'station_%s' % station_id, 'station_id':station_id, 'label': station.name}]	if len(output) != 0 else []
+    return response.json({'series': series})
 
 @cache('figures_%s' % requested_period, time_expire=80000, cache_model=cache.memcache)
 def figures():
