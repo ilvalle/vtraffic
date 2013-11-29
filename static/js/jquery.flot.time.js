@@ -427,6 +427,5 @@ API.txt for details.
 	// on the function, so we need to re-expose it here.
 
 	$.plot.formatDate = formatDate;
-	$.plot.dateGenerator = dateGenerator;
 
 })(jQuery);
