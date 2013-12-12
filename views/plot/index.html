@@ -19,8 +19,9 @@
 	<li><a href="#compare" data-toggle="tab">{{=T('Compare')}}</a></li>
 	<li><a href="#maps" data-toggle="tab">Map</a></li>
 	<!--li><a href="#stations" data-toggle="tab">{{#='Stations'}}</a></li-->
-	<li><a href="#stats" data-toggle="tab">{{='Stats'}}</a></li>
+	<!--li><a href="#stats" data-toggle="tab">{{='Stats'}}</a></li-->
 	<li><a href="#originDestination" data-toggle="tab">{{='Origin destination'}}</a></li>
+	<li><a href="#flows" data-toggle="tab">{{='Flows'}}</a></li>
 	</ul>
 
 <div id="myTabContent" class="tab-content">
@@ -69,14 +70,17 @@
 <section id="maps" class="tab-pane fade row-fluid">
 	{{include 'default/map.html'}}
 </section>
-<!--section id="stations" class="tab-pane fade row-fluid">
-	{{#include 'plot/tab_stations.html'}}
-</section-->
-<section id="stats" class="tab-pane fade row-fluid">
-	{{include 'plot/tab_stats.html'}}
+<section id="stations" class="tab-pane fade row-fluid">
+	{{include 'plot/tab_stations.html'}}
 </section>
+<!--section id="stats" class="tab-pane fade row-fluid">
+	{{#include 'plot/tab_stats.html'}}
+</section-->
 <section id="originDestination" class="tab-pane fade row-fluid">
 	{{include 'plot/tab_origin_destination.html'}}
+</section>
+<section id="flows" class="tab-pane fade row-fluid">
+	{{include 'plot/flow.html'}}
 </section>
 </div>
 
