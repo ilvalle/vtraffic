@@ -1,6 +1,7 @@
 from itertools import groupby
 from datetime import timedelta
 import time
+from gluon.tools import prettydate
 
 db.record._common_filter = lambda query: db.record.gathered_on > period_limit
 db.match._common_filter = lambda query: db.match.gathered_on_orig > period_limit
@@ -99,4 +100,32 @@ def flow():
     #stations = [{'name': station['name']} for station in stations]
    # links.append({'source': 2, 'target': 5, 'value': 333})
     return response.json({'links':links, 'nodes':stations})
-  
+    
+def get_real_time():
+    stations = db(db.station).select(db.station.ALL)
+    
+    limit_date = request.now - datetime.timedelta(seconds=1800) # half an hour
+    limit_date_prev = request.now - datetime.timedelta(seconds=3600) # half an hour
+    import time
+    modes = []
+    tot=0
+    for station_orig in stations:
+        for station_dest in stations:
+            query = db( (db.match.station_id_orig == station_orig) & 
+                        (db.match.station_id_dest == station_dest) &
+                        (db.match.gathered_on_orig > limit_date))._select()
+            matches = db.executesql(query, as_dict=True)
+            
+            query_prev = db( (db.match.station_id_orig == station_orig) & 
+                        (db.match.station_id_dest == station_dest) &
+                        (db.match.gathered_on_orig > limit_date_prev) &
+                        (db.match.gathered_on_orig < limit_date))._select()
+            matches_prev = db.executesql(query_prev, as_dict=True)
+
+            if len(matches) > 2:
+                mode = __mode(matches, vertical_block_seconds=30)
+                mode_prev = __mode(matches_prev, vertical_block_seconds=30)
+                modes.append({'mode': mode, 'mode_prev': mode_prev, 'string':str(datetime.timedelta(seconds=mode)), 'station_orig': station_orig, 'station_dest': station_dest
+
+    return  response.render('plot/tab_real_time.html', {'modes':modes} )
+

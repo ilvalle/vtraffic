@@ -1,3 +1,5 @@
+import operator
+MODE_STEP=5
 #import time
 def __get_rows(query, use_cache=True, limitby=None):
 	def __get_rows_local(query):
@@ -154,5 +156,32 @@ def __split2time_frame2(matches, time_frame_size):
 		prev = match
 	
 	return l
+
+
+# return the mode along a list of rows (block)
+def __mode(block, block_seconds=0, vertical_block_seconds=0):
+	block = sorted(block, key=operator.itemgetter('elapsed_time'))
+	initial_time_frame = block[0]['elapsed_time']
+	end_time_frame     = block[-1]['elapsed_time']
+	mode_value = {'counter':0, 'seconds':0}
+	i = 0
+	for second in range(0,end_time_frame-initial_time_frame, MODE_STEP):
+		current_initial = initial_time_frame + second
+		current_end     = current_initial + vertical_block_seconds
+		counter = 0
+		while i < len(block):
+			ele = block[i]
+			if current_initial <= ele['elapsed_time'] < current_end:
+				counter = counter + 1 
+			elif current_end < ele['elapsed_time']:
+				break
+			i = i + 1
+		if counter > mode_value['counter']:
+			mode_value['counter'] = counter
+			mode_value['seconds'] = current_initial
+
+	return mode_value['seconds'] + (vertical_block_seconds/2)
+
+
 
 

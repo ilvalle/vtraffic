@@ -15,6 +15,7 @@
 	</div>
 
 	<ul class="nav nav-tabs " id="myTab">
+	<li><a href="#realtime" data-toggle="tab">{{=T('Real time')}}</a></li>
 	<li class="active"><a href="#vehiclesDetected" data-toggle="tab">{{=T('Vehicles detected')}}</a></li>
 	<li><a href="#compare" data-toggle="tab">{{=T('Compare')}}</a></li>
 	<li><a href="#maps" data-toggle="tab">Map</a></li>
@@ -25,6 +26,10 @@
 	</ul>
 
 <div id="myTabContent" class="tab-content">
+<section id="realtime" class="tab-pane fade">
+	{{=LOAD('plot', 'get_real_time', ajax=True)}}
+</section>
+
 <section id='vehiclesDetected' class="tab-pane fade in active row-fluid">
 	<div class='span2'>
 	<div class='well' style="padding: 7px 0px;">
