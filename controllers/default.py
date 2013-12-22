@@ -269,29 +269,6 @@ def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare
     return {'data': data,'label':label, 'id':'mode_%s' %  block_seconds }
 
 ### Functions
-# return the mode along a list of rows (block)
-def __mode(block, block_seconds, vertical_block_seconds):
-	block = sorted(block, key=operator.itemgetter('elapsed_time'))
-	initial_time_frame = block[0].elapsed_time
-	end_time_frame     = block[-1].elapsed_time
-	mode_value = {'counter':0, 'seconds':0}
-	i = 0
-	for second in range(0,end_time_frame-initial_time_frame, MODE_STEP):
-		current_initial = initial_time_frame + second
-		current_end     = current_initial + vertical_block_seconds
-		counter = 0
-		while i < len(block):
-			ele = block[i]
-			if current_initial <= ele.elapsed_time < current_end:
-				counter = counter + 1 
-			elif current_end < ele.elapsed_time:
-				break
-			i = i + 1
-		if counter > mode_value['counter']:
-			mode_value['counter'] = counter
-			mode_value['seconds'] = current_initial
-
-	return mode_value['seconds'] + (vertical_block_seconds/2)
 
 # return the min elapsed_time across the current block of rows
 def __lower(block, block_seconds, vertical_block_seconds):
@@ -375,7 +352,7 @@ def __compute_frequency( query_a, query_r, block_seconds=800, compare=False):
 				remove.append(d.id)
 
 	detected_2 = [d for d in detected if d.id not in remove]
-	print len(detected), len(remove), len(detected_2)
+
 	detected_2 = sorted(detected_2, key=lambda d: d.gathered_on)
 
 	if compare:

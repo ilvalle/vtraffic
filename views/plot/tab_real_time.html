@@ -1,0 +1,14 @@
+<div class="well">
+    In this frame are shown average elapsed times for the current traffic situation. When the latter is getting better with respect to previous samplings data are highlighted in <span class="label label-success">green</span>, <span class="label label-warning">orange</span> otherwise.
+</div>
+
+<ul class="thumbnails">
+{{for m in modes:}}
+    <li class="span3">
+    <div class='thumbnail'>
+        <h3><i class="icon icon-home" style="margin-top: 8px; margin-right: 8px;"></i>{{=m['station_orig']['name']}}</h3> <h3><i class="icon icon-map-marker" style="margin-top: 8px; margin-right: 8px;"></i>{{=m['station_dest']['name']}}</h3> <span class="label label-{{='success' if m['mode'] > m['mode_prev'] else 'warning'}}">{{=m['string']}}</span>
+        
+    </div>    
+    </li>
+{{pass}}
+</ul>
