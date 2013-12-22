@@ -10,7 +10,7 @@ if request.function != 'wiki':
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth).menu(controller="default", function="wiki")
 
-@cache('plot_index_%s' % (requested_period), time_expire=5000, cache_model=cache.memcache)
+#@cache('plot_index_%s' % (requested_period), time_expire=5000, cache_model=cache.memcache)
 def index():
 	stations = db(db.station.id == db.record.station_id).select(db.station.ALL,
                                                                 groupby=db.station.ALL,
@@ -125,7 +125,7 @@ def get_real_time():
             if len(matches) > 2:
                 mode = __mode(matches, vertical_block_seconds=30)
                 mode_prev = __mode(matches_prev, vertical_block_seconds=30)
-                modes.append({'mode': mode, 'mode_prev': mode_prev, 'string':str(datetime.timedelta(seconds=mode)), 'station_orig': station_orig, 'station_dest': station_dest
+                modes.append({'mode': mode, 'mode_prev': mode_prev, 'string':str(datetime.timedelta(seconds=mode)), 'station_orig': station_orig, 'station_dest': station_dest})
 
     return  response.render('plot/tab_real_time.html', {'modes':modes} )
 
