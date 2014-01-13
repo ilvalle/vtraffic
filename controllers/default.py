@@ -16,7 +16,7 @@ MODE_STEP=5
 zero = request.args(0) or 'index'
 if request.function != 'wiki' and zero and not(zero.isdigit()):
 	from gluon.tools import Wiki
-	response.menu += Wiki(auth).menu(controller="default", function="wiki")
+	response.menu += Wiki(auth, migrate=False).menu(function="wiki")
 
 def index():
 	#return response.render('default/wiki.html', auth.wiki())
