@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-MIGRATE=False
+MIGRATE=True
 ## if SSL/HTTPS is properly configured and you want all HTTP requests to
 ## be redirected to HTTPS, uncomment the line below:
 # request.requires_https()
@@ -10,7 +10,7 @@ MIGRATE=False
 db = DAL('postgres://web2py:web2py@10.8.0.26:5432/postgis', 
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
-#	fake_migrate_all=True,
+	#fake_migrate_all=True,
 	lazy_tables=not(MIGRATE),
 	pool_size=3
 )
@@ -86,7 +86,7 @@ db.define_table('record',
 	Field('gathered_on', 'datetime'),
 	Field('utc_in_ms', 'integer'),
 	Field('version', 'integer'),
-)	
+)
 
 db.define_table('match',
 	Field('station_id_orig', 'reference station'),
@@ -98,7 +98,8 @@ db.define_table('match',
 	Field('elapsed_time', 'integer' ),
 	Field('record_id_orig', 'reference record' ),
 	Field('record_id_dest', 'reference record' ),
-	migrate=False
+	Field('overtaken', 'boolean'),
+	migrate=True
 )
 
 
