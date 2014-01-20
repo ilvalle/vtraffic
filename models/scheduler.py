@@ -71,7 +71,8 @@ def __save_match(matches):
 		                 gathered_on_dest=r.end_point.gathered_on,
 		                 elapsed_time=r.elapsed_time,
 		                 record_id_orig=r.start_point.id,
-		                 record_id_dest=r.end_point.id )
+		                 record_id_dest=r.end_point.id,
+		                 overtaken=False )
 	if len(matches) != 0:	
 		db.commit()
 	return len(matches)
