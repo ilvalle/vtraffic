@@ -32,3 +32,27 @@ function add_os_marker(layer, lat, lon) {
 	layer.addMarker(m);
 	return m;
 }
+
+function add_after_form(xhr, target) {
+console.log('add_after');
+    t = $('#' + target );
+    t.siblings().remove();
+    t.after(xhr.responseText);
+    $.web2py.trap_form("", 'select_frontend');
+}
+
+function append_to_sidebar(xhr, target) {
+    t = $('#' + target);
+    t.append(xhr.responseText);
+}
+
+
+(function ($, undefined) {
+	$(document).on('click', '#period a', function(e) {
+		e.preventDefault();
+		anchor = $('li.active a[data-toggle="tab"]').attr('href');
+		url    = $(this).attr('href');
+		window.location = url + anchor;
+	});
+	
+})(jQuery);
