@@ -1,0 +1,108 @@
+{{extend 'layout.html'}}
+<section class="span12">
+    <span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
+	<div class="btn-group pull-right">
+		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+			<span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period]}}</strong>
+			<span class="caret"></span>
+		</a>
+		<ul id="period" class="dropdown-menu">
+			{{for key, value in PERIODS.items():}}
+			<li class=""><a href="{{=URL(args=request.args, vars={'period':key}, )}}">{{=value}}</a></li>
+			{{pass}}
+		</ul>
+	</div>
+	<div id='select_frontend'>
+	<!-- select fronend -->
+	<form id="form_frontend" class="form-inline btn-group pull-left" action="{{=URL('console', 'get_stations')}}">
+	<div class="input-prepend input-append success">
+		<span class="add-on success" for="inputWarning">Frontend</span>
+		<select class="" name="frontend" id="select_frontend">
+		<option value=""></option>
+		{{for frontend in frontends:}}
+			<option value="{{=frontend}}">{{=frontend}}</option>
+		{{pass}}
+		</select>
+		<input id='frontend_frontend' type="submit" class="update btn btn-success" value="Add">
+	</div>
+	</div>
+	
+    </form>
+</section>
+
+<section class="span12">
+    <div class='row-fluid'>
+    <div class='span2' id='sidebar_console'>
+        <!--h3> Data series </h3>
+        <div class='well' style="padding: 7px 0px;">
+        <ul class="nav nav-list">
+	    	<li><label class="checkbox"><input id='all' name='all' type="checkbox" checked='checked'>Hide/Show all</label></li>
+	    </ul-->
+	</div>
+	<div class="span10">
+<div id="graph" class=" chart">	
+    <!--ul class="nav nav-pills"> 
+			<li class="{{='active' if not(request.vars.interval) or request.vars.interval not in [str(7),str(24)] else ''}}"><a class='group' href="#" id="group_1">group by 1hour</a></li>
+			<li class="{{='active' if request.vars.interval == str(6) else ''}}"><a href="#" class='group' id="group_6">group by 6hour</a></li>
+			<li class="{{='active' if request.vars.interval == str(24) else ''}}"><a href="#" class='group' id="group_24">group by  1day</a></li>
+	</ul-->
+	<div id="compare_chart"  style="height:370px"> </div>
+</div>
+</div>
+	</div>
+</section>
+
+<script>
+    $('#loading').hide();
+    
+    $.web2py.trap_form("", 'select_frontend');
+    $.web2py.ajax_init('');
+    
+    var options_console = { 
+		yaxis: { position: 'left', axisLabel: "xyz", zoomRange: false, panRange: false,},
+		addDynamically: true
+	}
+	var plot_console = new lplot('compare_chart', options_console);
+    
+    $("#sidebar_console").on('click', 'li a', function() {
+		var key = $(this).attr("id");	
+		$(this).toggleClass('muted');
+		var current = plot_console.getObj(key);
+		if (typeof current === "undefined") {
+			if ( ! $(this).hasClass('muted')) {
+				return get_data($(this));
+			} else { 
+				// skip already coming call			
+				$(this).toggleClass('muted');
+			}
+		} else {
+			var index = jQuery.inArray(current, plot_console.data);
+			if ( index > -1 ) {
+				$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
+				plot_console.data.splice(index, 1);
+			} else {
+				plot_console.data.push(current);
+			}
+		}
+		plot_console.plotAccordingToChoices();	
+	});
+	
+    // MeteoFrontEnd/get-records?station=8320&name=WG&unit=m/s&seconds=3000
+    function get_data(a_obj) {
+        var frontend = a_obj.data('frontend');;
+	    var station = a_obj.data('station');
+	    var data_type = a_obj.data('type');
+	    var unit = a_obj.data('unit');
+        var label = a_obj.attr("title");
+		var url = '{{=URL("console", "get_data.json", vars={'frontend':'frontendJs', 'seconds':seconds,'station':'stationJs', 'unit':'unitJs', 'data_type':'data_typeJs', 'data_label':'data_labelJs'} )}}'.replace(/data_labelJs/, label).replace(/stationJs/, station).replace(/frontendJs/, frontend).replace(/data_typeJs/, data_type).replace(/unitJs/, unit);
+		plot_console.loadData(url);
+	}
+    
+    $(document).on('ajax:complete', 'form', function() {
+        if ( $(this).attr('data-w2p_target') !== undefined ){
+            console.log('dentro', $(this));
+            $(this).addClass('no_trap');    //Workaround to avoid double submits
+            $.web2py.enableElement($(this).find($.web2py.formInputClickSelector));
+        }
+    });
+</script>

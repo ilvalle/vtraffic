@@ -1,0 +1,13 @@
+<div id='block_{{=frontend}}' class='well' style="padding: 7px 0px;">
+<h4>{{=frontend}}</h4>
+	<ul id='list_{{=station}}' class="load_data nav nav-list">
+		<li class="nav-header">{{=station}}</li>
+		
+		{{for data_type in data_types:}}
+		    <li><a id='type_{{=data_type[0]}}' title="{{=data_type[2]}}" data-type='{{=data_type[0]}}' data-frontend="{{=frontend}}" data-station="{{=station}}" data-unit="{{=data_type[1]}}" href="#" class="muted">
+		    <span class="legend_box_color"> </span>
+		    {{=data_type[0]}}
+			</a></li>	
+		{{pass}}
+	</ul>
+</div>

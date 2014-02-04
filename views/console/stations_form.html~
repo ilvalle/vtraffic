@@ -1,0 +1,14 @@
+<form  id="" class="form-inline btn-group pull-left" action="{{=URL('console', 'get_data_types')}}">
+	<div class="input-prepend input-append success">
+		<span class="add-on success" for="inputWarning">Station</span>
+		<select class="" name="station" id="select_frontend">
+    		<option value=""></option>
+		{{for station in stations: }}
+			<option value="{{=station}}">{{=station}}</option>
+		{{pass}}
+		</select>
+		<input type='hidden' name='frontend' value='{{=frontend}}'>
+		<input id='frontend_frontend' type="submit" class="update btn btn-success" value="Add">
+	</div>
+</form>
+
