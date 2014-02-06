@@ -179,8 +179,12 @@ def __mode(block, block_seconds=0, vertical_block_seconds=0):
 		if counter > mode_value['counter']:
 			mode_value['counter'] = counter
 			mode_value['seconds'] = current_initial
-
-	return mode_value['seconds'] + (vertical_block_seconds/2)
+	
+	if mode_value['seconds'] == 0:
+		value = 0
+	else:
+		value = mode_value['seconds'] + (vertical_block_seconds/2)
+	return value
 
 
 
