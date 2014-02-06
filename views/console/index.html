@@ -57,10 +57,18 @@
     
     $.web2py.trap_form("", 'select_frontend');
     $.web2py.ajax_init('');
-    
+    timezoneJS.timezone.zoneFileBasePath = '{{=URL('vtraffic', 'static/js', 'tz')}}';
     var options_console = { 
+        xaxis: { 
+			mode: "time", timezone: "Europe/Rome", alignTicksWithAxis:true,
+			dayNames: ['{{=T('Sun')}}', '{{=T('Mon')}}', '{{=T('Tue')}}', '{{=T('Wen')}}', '{{=T('Thu')}}', '{{=T('Fri')}}', '{{=T('Sat')}}'] 
+		},
 		yaxis: { position: 'left', axisLabel: "xyz", zoomRange: false, panRange: false,},
-		addDynamically: true
+		addDynamically: true,
+		series:{ lines: { show: true, fill: false },
+				 points: { show: false },
+				 bars: {show: false},
+		},
 	}
 	var plot_console = new lplot('compare_chart', options_console);
     
@@ -100,7 +108,6 @@
     
     $(document).on('ajax:complete', 'form', function() {
         if ( $(this).attr('data-w2p_target') !== undefined ){
-            console.log('dentro', $(this));
             $(this).addClass('no_trap');    //Workaround to avoid double submits
             $.web2py.enableElement($(this).find($.web2py.formInputClickSelector));
         }
