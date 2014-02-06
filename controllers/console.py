@@ -6,7 +6,7 @@ import requests
 # load html as it is done in web2py.js
 # 
 #response.headers['web2py-component-flash'] = ''
-seconds = int(datetime.timedelta(seconds=1800).total_seconds())
+seconds = int(datetime.timedelta(seconds=3600).total_seconds())
 # temp fix due to double menu
 zero = request.args(0) or 'index'
 if request.function != 'wiki' and zero and not(zero.isdigit()):
