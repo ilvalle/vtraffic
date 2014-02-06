@@ -107,10 +107,10 @@ function lplot (ph, options) {
 				$(data_placeholder).append( $("<li><a id='idJS' title='labelJS' href='#' class=''><span class='legend_box_color'> </span>labelJS</a></li>".replace(/labelJS/g, current.label ).replace(/idJS/, current.id)) );
 			}
 		}
-		if ($("button.group").length){
-    		interval = $("button.group").attr('id').split('_')[1];
+		if ($("a.group").length){
+    		interval = $("a.group").attr('id').split('_')[1];
 	    	thatClass.options.series.bars.barWidth = 60*60*1000*interval;
-	    }
+	    } 
 		thatClass.plotAccordingToChoices();
 	};
 
