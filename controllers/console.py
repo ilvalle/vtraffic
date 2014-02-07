@@ -6,8 +6,19 @@ import requests
 # keep the same zoom and pan while reloading data
 # 
 #response.headers['web2py-component-flash'] = ''
-seconds = int(datetime.timedelta(seconds=3600).total_seconds())
 
+
+default_period = 3600
+if request.vars.period:
+	requested_period = int(request.vars.period) if request.vars.period.isdigit() else default_period
+else:
+    requested_period = default_period
+    
+if requested_period > 1000:
+    seconds = int(datetime.timedelta(seconds=requested_period).total_seconds())
+else:
+    seconds = int(datetime.timedelta(days=requested_period).total_seconds())
+    
 # temp fix due to double menu
 zero = request.args(0) or 'index'
 if request.function != 'wiki' and zero and not(zero.isdigit()):
