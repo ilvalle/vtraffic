@@ -43,6 +43,7 @@ function lplot (ph, options) {
 
 	this.datasets = [];	// All series available
 	this.data = [];		// All series shown	
+	this.colors = [];		// All colors
 	this.placeholder;
 	this.options;
 	var addDynamically;
@@ -73,7 +74,7 @@ function lplot (ph, options) {
 		}
 	};
 
-	this.onDataReceived = function (json) {
+	this.onDataReceived = function (json, url) {
 		var tab = thatClass.placeholder.split('_chart')[0];
 		var data_placeholder = $(tab + ' .data_list');
 		var series = json['series'];
@@ -90,13 +91,14 @@ function lplot (ph, options) {
 			if ( typeof current.id === 'undefined' ) {
 				current.id = k;
 			} 
-			current['color'] = n;
+			current['color'] = thatClass.get_color(current.id); //n
 			n = n + 1;
+			current['url'] = url;
 			/*json[k]['label'] = $('#'+k).attr('title') ;*/
 			thatClass.data.push(current);
 		}
 
-		if (thatClass.options.addDynamically === true) {	
+		if (thatClass.options.addDynamically === true) {
 			$.merge(thatClass.datasets, series);
 		}  else {
 			thatClass.datasets = series;
@@ -121,7 +123,7 @@ function lplot (ph, options) {
 			url: url,
 			method: 'GET',
 		    dataType: 'json',
-		    success: thatClass.onDataReceived
+		    success: function(json) {thatClass.onDataReceived(json, url)},
 		});
 	};
 
@@ -138,6 +140,30 @@ function lplot (ph, options) {
 			}
 		}
 		return undefined;
+	};
+	
+	this.reload_all = function() {
+    	thatClass.datasets = [];
+        currentData = thatClass.data 
+        thatClass.data = [];
+		for (key in currentData) {
+            thatClass.loadData(currentData[key].url);
+		}
+	};
+	
+	this.get_color = function(id) {
+	    max_color = 0;
+	    for (var i in thatClass.colors) {
+	        if (thatClass.colors[i].id === id) { // Former color
+	            console.log('trovato', thatClass.colors[i].color);
+	            return thatClass.colors[i].color;
+	        } else if (thatClass.colors[i].color > max_color) {
+	            max_color = thatClass.colors[i].color;
+	        }
+	    }
+        new_element = {'id':id, 'color':max_color+1};
+	    thatClass.colors.push(new_element);
+	    return new_element.color;
 	};
 	
 	this.options = $.extend(this.default_options, options);

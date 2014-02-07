@@ -3,10 +3,11 @@ import requests
 # TODO 
 # click on the well title collapse the well
 # check if a well i alresdy there, if not load it, otherwise fire a message
-# load html as it is done in web2py.js
+# keep the same zoom and pan while reloading data
 # 
 #response.headers['web2py-component-flash'] = ''
 seconds = int(datetime.timedelta(seconds=3600).total_seconds())
+
 # temp fix due to double menu
 zero = request.args(0) or 'index'
 if request.function != 'wiki' and zero and not(zero.isdigit()):

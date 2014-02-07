@@ -9,16 +9,25 @@ def get_static_img(lat, lon, width='170', height='170', zoom=14):
 	url = openstreatmap_static_link % {'lon':lon, 'lat':lat, 'height':150, 'width':width, 'zoom':zoom}
 	return str(IMG(_src=url, _title="map"))
 
-PERIODS=OrderedDict([('1', T('1 day')), ('7', T('1 week')), ('30', T('1 month')), ('90', T('3 months')), ('150', T('5 months'))])
+PERIODS=OrderedDict([('1800', T('30 minutes')), 
+                     ('3600', T('1 hour')), 
+                     ('10800', T('3 hours')), 
+                     ('1', T('1 day')), 
+                     ('7', T('1 week')), 
+                     ('30', T('1 month')), 
+                     ('90', T('3 months')), 
+                     ('150', T('5 months'))])
 
 requested_period = 7
 if request.vars.period:
 #	print request.vars.period
-	requested_period = int(request.vars.period) if request.vars.period.isdigit() else 90
+	requested_period = int(request.vars.period) if request.vars.period.isdigit() else 7
 	if not ("%s" % requested_period in PERIODS):
 		requested_period = 30
 
-
-period_limit = request.now - datetime.timedelta(days=requested_period)
+if requested_period > 1000:
+    period_limit = request.now - datetime.timedelta(seconds=requested_period)
+else:
+    period_limit = request.now - datetime.timedelta(days=requested_period)
 start = db.record.with_alias('start_point')
 end = db.record.with_alias('end_point')
