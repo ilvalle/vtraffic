@@ -46,3 +46,11 @@
   stroke-opacity: .5;
 }
 
+#loading {
+    z-index: 1000;
+}
+
+#sidebar_console .well .nav{
+    height: 370px;
+    overflow: overlay;
+}

@@ -34,16 +34,17 @@ function add_os_marker(layer, lat, lon) {
 }
 
 function add_after_form(xhr, target) {
-console.log('add_after');
+    html = $.parseHTML(xhr.responseText, document, true);
     t = $('#' + target );
     t.siblings().remove();
-    t.after(xhr.responseText);
+    t.after(html);
     $.web2py.trap_form("", 'select_frontend');
 }
 
 function append_to_sidebar(xhr, target) {
+    html = $.parseHTML(xhr.responseText, document, true);
     t = $('#' + target);
-    t.append(xhr.responseText);
+    t.append(html);
 }
 
 
