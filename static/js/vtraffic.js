@@ -144,7 +144,7 @@ function lplot (ph, options) {
 	
 	this.reload_all = function() {
     	thatClass.datasets = [];
-        currentData = thatClass.data 
+        currentData = thatClass.data;
         thatClass.data = [];
 		for (key in currentData) {
             thatClass.loadData(currentData[key].url);

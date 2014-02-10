@@ -1,21 +1,30 @@
 {{extend 'layout.html'}}
 <section class="span12">
     <span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
-	<div class="btn-group pull-right">
+	
+	<div class="btn-toolbar pull-right">
+	<div class="btn-group graph" data-toggle="buttons-radio">
+        <button type="button" class="btn">Bars</button>
+        <button type="button" class="btn active">Lines</button>
+    </div>
+	<div class="btn-group">
 		<a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> </a>
 		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
 			<span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period]}}</strong>
 			<span class="caret"></span>
 		</a>
+
 		<ul id="period" class="dropdown-menu">
 			{{for key, value in PERIODS.items():}}
 			<li class=""><a href="{{=URL(args=request.args, vars={'period':key}, )}}">{{=value}}</a></li>
 			{{pass}}
 		</ul>
 	</div>
-	<div id='select_frontend'>
+	</div>
+	
+	<div class="btn-toolbar pull-left" id='select_frontend'>
 	<!-- select fronend -->
-	<form id="form_frontend" class="form-inline btn-group pull-left" action="{{=URL('console', 'get_stations')}}">
+	<form id="form_frontend" class="form-inline btn-group" action="{{=URL('console', 'get_stations')}}">
 	<div class="input-prepend input-append success">
 		<span class="add-on success" for="inputWarning">Frontend</span>
 		<select class="" name="frontend" id="select_frontend">
@@ -72,6 +81,7 @@
 		},
 	}
 	var plot_console = new lplot('compare_chart', options_console);
+    var reload_interval;
     
     $("#sidebar_console").on('click', 'li a', function() {
 		var key = $(this).attr("id");	
@@ -110,15 +120,31 @@
 	}
 	
 	$(document).on('click', '#reload', function() {
-	    $(this).addClass('disabled');
-	    setInterval(function(){	plot_console.reload_all() }, 5000);
+	    $(this).toggleClass('disabled');
+	    if (reload_interval === undefined){
+    	    reload_interval = setInterval(function(){	plot_console.reload_all() }, 5000);
+	    } else {
+	        clearInterval(reload_interval);
+	        reload_interval = undefined;
+	    }
 	});
 	
 	$(document).on('click', '#sidebar_console .well a', function() {
 	    destination = $('#' + $(this).data('target'));
 	    destination.slideToggle();
 	});
-    	
+    
+    $(document).on('click', ".graph button", function() {
+		value = $(this).html();
+		if (value == 'Bars') {
+			plot_console.options.series.lines.show = false;
+			plot_console.options.series.bars.show = true;
+		} else {
+			plot_console.options.series.lines.show = true;
+			plot_console.options.series.bars.show = false;
+		}
+		plot_console.plotAccordingToChoices();	
+	});
     
     $(document).on('ajax:complete', 'form', function() {
         if ( $(this).attr('data-w2p_target') !== undefined ){
