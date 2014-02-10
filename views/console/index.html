@@ -9,6 +9,7 @@
     </div>
 	<div class="btn-group">
 		<a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> </a>
+		<a class="btn" id="reset_zoom" href="#" title="{{=T('Reset zoom')}}" data-toggle="tooltip"><i class="icon-remove"></i> </a>
 		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
 			<span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period]}}</strong>
 			<span class="caret"></span>
@@ -133,6 +134,12 @@
 	    destination = $('#' + $(this).data('target'));
 	    destination.slideToggle();
 	});
+	
+	$(document).on('click', '#reset_zoom', function() {
+        plot_console.reset_zoom();
+   	});
+	
+	
     
     $(document).on('click', ".graph button", function() {
 		value = $(this).html();

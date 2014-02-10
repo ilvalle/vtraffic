@@ -47,6 +47,7 @@ function lplot (ph, options) {
 	this.placeholder;
 	this.options;
 	var addDynamically;
+	this.plot;
 
 	this.plotAccordingToChoices = function () {
 		var tab = thatClass.placeholder.split('_chart')[0];
@@ -64,10 +65,22 @@ function lplot (ph, options) {
 		if ( thatClass.data.length == $(thatClass.datasets).length ) {
 			$("#all").attr('checked', 'checked');
 		} 
-
-		var plot = $.plot(thatClass.placeholder, thatClass.data, thatClass.options);
+		// Preserve current zoom/pan while plotting new data
+        zoomed = {};
+        $.extend(zoomed, thatClass.options);
+        if (thatClass.plot !== undefined) {
+            // Get the current zoom
+            var zoom = thatClass.plot.getAxes();
+            // Add the zoom to standard options
+            zoomed.xaxis.min = zoom.xaxis.min;
+            zoomed.xaxis.max = zoom.xaxis.max;
+        } else {
+            zoomed.xaxis.min = undefined;
+            zoomed.xaxis.max = undefined;
+        }
+		thatClass.plot = $.plot(thatClass.placeholder, thatClass.data, zoomed);
 		if ( jQuery.isEmptyObject(thatClass.datasets) ) { return; }
-		var dataPlotted = plot.getData();
+		var dataPlotted = thatClass.plot.getData();
 
 		for (var d in dataPlotted) {
 			$("[id='" + dataPlotted[d].id+"']").children('span.legend_box_color').css('background-color', dataPlotted[d].color);
@@ -151,11 +164,16 @@ function lplot (ph, options) {
 		}
 	};
 	
+	this.reset_zoom = function() {
+	    console.log('reset zoom');
+	    thatClass.plot = undefined;
+	    thatClass.plotAccordingToChoices();
+	};
+	
 	this.get_color = function(id) {
 	    max_color = 0;
 	    for (var i in thatClass.colors) {
 	        if (thatClass.colors[i].id === id) { // Former color
-	            console.log('trovato', thatClass.colors[i].color);
 	            return thatClass.colors[i].color;
 	        } else if (thatClass.colors[i].color > max_color) {
 	            max_color = thatClass.colors[i].color;
