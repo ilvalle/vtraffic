@@ -10,14 +10,14 @@
 	<div class="btn-group">
 		<a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> </a>
 		<a class="btn" id="reset_zoom" href="#" title="{{=T('Reset zoom')}}" data-toggle="tooltip"><i class="icon-remove"></i> </a>
-		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#test">
 			<span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period]}}</strong>
 			<span class="caret"></span>
 		</a>
 
-		<ul id="period" class="dropdown-menu">
+		<ul id="periods" class="dropdown-menu">
 			{{for key, value in PERIODS.items():}}
-			<li class=""><a href="{{=URL(args=request.args, vars={'period':key}, )}}">{{=value}}</a></li>
+			<li class=""><a href="{{=URL(args=request.args, vars={'period':key})}}">{{=value}}</a></li>
 			{{pass}}
 		</ul>
 	</div>
@@ -36,9 +36,8 @@
 		</select>
 		<input id='frontend_frontend' type="submit" class="update btn btn-success" value="Add">
 	</div>
-	</div>
-	
     </form>
+	</div>
 </section>
 
 <div class="span12">
