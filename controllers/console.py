@@ -1,13 +1,7 @@
 import requests
+from itertools import groupby
 
-# TODO 
-# click on the well title collapse the well
-# check if a well i alresdy there, if not load it, otherwise fire a message
-# keep the same zoom and pan while reloading data
-# 
-#response.headers['web2py-component-flash'] = ''
-
-
+#tests
 default_period = 3600
 if request.vars.period:
 	requested_period = int(request.vars.period) if request.vars.period.isdigit() else default_period
@@ -80,7 +74,8 @@ def get_data():
     params = {'station':station, 'name':data_type, 'unit':unit, 'seconds':seconds}
     r = requests.get(url, params=params)
     data = r.json()
-    output = [ [row['timestamp'] if 'timestamp' in row else row['ts_ms'], row['value']] for row in data ]
+    output = [ [row['timestamp'] if 'timestamp' in row else row['ts_ms'], "%.2f" % float(row['value'])] for row in data ]
+		
     # the id must be the same of the A element in the data type list
     series = [{'data':output, 'id': 'type_%s_%s' % (station,data_type), 'station_id':'station_iud', 'label': "%s - %s" % (station, data_label)}]
     return response.json({'series': series})
