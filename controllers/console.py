@@ -13,6 +13,7 @@ if requested_period > 1000:
 else:
     seconds = int(datetime.timedelta(days=requested_period).total_seconds())
     
+    
 # temp fix due to double menu
 zero = request.args(0) or 'index'
 if request.function != 'wiki' and zero and not(zero.isdigit()):
@@ -69,14 +70,23 @@ def get_data():
 #    print 'u', unit
 #    print 's', seconds
 #    print 'l', data_label
-    
+    import time
+    t0 = time.time()
     url = "%s/%s/rest/get-records" % (baseurl, frontend)
     params = {'station':station, 'name':data_type, 'unit':unit, 'seconds':seconds}
     r = requests.get(url, params=params)
     data = r.json()
-    output = [ [row['timestamp'] if 'timestamp' in row else row['ts_ms'], "%.2f" % float(row['value'])] for row in data ]
-		
+    t1 = time.time()
+    output = []
+
+    f = lambda row: row['timestamp'] // 5000
+    for key, group in groupby(data, f):
+        ln = list(group)
+        output.append( [key*5000, "%.2f" % float(ln[0]['value'])] )
+
     # the id must be the same of the A element in the data type list
     series = [{'data':output, 'id': 'type_%s_%s' % (station,data_type), 'station_id':'station_iud', 'label': "%s - %s" % (station, data_label)}]
+    t2 = time.time()
+    #print t1-t0, t2-t1
     return response.json({'series': series})
 

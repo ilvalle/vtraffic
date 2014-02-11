@@ -122,7 +122,7 @@
 	$(document).on('click', '#reload', function() {
 	    $(this).toggleClass('disabled');
 	    if (reload_interval === undefined){
-    	    reload_interval = setInterval(function(){	plot_console.reload_all() }, 5000);
+    	    reload_interval = setInterval(function(){	plot_console.reload_all() }, 10000);
 	    } else {
 	        clearInterval(reload_interval);
 	        reload_interval = undefined;
