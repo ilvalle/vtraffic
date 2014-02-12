@@ -23,7 +23,7 @@ baseurl = "http://ipchannels-test.integreen-life.bz.it"
 # ipchannels-test.integreen-life.bz.it/MeteoFrontEnd/get-records?station=8320&name=WG&unit=m/s&seconds=3000
  
 def index():
-	frontends = ['MeteoFrontEnd', 'VehicleFrontEnd']
+	frontends = ['MeteoFrontEnd', 'VehicleFrontEnd', 'EnvironmentFrontEnd']
 	return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})
 
 def get_stations():
@@ -52,12 +52,13 @@ def get_data_types():
     response.headers['web2py-component-command'] = "append_to_sidebar(xhr, 'sidebar_console');"
     url = "%s/%s/rest/get-data-types" % (baseurl, frontend)
     r = requests.get(url, params={'station':station})
+
     data_types = r.json()
     data_types_filtered = filter(lambda r: 'valid' not in r[0], data_types)
     data_types_filtered = filter(lambda r: 'runtime' not in r[0], data_types_filtered)
     data_types_filtered = filter(lambda r: 'id_' not in r[0], data_types_filtered)
     data_types_filtered = filter(lambda r: 'gps_' not in r[0], data_types_filtered)
-    
+    data_types_filtered = [ [d[0].replace('_', ' '), d[1], d[2]] for d in data_types_filtered ]
     return response.render('console/data_types_legend.html', {'data_types':data_types_filtered, 'frontend':frontend, 'station':station })
 
 
