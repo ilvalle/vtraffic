@@ -52,5 +52,5 @@
 
 #sidebar_console .well .nav{
     height: 370px;
-    overflow: overlay;
+    overflow: auto;
 }
