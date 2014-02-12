@@ -53,8 +53,12 @@ def get_data_types():
     url = "%s/%s/rest/get-data-types" % (baseurl, frontend)
     r = requests.get(url, params={'station':station})
     data_types = r.json()
-
-    return response.render('console/data_types_legend.html', {'data_types':data_types, 'frontend':frontend, 'station':station })
+    data_types_filtered = filter(lambda r: 'valid' not in r[0], data_types)
+    data_types_filtered = filter(lambda r: 'runtime' not in r[0], data_types_filtered)
+    data_types_filtered = filter(lambda r: 'id_' not in r[0], data_types_filtered)
+    data_types_filtered = filter(lambda r: 'gps_' not in r[0], data_types_filtered)
+    
+    return response.render('console/data_types_legend.html', {'data_types':data_types_filtered, 'frontend':frontend, 'station':station })
 
 
 def get_data():
@@ -64,12 +68,7 @@ def get_data():
     data_label = request.vars.data_label
     unit = request.vars.unit
     seconds = request.vars.seconds
-#    print 'f', frontend
-#    print 's', station
-#    print 'd', data_type
-#    print 'u', unit
-#    print 's', seconds
-#    print 'l', data_label
+
     import time
     t0 = time.time()
     url = "%s/%s/rest/get-records" % (baseurl, frontend)
