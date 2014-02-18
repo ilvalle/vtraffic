@@ -11,7 +11,7 @@
 		<a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> </a>
 		<a class="btn" id="reset_zoom" href="#" title="{{=T('Reset zoom')}}" data-toggle="tooltip"><i class="icon-remove"></i> </a>
 		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#test">
-			<span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period]}}</strong>
+			<span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period] if requested_period in PERIODS else 'custom'}}</strong>
 			<span class="caret"></span>
 		</a>
 
