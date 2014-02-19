@@ -1,3 +1,4 @@
+{{layout_fluid=True}}
 {{extend 'layout.html'}}
 <section class="span12">
     <span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
@@ -30,7 +31,7 @@
 		<span class="add-on success" for="inputWarning">Frontend</span>
 		<select class="" name="frontend" id="select_frontend">
 		<option value=""></option>
-		{{for frontend in frontends:}}
+		{{for frontend in frontends.keys():}}
 			<option value="{{=frontend}}">{{=frontend}}</option>
 		{{pass}}
 		</select>
@@ -40,8 +41,8 @@
 	</div>
 </section>
 
-<div class="span12">
-    <div class='row-fluid'>
+<div class="">
+    <div class=''>
     <div class='span2' id='sidebar_console'>
         <!--h3> Data series </h3>
         <div class='well' style="padding: 7px 0px;">
