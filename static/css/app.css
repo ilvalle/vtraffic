@@ -51,6 +51,12 @@
 }
 
 #sidebar_console .well .nav{
-    height: 370px;
+    max-height: 370px;
     overflow: auto;
 }
+
+/*.chart {
+    height:370px;
+    resize:both;
+    overflow:auto;
+}*/
