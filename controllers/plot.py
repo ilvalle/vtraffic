@@ -126,7 +126,7 @@ def get_real_time():
 
     return response.render('plot/tab_real_time.html', {'modes':modes} )
    
-
+@cache('get_geojson_stations', time_expire=80000, cache_model=cache.memcache)
 def get_geojson_stations():
     from gluon.serializers import loads_json
     rows= db(db.station).select(db.station.lat, db.station.lgt, db.station.name)
@@ -138,3 +138,4 @@ def get_geojson_stations():
                 "geometry": {"type": "Point", "coordinates": [r[db.station.lgt], r[db.station.lat]]} } for r in rows] 
  
     return response.json({"type": "FeatureCollection", 'features': features})
+
