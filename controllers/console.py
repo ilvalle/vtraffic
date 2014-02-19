@@ -19,21 +19,20 @@ zero = request.args(0) or 'index'
 if request.function != 'wiki' and zero and not(zero.isdigit()):
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth, migrate=False).menu(function="wiki")
-baseurl = "http://ipchannels-test.integreen-life.bz.it"
+baseurl = "http://ipchannels.integreen-life.bz.it"
 # ipchannels-test.integreen-life.bz.it/MeteoFrontEnd/get-records?station=8320&name=WG&unit=m/s&seconds=3000
- 
+frontends = {'Meteo':'MeteoFrontEnd', 'Vehicle': 'VehicleFrontEnd', 'Environment':'EnvironmentFrontEnd'} 
 def index():
-	frontends = ['MeteoFrontEnd', 'VehicleFrontEnd', 'EnvironmentFrontEnd']
 	return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})
 
 def get_stations():
     frontend = request.vars.frontend
-    if not frontend:
+    if not frontend or frontend not in frontends:
         response.headers['web2py-component-flash'] = 'Select something'
         response.headers['web2py-component-content'] = 'hide'
         return ''
     response.headers['web2py-component-content'] = 'append'
-    url = "%s/%s/rest/get-stations" % (baseurl, frontend)
+    url = "%s/%s/rest/get-stations" % (baseurl, frontends[frontend])
     r = requests.get(url) # params=url_vars)
     stations = r.json()
     response.headers['web2py-component-content'] = 'hide'
@@ -44,13 +43,13 @@ def get_stations():
 def get_data_types():
     station = request.vars.station
     frontend = request.vars.frontend
-    if not (frontend and station):
+    if not (frontend and station) or frontend not in frontends:
         response.headers['web2py-component-flash'] = 'Select something'
         response.headers['web2py-component-content'] = 'hide'
         return ''
     response.headers['web2py-component-content'] = 'hide'
     response.headers['web2py-component-command'] = "append_to_sidebar(xhr, 'sidebar_console');"
-    url = "%s/%s/rest/get-data-types" % (baseurl, frontend)
+    url = "%s/%s/rest/get-data-types" % (baseurl, frontends[frontend])
     r = requests.get(url, params={'station':station})
 
     data_types = r.json()
@@ -72,7 +71,7 @@ def get_data():
 
     import time
     t0 = time.time()
-    url = "%s/%s/rest/get-records" % (baseurl, frontend)
+    url = "%s/%s/rest/get-records" % (baseurl, frontends[frontend])
     params = {'station':station, 'name':data_type, 'unit':unit, 'seconds':seconds}
     r = requests.get(url, params=params)
     data = r.json()
