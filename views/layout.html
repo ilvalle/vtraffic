@@ -47,8 +47,8 @@
   # using sidebars need to know what sidebar you want to use
   left_sidebar_enabled = globals().get('left_sidebar_enabled',False)
   right_sidebar_enabled = globals().get('right_sidebar_enabled',False)
-  middle_columns = {0:'span12',1:'span9',2:'span6'}[
-    (left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
+  container = 'container-fluid' if globals().get('layout_fluid',False) else 'container'
+  row = 'row-fluid' if globals().get('layout_fluid',False) else 'row'
   }}
 
 	<!--link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" type="text/css" media="all" />
@@ -104,10 +104,10 @@
   </header>
 {{end}}
     <!-- Masthead ================================================== -->
-<div class="container">
+<div class="{{=container}}">
     <a class='visible-desktop' id="githubSticker" href="https://github.com/ilvalle/vtraffic"><img src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
 
-    <div class="row">
+    <div class="{{=row}}">
         {{if left_sidebar_enabled:}}
         <div class="span3 left-sidebar">
             {{block left_sidebar}}
