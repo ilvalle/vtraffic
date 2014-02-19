@@ -125,5 +125,16 @@ def get_real_time():
                 modes.append({'mode': mode, 'mode_prev': mode_prev, 'string':str(datetime.timedelta(seconds=mode)), 'station_orig': station_orig, 'station_dest': station_dest})
 
     return response.render('plot/tab_real_time.html', {'modes':modes} )
-    
-    
+   
+
+def get_geojson_stations():
+    from gluon.serializers import loads_json
+    rows= db(db.station).select(db.station.lat, db.station.lgt, db.station.name)
+ 
+    features= [{"type": "Feature",
+                "properties": {
+                    "popupContent": r[db.station.name]
+                },
+                "geometry": {"type": "Point", "coordinates": [r[db.station.lgt], r[db.station.lat]]} } for r in rows] 
+ 
+    return response.json({"type": "FeatureCollection", 'features': features})

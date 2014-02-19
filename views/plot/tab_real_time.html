@@ -2,6 +2,8 @@
     In this frame are shown average elapsed times for the current traffic situation. When the latter is getting better with respect to previous samplings data are highlighted in <span class="label label-success">green</span>, <span class="label label-warning">orange</span> otherwise.
 </div>
 
+<div class="row">
+<div class="span6">
 <ul class="thumbnails">
 {{for m in modes:}}
     <li class="span3">
@@ -12,3 +14,31 @@
     </li>
 {{pass}}
 </ul>
+</div>
+<div class="span6">
+
+<div id='map' class="chart"></div>
+<script>
+    var map = L.map('map').setView([51.505, -0.09], 10);
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+ 
+    $(document).ready(function() {
+        $.getJSON('{{=URL('plot', 'get_geojson_stations')}}', function( data ) { 
+            geojsonL = L.geoJson(data, {onEachFeature: onEachFeature}).addTo(map); 
+            map.fitBounds(geojsonL);    
+        });
+    });
+    
+    function onEachFeature (feature, layer) {
+        if (feature.properties && feature.properties.popupContent) {
+            popupContent = feature.properties.popupContent;
+        }
+ 
+        layer.bindPopup(popupContent);
+    }
+</script>
+</div>
+</div>
+
