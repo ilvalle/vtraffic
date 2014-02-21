@@ -24,14 +24,15 @@ else:
                          ('7', T('1 week')), 
                          ('30', T('1 month')), 
                          ('90', T('3 months')), 
-                         ('150', T('5 months'))])
+                         ('150', T('5 months')),
+                         ('365', T('1 year'))])
 
 
-if request.vars.period:
-#	print request.vars.period
-	requested_period = int(request.vars.period) if request.vars.period.isdigit() else 7
-	if not ("%s" % requested_period in PERIODS):
-		requested_period = 30
+    if request.vars.period:
+    #	print request.vars.period
+	    requested_period = int(request.vars.period) if request.vars.period.isdigit() else 7
+	    if not ("%s" % requested_period in PERIODS):
+		    requested_period = 30
 
 if requested_period > 1000:
     period_limit = request.now - datetime.timedelta(seconds=requested_period)
