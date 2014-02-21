@@ -1,3 +1,5 @@
+// TODO
+// mettere n_active_operations per gestire il loading, lanciare un evento e gestirno fuori dal plugin
 function lplot (ph, options) {
 	
 	this.default_options = { 
@@ -50,27 +52,29 @@ function lplot (ph, options) {
 	this.plot;
 
 	this.plotAccordingToChoices = function () {
-		var tab = thatClass.placeholder.split('_chart')[0];
+		var tab = this.placeholder.split('_chart')[0];
 		$('#loading').hide(); $('body').css("cursor", "auto");		
 
-		if ( jQuery.isEmptyObject(thatClass.data) ) {
+		if ( jQuery.isEmptyObject(this.data) ) {
 			$( tab + ' .label-warning').show();
-			$(thatClass.placeholder).parent().hide();
+			$(this.placeholder).parent().hide();
 		} else { 
 			$( tab + ' .label-warning').hide();
-			$(thatClass.placeholder).parent().show();
+			$(this.placeholder).parent().show();
 		}
-		//options.crosshair.mode = data.length>1 ? 'x' : null;
+		if (this.options.crosshair) {
+		    this.options.crosshair.mode = this.data.length>1 ? 'x' : null;
+	    }
 
-		if ( thatClass.data.length == $(thatClass.datasets).length ) {
+		if ( this.data.length == $(this.datasets).length ) {
 			$("#all").attr('checked', 'checked');
 		} 
 		// Preserve current zoom/pan while plotting new data
         zoomed = {};
-        $.extend(zoomed, thatClass.options);
-        if (thatClass.plot !== undefined) {
+        $.extend(zoomed, this.options);
+        if (this.plot !== undefined) {
             // Get the current zoom
-            var zoom = thatClass.plot.getAxes();
+            var zoom = this.plot.getAxes();
             // Add the zoom to standard options
             zoomed.xaxis.min = zoom.xaxis.min;
             zoomed.xaxis.max = zoom.xaxis.max;
@@ -78,9 +82,9 @@ function lplot (ph, options) {
             zoomed.xaxis.min = undefined;
             zoomed.xaxis.max = undefined;
         }
-		thatClass.plot = $.plot(thatClass.placeholder, thatClass.data, zoomed);
-		if ( jQuery.isEmptyObject(thatClass.datasets) ) { return; }
-		var dataPlotted = thatClass.plot.getData();
+		this.plot = $.plot(this.placeholder, this.data, zoomed);
+		if ( jQuery.isEmptyObject(this.datasets) ) { return; }
+		var dataPlotted = this.plot.getData();
 
 		for (var d in dataPlotted) {
 			$("[id='" + dataPlotted[d].id+"']").children('span.legend_box_color').css('background-color', dataPlotted[d].color);
@@ -88,66 +92,67 @@ function lplot (ph, options) {
 	};
 
 	this.onDataReceived = function (json, url) {
-		var tab = thatClass.placeholder.split('_chart')[0];
+		var tab = this.placeholder.split('_chart')[0];
 		var data_placeholder = $(tab + ' .data_list');
 		var series = json['series'];
 
 
-		if (thatClass.options.addDynamically === false) {
-			thatClass.data = [];		// Reset data
-			thatClass.datasets = [];	
+		if (this.options.addDynamically === false) {
+			this.data = [];		// Reset data
+			this.datasets = [];	
 		}
 	
-		var n = Object.keys(thatClass.datasets).length;
+		var n = Object.keys(this.datasets).length;
 		for (var k in series) {
 			current = series[k];
 			if ( typeof current.id === 'undefined' ) {
 				current.id = k;
 			} 
-			current['color'] = thatClass.get_color(current.id); //n
+			current['color'] = this.get_color(current.id); //n
 			n = n + 1;
 			current['url'] = url;
 			/*json[k]['label'] = $('#'+k).attr('title') ;*/
-			thatClass.data.push(current);
+			this.data.push(current);
 		}
 
-		if (thatClass.options.addDynamically === true) {
-			$.merge(thatClass.datasets, series);
+		if (this.options.addDynamically === true) {
+			$.merge(this.datasets, series);
 		}  else {
-			thatClass.datasets = series;
+			this.datasets = series;
 			$(data_placeholder).empty();
 			
-			for (var i in thatClass.datasets) {
-				current = thatClass.datasets[i];
+			for (var i in this.datasets) {
+				current = this.datasets[i];
 				$(data_placeholder).append( $("<li><a id='idJS' title='labelJS' href='#' class=''><span class='legend_box_color'> </span>labelJS</a></li>".replace(/labelJS/g, current.label ).replace(/idJS/, current.id)) );
 			}
 		}
 		if ($("a.group").length){
     		interval = $("a.group").attr('id').split('_')[1];
-	    	thatClass.options.series.bars.barWidth = 60*60*1000*interval;
+	    	this.options.series.bars.barWidth = 60*60*1000*interval;
 	    } 
-		thatClass.plotAccordingToChoices();
+		this.plotAccordingToChoices();
 	};
 
 	this.loadData = function(url) {
+	    var that = this;
 		$('#loading').show();
 		$('body').css("cursor", "progress");
 		$.ajax({
 			url: url,
 			method: 'GET',
 		    dataType: 'json',
-		    success: function(json) {thatClass.onDataReceived(json, url)},
+		    success: function(json) {that.onDataReceived(json, url)},
 		});
 	};
 
 	this.getData = function () {
-		return thatClass.data;
+		return this.data;
 	};
 
 	this.getObj = function (key) {
 		var current;
-		for (k in thatClass.datasets) {
-			current = thatClass.datasets[k];
+		for (k in this.datasets) {
+			current = this.datasets[k];
 			if (current.id == key) {
 				return current;			
 			}
@@ -156,67 +161,66 @@ function lplot (ph, options) {
 	};
 	
 	this.reload_all = function() {
-    	thatClass.datasets = [];
-        currentData = thatClass.data;
-        thatClass.data = [];
+    	this.datasets = [];
+        currentData = this.data;
+        this.data = [];
 		for (key in currentData) {
-            thatClass.loadData(currentData[key].url);
+            this.loadData(currentData[key].url);
 		}
 	};
 	
 	this.reset_zoom = function() {
 	    console.log('reset zoom');
-	    thatClass.plot = undefined;
-	    thatClass.plotAccordingToChoices();
+	    this.plot = undefined;
+	    this.plotAccordingToChoices();
 	};
 	
 	this.get_color = function(id) {
 	    max_color = 0;
-	    for (var i in thatClass.colors) {
-	        if (thatClass.colors[i].id === id) { // Former color
-	            return thatClass.colors[i].color;
-	        } else if (thatClass.colors[i].color > max_color) {
-	            max_color = thatClass.colors[i].color;
+	    for (var i in this.colors) {
+	        if (this.colors[i].id === id) { // Former color
+	            return this.colors[i].color;
+	        } else if (this.colors[i].color > max_color) {
+	            max_color = this.colors[i].color;
 	        }
 	    }
         new_element = {'id':id, 'color':max_color+1};
-	    thatClass.colors.push(new_element);
+	    this.colors.push(new_element);
 	    return new_element.color;
 	};
 	
 	this.options = $.extend(this.default_options, options);
 	this.placeholder = ("#" + ph);
-	var thatClass = this;
 	var tab = this.placeholder.split('_chart')[0];
 
 	$(tab).on('click', '.data_list a', function() {
 		var key = $(this).attr("id");	
 		$(this).toggleClass('muted');	
-		var current = thatClass.getObj(key);
-		var index = jQuery.inArray(current, thatClass.data);
+		var current = this.getObj(key);
+		var index = jQuery.inArray(current, this.data);
 		if ( index > -1 ) {	// Current element is shown	
 			$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
-			thatClass.data.splice(index, 1);
+			this.data.splice(index, 1);
 		} else {
-			thatClass.data.push(current);
+			this.data.push(current);
 		}
-		thatClass.plotAccordingToChoices();	
+		this.plotAccordingToChoices();	
 	});
 
 	$(tab).on('click', '[name="all"]', function() {
-		thatClass.data = [];
-		for (pos in thatClass.datasets) {
-			var current = thatClass.datasets[pos];
+		this.data = [];
+		for (pos in this.datasets) {
+			var current = this.datasets[pos];
 			var id = current.id;
 			if ( $(this).is (':checked') ) {
 				$('#' + id).removeClass('muted');
-				thatClass.data.push(current);
+				this.data.push(current);
 			} else {
 				$('#' + id).addClass('muted');
 				$('#' + id + ' .legend_box_color').css('background-color', "rgb(204,204,204)");			
 			}
 		}
-		thatClass.plotAccordingToChoices();
+		this.plotAccordingToChoices();
 	});
 
 
@@ -225,3 +229,9 @@ function lplot (ph, options) {
     };
 	this.init();*/
 }
+
+
+
+
+
+
