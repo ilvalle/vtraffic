@@ -11,7 +11,11 @@
 	<div class="btn-group">
 		<a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> </a>
 		<a class="btn" id="reset_zoom" href="#" title="{{=T('Reset zoom')}}" data-toggle="tooltip"><i class="icon-remove"></i> </a>
-		<a class="btn dropdown-toggle" data-toggle="dropdown" href="#test">
+		<div id="reportrange" class="pull-right btn">
+            <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+            <span></span> <b class="caret"></b>
+        </div>
+		<!--a class="btn dropdown-toggle" data-toggle="dropdown" href="#test">
 			<span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period] if requested_period in PERIODS else 'custom'}}</strong>
 			<span class="caret"></span>
 		</a>
@@ -20,7 +24,7 @@
 			{{for key, value in PERIODS.items():}}
 			<li class=""><a href="{{=URL(args=request.args, vars={'period':key})}}">{{=value}}</a></li>
 			{{pass}}
-		</ul>
+		</ul-->
 	</div>
 	</div>
 	
@@ -74,12 +78,13 @@
 			mode: "time", timezone: "Europe/Rome", alignTicksWithAxis:true,
 			dayNames: ['{{=T('Sun')}}', '{{=T('Mon')}}', '{{=T('Tue')}}', '{{=T('Wen')}}', '{{=T('Thu')}}', '{{=T('Fri')}}', '{{=T('Sat')}}'] 
 		},
-		yaxis: { position: 'left', axisLabel: "xyz", zoomRange: false, panRange: false,},
+		yaxis: { position: 'left', zoomRange: false, panRange: false,},
 		addDynamically: true,
 		series:{ lines: { show: true, fill: false },
 				 points: { show: false },
 				 bars: {show: false},
 		},
+		crosshair: { mode: "x" },
 	}
 	var plot_console = new lplot('compare_chart', options_console);
     var reload_interval;
@@ -105,19 +110,20 @@
 			}
 		}
 		plot_console.plotAccordingToChoices();	
-		console.log(plot_console.datasets);
-		
 	});
 	
-    // MeteoFrontEnd/get-records?station=8320&name=WG&unit=m/s&seconds=3000
     function get_data(a_obj) {
-        var frontend = a_obj.data('frontend');;
-	    var station = a_obj.data('station');
-	    var data_type = a_obj.data('type');
-	    var unit = a_obj.data('unit');
-        var label = a_obj.attr("title");
-		var url = '{{=URL("console", "get_data.json", vars={'frontend':'frontendJs', 'seconds':seconds,'station':'stationJs', 'unit':'unitJs', 'data_type':'data_typeJs', 'data_label':'data_labelJs'} )}}'.replace(/data_labelJs/, label).replace(/stationJs/, station).replace(/frontendJs/, frontend).replace(/data_typeJs/, data_type).replace(/unitJs/, unit);
-		plot_console.loadData(url);
+        var params = {
+            frontend: a_obj.data('frontend'),
+            seconds: {{=seconds}},
+            station : a_obj.data('station'),
+            unit: a_obj.data('unit'),
+            data_type: a_obj.data('type'),
+            data_label: a_obj.attr("title"),
+        };
+		var url = '{{=URL("console", "get_data.json")}}'
+        var uri = url + '?' + $.param(params);
+		plot_console.loadData(uri);
 	}
 	
 	$(document).on('click', '#reload', function() {
@@ -159,4 +165,50 @@
             $.web2py.enableElement($(this).find($.web2py.formInputClickSelector));
         }
     });
+    
+    var datapickler_option = {
+        startDate: moment().subtract('days', 29),
+        endDate: moment(),
+        minDate: '01/01/2012',
+        maxDate: '12/31/2014',
+        dateLimit: { days: 60 },
+        showDropdowns: true,
+        showWeekNumbers: true,
+        timePicker: false,
+        timePickerIncrement: 1,
+        timePicker12Hour: true,
+        ranges: {
+            'Today': [moment(), moment()],
+            'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
+            'Last 7 Days': [moment().subtract('days', 6), moment()],
+            'Last 30 Days': [moment().subtract('days', 29), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+        },
+        opens: 'left',
+        buttonClasses: ['btn btn-default'],
+        applyClass: 'btn-small btn-primary',
+        cancelClass: 'btn-small',
+        format: 'MM/DD/YYYY',
+        separator: ' to ',
+    };
+    var date_set = function(start, end) {
+        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        alert("Callback has fired: [" + pickler.startDate.valueOf + '' + start.valueOf() + " to " + end.format('MMMM D, YYYY') + "]");
+    }
+    pickler = $('#reportrange').daterangepicker(datapickler_option, date_set);
+    
+    $('#reportrange span').html(moment().subtract('days', 29).format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
+    $('#reportrange').on('show', function() { console.log("show event fired"); });
+    $('#reportrange').on('hide', function() { console.log("hide event fired"); });
+    $('#reportrange').on('apply', function(ev, picker) { 
+        console.log("apply event fired, start/end dates are " 
+                      + picker.startDate.format('MMMM D, YYYY') 
+                      + " to " 
+                      + picker.endDate.format('MMMM D, YYYY')
+                    ); 
+                  });
+    //$('#reportrange').daterangepicker(optionSet1, cb);
+    
+    
 </script>
