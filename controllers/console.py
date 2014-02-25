@@ -22,9 +22,11 @@ if request.function != 'wiki' and zero and not(zero.isdigit()):
 baseurl = "http://ipchannels.integreen-life.bz.it"
 # ipchannels-test.integreen-life.bz.it/MeteoFrontEnd/get-records?station=8320&name=WG&unit=m/s&seconds=3000
 frontends = {'Meteo':'MeteoFrontEnd', 'Vehicle': 'VehicleFrontEnd', 'Environment':'EnvironmentFrontEnd'} 
+@auth.requires_login()
 def index():
 	return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})
 
+@auth.requires_login()
 def get_stations():
     frontend = request.vars.frontend
     if not frontend or frontend not in frontends:
@@ -39,7 +41,7 @@ def get_stations():
     response.headers['web2py-component-command'] = "add_after_form(xhr, 'form_frontend');"
     return response.render('console/stations_form.html', {'stations':stations, 'frontend':frontend})
 
-
+@auth.requires_login()
 def get_data_types():
     station = request.vars.station
     frontend = request.vars.frontend
@@ -60,7 +62,7 @@ def get_data_types():
     #data_types_filtered = [ [d[0].replace('_', ' '), d[1], d[2]] for d in data_types_filtered ]
     return response.render('console/data_types_legend.html', {'data_types':data_types_filtered, 'frontend':frontend, 'station':station })
 
-
+@auth.requires_login()
 def get_data():
     frontend = request.vars.frontend
     station = request.vars.station 
