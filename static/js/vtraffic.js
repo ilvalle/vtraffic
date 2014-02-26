@@ -1,5 +1,3 @@
-// TODO
-// mettere n_active_operations per gestire il loading, lanciare un evento e gestirno fuori dal plugin
 function lplot (ph, options) {
 	
 	this.default_options = { 
@@ -44,16 +42,15 @@ function lplot (ph, options) {
 	};
 
 	this.datasets = [];	// All series available
-	this.data = [];		// All series shown	
+	this.data = [];	    // All series shown	
 	this.colors = [];		// All colors
 	this.placeholder;
 	this.options;
-	var addDynamically;
 	this.plot;
+    this.n_active_operations = 0;    // Number of ongoing requests
 
 	this.plotAccordingToChoices = function () {
 		var tab = this.placeholder.split('_chart')[0];
-		$('#loading').hide(); $('body').css("cursor", "auto");		
 
 		if ( jQuery.isEmptyObject(this.data) ) {
 			$( tab + ' .label-warning').show();
@@ -135,13 +132,22 @@ function lplot (ph, options) {
 
 	this.loadData = function(url) {
 	    var that = this;
+        that.n_active_operations = that.n_active_operations + 1;
 		$('#loading').show();
 		$('body').css("cursor", "progress");
 		$.ajax({
 			url: url,
 			method: 'GET',
 		    dataType: 'json',
-		    success: function(json) {that.onDataReceived(json, url)},
+		    success: function(json) {
+		        that.onDataReceived(json, url)
+                that.n_active_operations = that.n_active_operations - 1;
+		        if (that.n_active_operations === 0) {
+                    $('#loading').hide();
+                    $('body').css("cursor", "auto");
+                    $(that.placeholder).trigger($.Event('loaded',{}));
+                }
+		    },
 		});
 	};
 
@@ -170,7 +176,6 @@ function lplot (ph, options) {
 	};
 	
 	this.reset_zoom = function() {
-	    console.log('reset zoom');
 	    this.plot = undefined;
 	    this.plotAccordingToChoices();
 	};
@@ -229,9 +234,3 @@ function lplot (ph, options) {
     };
 	this.init();*/
 }
-
-
-
-
-
-
