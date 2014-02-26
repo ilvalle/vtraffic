@@ -27,7 +27,7 @@
 
 <div id="myTabContent" class="tab-content">
 <section id="realtime" class="tab-pane fade">
-	{{=LOAD('plot', 'get_real_time', ajax=True)}}
+	{{=LOAD('plot', 'get_real_time', ajax=True, timeout=1000, times="infinity")}}
 </section>
 
 <section id='vehiclesDetected' class="tab-pane fade in active row-fluid">
@@ -92,6 +92,7 @@
 
 </div>
 <script> 
+    var map_stations, geojsonL;
 	$('a[data-toggle="tab"]').on('shown', function (e) {
 		tab = $(e.target).attr('href');		
 		if (tab === '#compare') {
@@ -100,6 +101,13 @@
 			plot_origin_destination.plotAccordingToChoices();		
 		} else if (tab === '#maps') {
 			map.updateSize(); 
+	    } else if (tab === '#realtime') {
+            if (map_stations !== undefined) {
+                console.log('invalidate');
+       			map_stations.fitBounds(geojsonL);
+      			map_stations.invalidateSize();
+//       			L.Util.requestAnimFrame(map_stations.invalidateSize,map,!1,map_stations._container);
+       	    }
 		} else {
 			plot_vehicles_detected.plotAccordingToChoices();
 		}
