@@ -4,6 +4,7 @@ scheduler = Scheduler(db, migrate=False)
 
 from applications.vtraffic.modules.tools import EPOCH_M
 from datetime import timedelta
+import time
 
 
 def test_write():
@@ -18,7 +19,7 @@ def test_write():
 
 ## For each possible origin/destination couple finds the matches
 def run_all():
-    print 'start'
+    init_t = time.time()
     stations = db(db.station.id).select(db.station.id, orderby=db.station.id, cacheable = True)
     total = 0
     for o in stations:
@@ -29,18 +30,19 @@ def run_all():
                 total   += len(matches)
                 #query = (db.match.station_id_orig == o.id) & (db.match.station_id_dest == d.id)
                 #__get_blocks_scheduler(query, 900, reset_cache=True)
+    print 'Total', time.time() - init_t
     return total
 
 
 def find_matches (id_origin, id_destination, query=None):
-    import time
     t0 = time.time()
     # find last stored match for the given couple of origin/destination
     last_match_query = db( (db.match.station_id_orig == id_origin) & 
                      (db.match.station_id_dest == id_destination) &
-                     (db.match.record_id_dest == db.record.id) )._select(
+                     (db.match.record_id_dest == db.record.id) )._select(db.match.ALL,
                      orderby = ~db.match.epoch_dest, cacheable = True, limitby=(0,1) )
     last_match = db.executesql(last_match_query, as_dict=True)
+
     t1 = time.time()
     query_od = (start.station_id == id_origin) & (end.station_id == id_destination) if not query  else query
     if last_match:
