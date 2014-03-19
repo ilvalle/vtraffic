@@ -39,7 +39,7 @@ def find_matches (id_origin, id_destination, query=None):
     # find last stored match for the given couple of origin/destination
     last_match_query = db( (db.match.station_id_orig == id_origin) & 
                      (db.match.station_id_dest == id_destination) &
-                     (db.match.record_id_dest == db.record.id) )._select(db.match.ALL,
+                     (db.match.record_id_dest == db.record.id) )._select(db.record.gathered_on,
                      orderby = ~db.match.epoch_dest, cacheable = True, limitby=(0,1) )
     last_match = db.executesql(last_match_query, as_dict=True)
 
