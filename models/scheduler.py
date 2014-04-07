@@ -33,6 +33,15 @@ def run_all():
     print 'Total', time.time() - init_t
     return total
 
+## Set all record to valid=False if there are null mac address
+def run_valid_record():
+    rows = db((db.record.mac == '00:00:00:00:00:00') & (db.record.valid == None)).select(db.record.ALL)
+    for r in rows:
+        r.update_record(valid=False)
+    db.commit()
+    return len(rows)
+    
+
 
 def find_matches (id_origin, id_destination, query=None):
     t0 = time.time()
