@@ -1,0 +1,2 @@
+user='abc'
+pwd='abc'
