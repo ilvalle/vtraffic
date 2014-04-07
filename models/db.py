@@ -2,12 +2,9 @@
 
 
 MIGRATE=False
-## if SSL/HTTPS is properly configured and you want all HTTP requests to
-## be redirected to HTTPS, uncomment the line below:
-# request.requires_https()
-#db = DAL('postgres://web2py:web2py@localhost:5432/traffic',
-#db = DAL('postgres://traffic_user:traffic_user@localhost:5432/traffic', 
-db = DAL('postgres://web2py:web2py@10.8.0.26:5432/postgis', 
+
+# user and pwd are defined in a different and not public model.
+db = DAL('postgres://%s:%s@10.8.0.1:5432/integreen' % (user, pwd),
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
 	#fake_migrate_all=True,
@@ -26,7 +23,7 @@ if not request.is_local:
 	#session.connect(request,response,db)
 
 ## (optional) optimize handling of static files
-response.optimize_css = 'concat,minify'
+#response.optimize_css = 'concat,minify'
 #response.optimize_js = 'concat,minify'
 #session.forget(response)
 from gluon.tools import Auth
@@ -58,18 +55,19 @@ T.is_writable = False
 db.define_table('station_type',
 	Field('name'),
 	auth.signature,
-	format='%(name)s'
+	format='%(name)s',
+	migrate=False
 )
 
 db.define_table('station',
 	Field('name'),
 	Field("lat", "double", label=T('Latitude')),
 	Field("lgt", "double", label=T('Longitude')),
-	Field("alt", "double", label=T('altitude')),
 	Field("station_type", 'reference station_type'),
 #	Field('log_file', 'upload'),
 	auth.signature,
-	format='%(name)s'
+	format='%(name)s',
+	migrate=False
 )
 
 #db.define_table('log',
@@ -86,6 +84,8 @@ db.define_table('record',
 	Field('gathered_on', 'datetime'),
 	Field('utc_in_ms', 'integer'),
 	Field('version', 'integer'),
+	Field('valid', 'boolean'),
+	migrate=False
 )
 
 db.define_table('match',
@@ -99,7 +99,7 @@ db.define_table('match',
 	Field('record_id_orig', 'reference record' ),
 	Field('record_id_dest', 'reference record' ),
 	Field('overtaken', 'boolean'),
-	migrate=True
+	migrate=False
 )
 
 
