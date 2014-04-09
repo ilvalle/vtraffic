@@ -21,7 +21,7 @@ if request.function != 'wiki' and zero and not(zero.isdigit()):
 	response.menu += Wiki(auth, migrate=False).menu(function="wiki")
 baseurl = "http://ipchannels.integreen-life.bz.it"
 # ipchannels-test.integreen-life.bz.it/MeteoFrontEnd/get-records?station=8320&name=WG&unit=m/s&seconds=3000
-frontends = {'Meteo':'MeteoFrontEnd', 'Vehicle': 'VehicleFrontEnd', 'Environment':'EnvironmentFrontEnd'} 
+frontends = {'Meteo':'MeteoFrontEnd', 'Vehicle': 'VehicleFrontEnd', 'Environment':'EnvironmentFrontEnd', 'Parking': 'parkingFrontEnd'} 
 @auth.requires_login()
 def index():
 	return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})
