@@ -32,8 +32,8 @@
         response.files.append('http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css')
     else:
     	response.files.append(URL('static','css/daterangepicker-bs2.css'))
-    	response.files.append(URL('static','js/daterangepicker.js'))
     	response.files.append(URL('static','js/moment.min.js'))        
+    	response.files.append(URL('static','js/daterangepicker.js'))
     pass
 	response.include_meta()
 	response.include_files()

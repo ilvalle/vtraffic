@@ -70,14 +70,14 @@ def get_data():
     data_label = request.vars.data_label
     unit = request.vars.unit
     seconds = request.vars.seconds
+    from_epoch = int(request.vars['from'])
+    to_epoch = int(request.vars.to)
 
-    import time
-    t0 = time.time()
-    url = "%s/%s/rest/get-records" % (baseurl, frontends[frontend])
-    params = {'station':station, 'name':data_type, 'unit':unit, 'seconds':seconds}
+    url = "%s/%s/rest/get-records-in-timeframe" % (baseurl, frontends[frontend])
+    params = {'station':station, 'name':data_type, 'unit':unit, 'from':from_epoch, 'to': to_epoch}
     r = requests.get(url, params=params)
     data = r.json()
-    t1 = time.time()
+
     output = []
 
     f = lambda row: row['timestamp'] // 5000
@@ -87,7 +87,6 @@ def get_data():
 
     # the id must be the same of the A element in the data type list
     series = [{'data':output, 'id': 'type_%s_%s' % (station,data_type), 'station_id':'station_iud', 'label': "%s - %s" % (station, data_label)}]
-    t2 = time.time()
-    #print t1-t0, t2-t1
+
     return response.json({'series': series})
 

@@ -120,7 +120,7 @@ function lplot (ph, options) {
 			
 			for (var i in this.datasets) {
 				current = this.datasets[i];
-				$(data_placeholder).append( $("<li><a id='idJS' title='labelJS' href='#' class=''><span class='legend_box_color'> </span>labelJS</a></li>".replace(/labelJS/g, current.label ).replace(/idJS/, current.id)) );
+				$(data_placeholder).append( $("<li><a id='" + current.id + "' title='" + current.label + "' href='#' class=''><span class='legend_box_color'> </span>" + current.label + "</a></li>") );
 			}
 		}
 		if ($("a.group").length){
@@ -132,19 +132,25 @@ function lplot (ph, options) {
 
 	this.loadData = function(url) {
 	    var that = this;
+	    if ((startDate !== undefined) && (endDate != undefined)) {
+	        params = {
+                from: startDate.valueOf(),
+                to: endDate.valueOf(),
+	        };
+	        url_date = url + "&" + $.param(params);
+	    } else {
+	        url_date = url;
+	    }
         that.n_active_operations = that.n_active_operations + 1;
-		$('#loading').show();
-		$('body').css("cursor", "progress");
+        $(that.placeholder).trigger($.Event('loading',{}));
 		$.ajax({
-			url: url,
+			url: url_date,
 			method: 'GET',
 		    dataType: 'json',
 		    success: function(json) {
 		        that.onDataReceived(json, url)
                 that.n_active_operations = that.n_active_operations - 1;
 		        if (that.n_active_operations === 0) {
-                    $('#loading').hide();
-                    $('body').css("cursor", "auto");
                     $(that.placeholder).trigger($.Event('loaded',{}));
                 }
 		    },

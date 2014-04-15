@@ -9,7 +9,7 @@
         <button type="button" class="btn active">Lines</button>
     </div>
 	<div class="btn-group">
-		<a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> </a>
+		<a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> Live </a>
 		<a class="btn" id="reset_zoom" href="#" title="{{=T('Reset zoom')}}" data-toggle="tooltip"><i class="icon-remove"></i> </a>
 		<div id="reportrange" class="pull-right btn">
             <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
@@ -89,6 +89,16 @@
 	var plot_console = new lplot('compare_chart', options_console);
     var reload_interval;
     
+    $('#compare_chart').on('loaded', function() {
+        $('#loading').hide();
+        $('body').css("cursor", "auto");
+    });
+
+    $('#compare_chart').on('loading', function() {
+        $('#loading').show();
+        $('body').css("cursor", "progress");
+    });
+    
     $("#sidebar_console").on('click', 'li a', function() {
 		var key = $(this).attr("id");	
 		$(this).toggleClass('muted');
@@ -129,6 +139,7 @@
 	$(document).on('click', '#reload', function() {
 	    $(this).toggleClass('disabled');
 	    if (reload_interval === undefined){
+    	    plot_console.reload_all();
     	    reload_interval = setInterval(function(){	plot_console.reload_all() }, 10000);
 	    } else {
 	        clearInterval(reload_interval);
@@ -145,8 +156,6 @@
         plot_console.reset_zoom();
    	});
 	
-	
-    
     $(document).on('click', ".graph button", function() {
 		value = $(this).html();
 		if (value == 'Bars') {
@@ -166,9 +175,11 @@
         }
     });
     
+    var startDate = moment().subtract('days', 29);
+    var endDate = moment();
     var datapickler_option = {
-        startDate: moment().subtract('days', 29),
-        endDate: moment(),
+        startDate: startDate,
+        endDate: endDate,
         minDate: '01/01/2012',
         maxDate: '12/31/2014',
         dateLimit: { days: 60 },
@@ -194,7 +205,9 @@
     };
     var date_set = function(start, end) {
         $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-        alert("Callback has fired: [" + pickler.startDate.valueOf + '' + start.valueOf() + " to " + end.format('MMMM D, YYYY') + "]");
+        startDate = start;
+        endDate = end;
+        plot_console.reload_all();
     }
     pickler = $('#reportrange').daterangepicker(datapickler_option, date_set);
     
@@ -202,12 +215,12 @@
     $('#reportrange').on('show', function() { console.log("show event fired"); });
     $('#reportrange').on('hide', function() { console.log("hide event fired"); });
     $('#reportrange').on('apply', function(ev, picker) { 
-        console.log("apply event fired, start/end dates are " 
-                      + picker.startDate.format('MMMM D, YYYY') 
-                      + " to " 
-                      + picker.endDate.format('MMMM D, YYYY')
-                    ); 
-                  });
+    console.log("apply event fired, start/end dates are " 
+                  + picker.startDate.format('MMMM D, YYYY') 
+                  + " to " 
+                  + picker.endDate.format('MMMM D, YYYY')
+                ); 
+              });
     //$('#reportrange').daterangepicker(optionSet1, cb);
     
     
