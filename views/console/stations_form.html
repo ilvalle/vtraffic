@@ -4,7 +4,7 @@
 		<select class="" name="station" id="select_frontend">
     		<option value=""></option>
 		{{for station in stations: }}
-			<option value="{{=station}}">{{=station}}</option>
+			<option value="{{=station['id']}}">{{=station['name']}}</option>
 		{{pass}}
 		</select>
 		<input type='hidden' name='frontend' value='{{=frontend}}'>

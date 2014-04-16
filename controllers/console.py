@@ -34,7 +34,7 @@ def get_stations():
         response.headers['web2py-component-content'] = 'hide'
         return ''
     response.headers['web2py-component-content'] = 'append'
-    url = "%s/%s/rest/get-stations" % (baseurl, frontends[frontend])
+    url = "%s/%s/rest/get-station-details" % (baseurl, frontends[frontend])
     r = requests.get(url) # params=url_vars)
     stations = r.json()
     response.headers['web2py-component-content'] = 'hide'
