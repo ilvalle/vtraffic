@@ -132,7 +132,7 @@ function lplot (ph, options) {
 
 	this.loadData = function(url) {
 	    var that = this;
-	    if ((startDate !== undefined) && (endDate != undefined)) {
+	    if ((typeof startDate !== "undefined") && (typeof endDate !== "undefined")) {
 	        params = {
                 from: startDate.valueOf(),
                 to: endDate.valueOf(),
