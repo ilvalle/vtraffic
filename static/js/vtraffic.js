@@ -204,9 +204,10 @@ function lplot (ph, options) {
 	this.placeholder = ("#" + ph);
 	var tab = this.placeholder.split('_chart')[0];
 
-	$(tab).on('click', '.data_list a', function() {
-		var key = $(this).attr("id");	
-		$(this).toggleClass('muted');	
+	$(tab).on('click', '.data_list a', $.proxy(function(event) {
+    	var element = event.target;
+		var key = $(element).attr("id");	
+		$(element).toggleClass('muted');	
 		var current = this.getObj(key);
 		var index = jQuery.inArray(current, this.data);
 		if ( index > -1 ) {	// Current element is shown	
@@ -216,7 +217,7 @@ function lplot (ph, options) {
 			this.data.push(current);
 		}
 		this.plotAccordingToChoices();	
-	});
+	}, this));
 
 	$(tab).on('click', '[name="all"]', function() {
 		this.data = [];
