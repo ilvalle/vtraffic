@@ -52,18 +52,19 @@ db.auth_user.password.widget = lambda f,v: SQLFORM.widgets.string.widget(f, v, _
 T.is_writable = False
 
 
-db.define_table('station_type',
-	Field('name'),
-	auth.signature,
-	format='%(name)s',
-	migrate=False
-)
+#db.define_table('station_type',
+#	Field('name'),
+#	auth.signature,
+#	format='%(name)s',
+#	migrate=False
+#)
 
 db.define_table('station',
 	Field('name'),
 	Field("lat", "double", label=T('Latitude')),
 	Field("lgt", "double", label=T('Longitude')),
-	Field("station_type", 'reference station_type'),
+#	Field("station_type", 'reference station_type'),
+	Field("dtype"),
 #	Field('log_file', 'upload'),
 	auth.signature,
 	format='%(name)s',
