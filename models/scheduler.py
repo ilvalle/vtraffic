@@ -27,9 +27,9 @@ def run_all():
         for d in stations:
             if o.id != d.id:
                 matches = find_matches(o.id, d.id)
-                #__save_match(matches)
+                __save_match(matches)
                 total += len(matches)
-                print total
+#                print total
                 #query = (db.match.station_id_orig == o.id) & (db.match.station_id_dest == d.id)
                 #__get_blocks_scheduler(query, 900, reset_cache=True)
     print 'Total', time.time() - init_t
@@ -114,21 +114,22 @@ def find_matches (id_origin, id_destination, query=None):
     while len(matches) != n_prev_matches:
         n_prev_matches = len(matches)
         if last_match:
-            query = query_od & (start.gathered_on > initial_data )
+            # The constraint (end.gathered_on > initial_data) reduces the number of rows to sort before the left join
+            query = query_od & (start.gathered_on > initial_data ) & (end.gathered_on > initial_data)
             initial_data = initial_data - __next_step()
-            print len(db(query).count())
+            #print len(db(query).count())
             #if (db(query).isempty()):
             #    print 'is_empty'
             #    matches = []
             #    continue
             matches = __get_rows(query, use_cache=False)
-            print 'm', len(matches)
+            #print 'm', len(matches)
             matches = __clean_progress_matches(matches, last_match[0]['gathered_on']) 
         else:
             matches = __get_rows(query_od, use_cache=False)
             n_prev_matches = len(matches)         # force to stop
     t2 = time.time()
-    print "%s vs %s" % (id_origin, id_destination), t1-t0, t2-t1
+    #print "%s vs %s" % (id_origin, id_destination), t1-t0, t2-t1
     return matches
 
         
