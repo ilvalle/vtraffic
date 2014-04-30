@@ -104,4 +104,66 @@ db.define_table('match',
 )
 
 
+
+db_intime = DAL('postgres://%s:%s@10.8.0.1:5432/integreenintime' % (user, pwd),
+	migrate=MIGRATE,
+	migrate_enabled=MIGRATE,
+	#fake_migrate_all=True,
+	lazy_tables=not(MIGRATE),
+	pool_size=3
+)
+
+db_intime.executesql("set search_path to 'intime', 'public';")
+
+db_intime.define_table('station',
+    Field('name'),
+    Field('shortname'),
+    Field('description'),
+    Field('stationtype'),
+    #Field('pointprojection'),
+    Field('stationcode'),
+    Field('active'),
+    Field('parent_id', 'reference station'),
+    migrate=False
+)
+
+db_intime.define_table('linkbasicdata',
+    Field('origin', 'reference station'),
+    Field('destination', 'reference station'),
+    Field('station_id', 'reference station'),
+    #Field('lineprojection'),
+    migrate=False
+)
+
+db_intime.define_table('type',
+    Field('cname'),
+    Field('created_on', 'datetime'),
+    Field('cunit'),
+    Field('description'),
+    Field('rtype'),
+    migrate=False
+)
+
+db_intime.define_table('elaboration',
+    Field('created_on', 'datetime'),
+    Field('timestamp', 'datetime'),
+    Field('value', 'double'),
+    Field('station_id', 'reference station'),
+    Field('type_id', 'reference type'),
+    Field('period', 'integer'),
+    migrate=False
+)
+db_intime.define_table('elaborationhistory',
+    Field('created_on', 'datetime'),
+    Field('timestamp', 'datetime'),
+    Field('value', 'double'),
+    Field('station_id', 'reference station'),
+    Field('type_id', 'reference type'),
+    Field('period', 'integer'),    
+    migrate=False
+)
+
+db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
+
+
 #if "auth" in locals(): auth.wikimenu()
