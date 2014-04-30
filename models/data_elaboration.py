@@ -18,12 +18,6 @@ def __get_rows(query, use_cache=True, limitby=None):
 		                          left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
 		                          limitby=limitby,
 		                          cacheable = True)
-		print db( query_1 )._select(start.ALL, end.ALL,
-		                          orderby=start.gathered_on,
-		                          left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
-		                          limitby=limitby,
-		                          cacheable = True)
-                          
 		#t2 = time.time()
 
 		#print 'LEN initial rows', len(matches), len(matches2), '\t %s - %s' % (t1-t0, t2-t1)
