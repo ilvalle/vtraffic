@@ -1,9 +1,10 @@
-
+from itertools import groupby
 from gluon.scheduler import Scheduler
 scheduler = Scheduler(db, migrate=False)
 
 from applications.vtraffic.modules.tools import EPOCH_M
 from datetime import timedelta
+from datetime import datetime
 import time
 
 
@@ -26,8 +27,9 @@ def run_all():
         for d in stations:
             if o.id != d.id:
                 matches = find_matches(o.id, d.id)
-                __save_match(matches)
-                total   += len(matches)
+                #__save_match(matches)
+                total += len(matches)
+                print total
                 #query = (db.match.station_id_orig == o.id) & (db.match.station_id_dest == d.id)
                 #__get_blocks_scheduler(query, 900, reset_cache=True)
     print 'Total', time.time() - init_t
@@ -40,7 +42,57 @@ def run_valid_record():
         r.update_record(valid=False)
     db.commit()
     return len(rows)
+
+# compute and store the mode in the intime database    
+def run_mode():
+    link_stations = db_intime(db_intime.linkbasicdata.station_id == db_intime.station.id).select()
+    for link in link_stations:
+        origin = link.linkbasicdata.origin
+        destination = link.linkbasicdata.destination
+        db.match._common_filter = None
+      	query = (db.match.station_id_orig == origin) & (db.match.station_id_dest == destination) 
+        # Given an origin and a destination, we check the last stored match
+        last_value = db_intime(db_intime.elaborationhistory.station_id == link.linkbasicdata.station_id).select(limitby=(0,1), orderby=~db_intime.elaborationhistory.timestamp)
+        # manca order by
+        if last_value:
+            query &= (db.match.gathered_on_orig > (last_value[0].timestamp + timedelta(seconds=last_value[0].period/2)))
+        print query
+        data = __compute_mode(query, 900)['data']
+        # save all data into elaborationhistory
+        for r in data:
+            db_intime.elaborationhistory.insert( 
+                        created_on=datetime.datetime.now(),
+                        timestamp =datetime.datetime.fromtimestamp(r[0]/1000 - 7200),   # TO be fixed
+                        value = r[1],
+                        station_id = link.linkbasicdata.station_id,
+                        type_id = 18,
+                        period  = 900)
+
+        if len(data) != 0:
+            last=data[len(data)-1]
+            db_intime.elaboration.insert( 
+                        created_on=datetime.datetime.now(),
+                        timestamp =datetime.datetime.fromtimestamp(last[0]/1000 - 7200), #TO be fixed
+                        value = last[1],
+                        station_id = link.linkbasicdata.station_id,
+                        type_id = 18,
+                        period  = 900)                
+            db_intime.commit()
+
+        out = '%s %s - stored -> %s' % (origin, destination, len(data))
+        
+    link_stations = db_intime(db_intime.elaboration).select()    
+    #elaboration
+    # created_on    -> datetime.now
+    # timestamp     -> output elaboration
+    # value         -> output elaboration
+    # station_id    -> link.linkbasicdata.station_id
+    # type_id       -> 18
+    # period        -> 900
+    ## Type operation is 18 for frame 15minutes long
+    return out
     
+
 
 
 def find_matches (id_origin, id_destination, query=None):
@@ -64,7 +116,13 @@ def find_matches (id_origin, id_destination, query=None):
         if last_match:
             query = query_od & (start.gathered_on > initial_data )
             initial_data = initial_data - __next_step()
+            print len(db(query).count())
+            #if (db(query).isempty()):
+            #    print 'is_empty'
+            #    matches = []
+            #    continue
             matches = __get_rows(query, use_cache=False)
+            print 'm', len(matches)
             matches = __clean_progress_matches(matches, last_match[0]['gathered_on']) 
         else:
             matches = __get_rows(query_od, use_cache=False)

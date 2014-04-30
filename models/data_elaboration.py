@@ -18,6 +18,12 @@ def __get_rows(query, use_cache=True, limitby=None):
 		                          left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
 		                          limitby=limitby,
 		                          cacheable = True)
+		print db( query_1 )._select(start.ALL, end.ALL,
+		                          orderby=start.gathered_on,
+		                          left=start.on( (start.mac == end.mac) & (start.gathered_on < end.gathered_on)),
+		                          limitby=limitby,
+		                          cacheable = True)
+                          
 		#t2 = time.time()
 
 		#print 'LEN initial rows', len(matches), len(matches2), '\t %s - %s' % (t1-t0, t2-t1)
@@ -187,5 +193,54 @@ def __mode(block, block_seconds=0, vertical_block_seconds=0):
 	return value
 
 
+# This skeleton allows to run easily statistical analysis across rows splitted into frames
+def __wrapper_elaboration( blocks_list, 
+                           function, 
+                           block_seconds=800, 
+                           vertical_block_seconds=30, 
+                           compare=False):	
+	if compare:
+		first_date = blocks_list[0][0][db.match.gathered_on_orig]
+		day = datetime.datetime(first_date.date().year, first_date.date().month, first_date.date().day)
+		reference_seconds = EPOCH_M(day)
+	else:
+		reference_seconds = 0
+	output = []
+	prev   = None
+	for block in blocks_list:
+		if len(block) <= 2:		# two values are not enough, lets pass
+			continue
+		current = block[0]
+		seconds = block[0].epoch_orig - (block[0].epoch_orig % block_seconds) - reference_seconds
+		if prev and current.epoch_orig > prev.epoch_orig + (block_seconds*3):	#fill the gap with three empty values
+			output.append ( [ (prev_seconds + block_seconds + block_seconds/2) * 1000,	0] )
+			output.append ( [ (seconds - block_seconds/2) * 1000,	0] )
+		value = function(block, block_seconds, vertical_block_seconds)
+		output.append ( [(seconds + block_seconds/2) * 1000, value * 1000] )
+		prev, prev_seconds = current, seconds
+	return output
+	
+	
+def __compute_mode( query, block_seconds=800, vertical_block_seconds=30, compare=False, use_cache=True):
+    blocks_list = __get_blocks_scheduler (query, block_seconds, reset_cache=False)
+    if (len(blocks_list) == 0):
+        return  {'data': [],'label':'No matches', 'id':'mode_%s' %  block_seconds }
 
+    key = 'mode_%s%s%s%s' % (block_seconds, vertical_block_seconds, compare, query)
+    if len(key)>200:
+        key = 'mode_%s' % md5_hash(key)
+
+    # Cache the mode for each day, so we need to compute only the last day
+    data = cache.ram( key, lambda: __wrapper_elaboration( blocks_list,
+                                                          __mode,
+                                                          block_seconds, 
+                                                          vertical_block_seconds=vertical_block_seconds, 
+                                                          compare=compare),  
+                      time_expire=CACHE_TIME_EXPIRE)
+    if compare:
+        fdate = blocks_list[0][0][db.match.gathered_on_orig]
+        label = fdate.strftime('%a %d, %b' )
+    else:
+        label = "Mode (%ss)" % block_seconds
+    return {'data': data,'label':label, 'id':'mode_%s' %  block_seconds }
 
