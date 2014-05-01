@@ -18,6 +18,7 @@ response.files.append(URL('static', 'plugin_cs_monitor/js/jqplot/plugins/jqplot.
 response.files.append(URL('static', 'plugin_cs_monitor/js/jqplot/plugins/jqplot.highlighter.min.js'))
 response.files.append(URL('static', 'plugin_cs_monitor/js/jqplot/plugins/jqplot.canvasTextRenderer.min.js'))
 response.files.append(URL('static', 'plugin_cs_monitor/js/jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js'))
+response.files.append(URL('static', 'plugin_cs_monitor/js/stupidtable/stupidtable.min.js'))
 
 ##Configure start
 sc_cache = cache.ram
@@ -38,11 +39,11 @@ ANALYZE_CACHE_KWARGS = {'cache' : (cache.with_prefix(sc_cache, "plugin_cs_monito
 response.meta.author = 'Niphlod <niphlod@gmail.com>'
 response.title = 'ComfortScheduler Monitor'
 response.subtitle = '0.1.0'
-#response.static_version = '0.1.0'
+response.static_version = '0.1.0'
 
 try:
     response.menu.append(
-        ('Scheduler Monitor', False, URL('plugin_cs_monitor', 'index'), []),
+        ('Comfy Scheduler Monitor', False, URL('plugin_cs_monitor', 'index'), []),
     )
 except:
     pass
@@ -285,7 +286,7 @@ def edit_task():
         session.flash = 'Task deleted correctly'
         redirect(URL('index'))
     elif request.args(1) == 'stop':
-        rtn = s.stop_task(task.id)
+        rtn = s.stop_task(task_id)
         if rtn == 1:
             session.flash = 'Task stopped'
         else:

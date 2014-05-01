@@ -21,11 +21,11 @@
     <thead>
         <tr>
             <th><input id="wchosen_action" name="action" class="hidden" type="string" value="none"/></th>
-            <th>Name</th>
-            <th>Status</th>
-            <th>Started On</th>
-            <th>Last Update</th>
-            <th>Group Names</th>
+            <th data-sort="string">Name</th>
+            <th data-sort="string">Status</th>
+            <th data-sort="string">Started On</th>
+            <th data-sort="string">Last Update</th>
+            <th data-sort="string">Group Names</th>
         </tr>
     </thead>
     <tbody>
@@ -77,5 +77,6 @@ $(function() {
         e.preventDefault();
         web2py_ajax_page('post', '{{=URL("clear_cache", user_signature=True)}}', null, 'a');
     });
+    $('#worker_status').stupidtable();
 });
 </script>

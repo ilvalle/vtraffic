@@ -17,20 +17,24 @@
     {{while len(fields)>0:}}
         <tr>
         {{k=fields.pop(0)}}
-        <td><b>{{=db.scheduler_task[k].label}}</b></td>
+        <td><b>{{=st[k].label}}</b></td>
         {{if k == 'status':}}
             <td>{{=task['status_']}}</td>
         {{else:}}
             <td>{{=task[k]}}</td>
         {{pass}}
-        {{k=fields.pop(0)}}
-        <td><b>{{=db.scheduler_task[k].label}}</b></td>
-        {{if k == 'status':}}
-            <td>{{=task['status_']}}</td>
+        {{if len(fields)>0:}}
+            {{k=fields.pop(0)}}
+            <td><b>{{=st[k].label}}</b></td>
+            {{if k == 'status':}}
+                <td>{{=task['status_']}}</td>
+            {{else:}}
+                <td>{{=task[k]}}</td>
+            {{pass}}
         {{else:}}
-            <td>{{=task[k]}}</td>
+            <td></td><td></td>
         {{pass}}
-        <tr>
+        </tr>
     {{pass}}
     </tbody>
 </table>

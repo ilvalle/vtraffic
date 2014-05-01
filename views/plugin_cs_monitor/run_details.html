@@ -8,14 +8,14 @@
     <thead>
         <tr>
             <th></th>
-            <th>Task id</th>
-            <th>Status</th>
-            <th>Start Time</th>
-            <th>Stop Time</th>
-            <th>Output</th>
-            <th>Result</th>
-            <th>Traceback</th>
-            <th>Worker Name</th>
+            <th data-sort="string">Task id</th>
+            <th data-sort="string">Status</th>
+            <th data-sort="string">Start Time</th>
+            <th data-sort="string">Stop Time</th>
+            <th data-sort="string">Output</th>
+            <th data-sort="string">Result</th>
+            <th data-sort="string">Traceback</th>
+            <th data-sort="string">Worker Name</th>
         </tr>
     </thead>
     <tbody>
@@ -42,15 +42,13 @@
 
 {{if total > len(runs):}}
 <ul class="pager">
-    <li class="{{='' if page else 'disabled'}}">{{=A('Previous',
-                    _href=URL(r=request, args=request.args, vars={'page': page and page or 1, 'qfilter':request.vars.qfilter or ''}, user_signature=True),
-                    cid=request.cid)
-                    }}</li>
+    {{prev = page and URL(r=request, args=request.args, vars={'page': page and page or 1, 'qfilter':request.vars.qfilter or ''}, user_signature=True) or '#'}}
+    {{prev = prev != '#' and A('Previous', _href=prev, cid=request.cid) or A('Previous', _href='#')}}
+    {{next = total/paginate > page and URL(r=request, args=request.args, vars={'page' : page and page+2 or 2, 'qfilter':request.vars.qfilter or ''}, user_signature=True) or '#'}}
+    {{next = next != '#' and A('Next', _href=next, cid=request.cid) or A('Next', _href='#')}}
+    <li class="{{='' if page else 'disabled'}}">{{=prev}}</li>
     <li>{{=A(page+1)}}</li>
-    <li class="{{='' if total/paginate > page else 'disabled'}}">{{=A('Next',
-                    _href=URL(r=request, args=request.args, vars={'page' : page and page+2 or 2, 'qfilter':request.vars.qfilter or ''}, user_signature=True),
-                    cid=request.cid)
-                    }}</li>
+    <li class="{{='' if total/paginate > page else 'disabled'}}">{{=next}}</li>
 </ul>
 {{pass}}
 
@@ -74,5 +72,6 @@ $(function() {
         var link = '{{=URL(r=request, args=request.args, user_signature=True)}}';
         web2py_ajax_page('post', link, $('#qfilter').serialize(), '{{=request.cid}}')
     });
+    $('#run_details').stupidtable();
 });
 </script>
