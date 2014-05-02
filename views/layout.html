@@ -80,7 +80,7 @@
         </button>
         <ul id="navbar" class="nav pull-right">{{= auth.navbar(  mode="dropdown" ) }}</ul>
         <div class="nav-collapse">
-          {{is_mobile=request.user_agent().is_mobile}}
+          {{is_mobile=False #request.user_agent().is_mobile}}
           {{if response.menu:}}
           {{=MENU(response.menu, _class='mobile-menu nav' if is_mobile else 'nav',mobile=is_mobile,li_class='dropdown',ul_class='dropdown-menu', li_active='active')}}
           {{pass}}
