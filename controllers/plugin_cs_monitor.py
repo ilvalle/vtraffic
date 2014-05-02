@@ -37,13 +37,13 @@ sr = dbs.scheduler_run
 ANALYZE_CACHE_KWARGS = {'cache' : (cache.with_prefix(sc_cache, "plugin_cs_monitor"),ANALYZE_CACHE_TIME), 'cacheable' : True}
 
 response.meta.author = 'Niphlod <niphlod@gmail.com>'
-response.title = 'ComfortScheduler Monitor'
-response.subtitle = '0.1.0'
-response.static_version = '0.1.0'
+response.title = 'Scheduler Monitor'
+#response.subtitle = '0.1.0'
+#response.static_version = '0.1.0'
 
 try:
     response.menu.append(
-        ('Comfy Scheduler Monitor', False, URL('plugin_cs_monitor', 'index'), []),
+        ('Scheduler Monitor', False, URL('plugin_cs_monitor', 'index'), []),
     )
 except:
     pass
