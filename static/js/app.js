@@ -47,6 +47,15 @@ function append_to_sidebar(xhr, target) {
     t.append(html);
 }
 
+    
+function onEachFeature (feature, layer) {
+    if (feature.properties && feature.properties.popupContent) {
+        popupContent = feature.properties.popupContent;
+    }
+
+    layer.bindPopup(popupContent);
+}
+
 
 (function ($, undefined) {
 	$(document).on('click', '#period a', function(e) {
