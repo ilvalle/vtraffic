@@ -4,6 +4,7 @@ import datetime
 from gluon.storage import Storage
 from gluon import current
 from gluon.serializers import json as dumps
+from gluon.tools import prettydate
 from plugin_cs_monitor.admin_scheduler_helpers import nice_worker_status, graph_colors_task_status, nice_task_status, mybootstrap, requeue_task
 from collections import defaultdict
 
@@ -37,13 +38,13 @@ sr = dbs.scheduler_run
 ANALYZE_CACHE_KWARGS = {'cache' : (cache.with_prefix(sc_cache, "plugin_cs_monitor"),ANALYZE_CACHE_TIME), 'cacheable' : True}
 
 response.meta.author = 'Niphlod <niphlod@gmail.com>'
-response.title = 'Scheduler Monitor'
-#response.subtitle = '0.1.0'
-#response.static_version = '0.1.0'
+response.title = 'ComfortScheduler Monitor'
+response.subtitle = ''#'1.2.0'
+#response.static_version = '1.2.0'
 
 try:
     response.menu.append(
-        ('Scheduler Monitor', False, URL('plugin_cs_monitor', 'index'), []),
+        ('Comfy Scheduler Monitor', False, URL('plugin_cs_monitor', 'index'), []),
     )
 except:
     pass
@@ -256,6 +257,12 @@ def run_details():
     runs = dbs(q).select(orderby=~sr.stop_time|~sr.id, limitby=limitby)
     for row in runs:
         row.status_ = nice_task_status(row.status)
+        if row.start_time and row.stop_time:
+            td = row.stop_time - row.start_time
+            td = (td.seconds + td.days * 24 * 3600)
+        else:
+            td = 0
+        row.elapsed_seconds_ = td
     return dict(runs=runs, paginate=paginate, total=total, page=page)
 
 @auth.requires_signature()
@@ -540,12 +547,17 @@ def analyze_task():
 
     last_run = dbs(q).select(sr.start_time, orderby=~sr.start_time, limitby=(0,1)).first()
 
+    first_run_pretty = first_run and prettydate(first_run.start_time) or 'Never'
+    last_run_pretty = last_run and prettydate(last_run.start_time) or 'Never'
+
     if not first_run:
         mode = 'no_runs'
         #we can rely on the data on the scheduler_task table because no scheduler_run were found
         q = st.id == task_id
+        first_run_pretty = 'Never'
     else:
         mode = 'runs'
+    last_run 
     if len(request.args) >= 2:
         if request.args(1) == 'byfunction':
             if mode == 'runs':
@@ -584,7 +596,6 @@ def analyze_task():
 
     gb_when_rows, jgb_when_series = bydate(q, mode)
     jgb_when_series = dumps(jgb_when_series)
-
 
     if len(request.args) == 4 and request.args(2) == 'byday':
         gb_whend_rows, jgb_whend_series = byday(q, day, mode)

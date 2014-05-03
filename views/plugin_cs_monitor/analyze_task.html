@@ -8,8 +8,8 @@
         <ul class="nav nav-list">
             {{if first_run:}}
                 <li class="nav-header">Run Details</li>
-                <li>First Run: {{=prettydate(first_run.start_time)}}</li>
-                <li>Last Run: {{=prettydate(last_run.start_time)}}</li>
+                <li>First Run: {{=first_run_pretty}}</li>
+                <li>Last Run: {{=last_run_pretty}}</li>
                 <li class="divider"></li>
             {{pass}}
             <li class="nav-header">Analyze</li>

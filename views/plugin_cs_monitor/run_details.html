@@ -12,6 +12,7 @@
             <th data-sort="string">Status</th>
             <th data-sort="string">Start Time</th>
             <th data-sort="string">Stop Time</th>
+            <th data-sort="int">Elapsed secs</th>
             <th data-sort="string">Output</th>
             <th data-sort="string">Result</th>
             <th data-sort="string">Traceback</th>
@@ -26,6 +27,7 @@
             <td>{{=r_.status_}}</td>
             <td>{{=r_.start_time}}</td>
             <td>{{=r_.stop_time}}</td>
+            <td>{{=r_.elapsed_seconds_}}</td>
             <td>{{=r_.run_output}}</td>
             <td>{{=r_.run_result}}</td>
             {{traceback = r_.traceback}}
@@ -38,7 +40,7 @@
         </tr>
         {{pass}}
     </tbody>
-<table>
+</table>
 
 {{if total > len(runs):}}
 <ul class="pager">
