@@ -190,8 +190,8 @@
         timePicker12Hour: true,
         ranges: {
             'Last 2 hours': [moment().subtract('hours', 2), moment()],
-            'Today': [moment(), moment()],
-            'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
+            'Today': [moment({hour: 00, minute: 00}), moment()],
+            'Yesterday': [moment({hour: 00, minute: 00}).subtract('days', 1), moment({hour: 23, minute: 59}).subtract('days', 1)],
             'Last 7 Days': [moment().subtract('days', 6), moment()],
             'Last 30 Days': [moment().subtract('days', 29), moment()],
             'This Month': [moment().startOf('month'), moment().endOf('month')],
