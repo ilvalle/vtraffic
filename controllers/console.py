@@ -82,8 +82,10 @@ def get_data():
 
     f = lambda row: row['timestamp'] // 5000
     for key, group in groupby(data, f):
-        ln = list(group)
-        output.append( [key*5000, "%.2f" % float(ln[0]['value'])] )
+        list_ = list(group)
+        list_values = [float(e['value']) for e in list_]
+        avg_value = reduce(lambda x, y: x + y, list_values) / len(list_values)
+        output.append( [key*5000, "%.2f" % avg_value] )
 
     # the id must be the same of the A element in the data type list
     series = [{'data':output, 'id': 'type_%s_%s' % (station,data_type), 'station_id':'station_iud', 'label': "%s - %s" % (station, data_label)}]
