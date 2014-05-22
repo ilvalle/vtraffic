@@ -8,6 +8,7 @@ from datetime import datetime
 import time
 
 
+
 def test_write():
     db.define_table('test_write',
         Field('value', 'integer' ),
@@ -20,7 +21,7 @@ def test_write():
 
 ## For each possible origin/destination couple finds the matches
 def run_all():
-    init_t = time.time()
+    db.station._common_filter = lambda query: db.station.is_active == True
     stations = db(db.station.id).select(db.station.id, orderby=db.station.id, cacheable = True)
     total = 0
     for o in stations:
@@ -29,10 +30,7 @@ def run_all():
                 matches = find_matches(o.id, d.id)
                 __save_match(matches)
                 total += len(matches)
-#                print total
-                #query = (db.match.station_id_orig == o.id) & (db.match.station_id_dest == d.id)
-                #__get_blocks_scheduler(query, 900, reset_cache=True)
-    print 'Total', time.time() - init_t
+
     return total
 
 ## Set all record to valid=False if there are null mac address
@@ -164,3 +162,53 @@ def __next_step(current=None):
         minutes = 15        # it'll be the avg/min/mode elapsed_time
     
     return timedelta(minutes=minutes)
+    
+def count_bluetooth():
+    db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Bluetoothstation'
+    return count_bluetooth_station(station_id = 20)
+    
+### For each bluetooth statioin, count the number of bluetooth gathered in a window of 15minutes
+def count_bluetooth_station(station_id): 
+    type_id = 19     # Elaboration type is 19
+    interval = 900
+    ### check last value or set it as min(gathered_on)
+
+    last_ts = db_intime((db_intime.elaborationhistory.type_id == type_id) & 
+                        (db_intime.elaborationhistory.station_id == station_id)).select(db_intime.elaborationhistory.timestamp.max()).first()
+    print last_ts 
+    if last_ts[db_intime.elaborationhistory.timestamp.max()]:
+        last_ts = "'%s'" % (last_ts[db_intime.elaborationhistory.timestamp.max()] - datetime.timedelta(seconds=interval/2))
+    else:
+        last_ts = 'min(gathered_on)::date'
+    print last_ts
+    query = """
+        SELECT start_time, count(e.id) AS n_bluetooth
+        FROM (
+           SELECT start_time, lead(start_time, 1, now()::timestamp) OVER (ORDER BY start_time) AS end_time
+           FROM ( SELECT generate_series(%(since)s, max(gathered_on), '%(interval)s seconds'::interval) AS start_time from record where station_id = %(station_id)s) x
+           ) as g
+        left JOIN (select gathered_on, id from record where station_id = %(station_id)s) e ON e.gathered_on >= g.start_time AND e.gathered_on < g.end_time
+        GROUP  BY start_time
+        ORDER  BY start_time asc;
+    """ % {'station_id': station_id, 'since': last_ts, 'interval':interval}
+    rows = db.executesql(query, as_dict=True) 
+    if rows:
+        print rows[-1]['start_time'], rows[-1]['start_time'] + datetime.timedelta(seconds=interval/2)
+    else:
+        print 'empty'
+    # Save the data
+    for r in rows:
+        new_timestamp = r['start_time'] + datetime.timedelta(seconds=interval/2)
+        db_intime.elaborationhistory.update_or_insert(db_intime.elaborationhistory.timestamp == new_timestamp, 
+                    created_on=datetime.datetime.now(),
+                    timestamp = new_timestamp,
+                    value = r['n_bluetooth'],
+                    station_id = station_id,
+                    type_id = type_id,
+                    period  = 900)
+    return len(rows)
+    
+    
+
+
+    
