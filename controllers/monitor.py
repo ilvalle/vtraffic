@@ -2,6 +2,7 @@ import datetime
 from datetime import timedelta
 
 def box():
+    session.forget()
     if not(request.vars.id) or not(request.vars.id.isdigit()): return 'specificare id (integer)'
     station_id = int(request.vars.id)
     time_delta = request.now - datetime.timedelta(days=2)
