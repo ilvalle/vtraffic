@@ -7,8 +7,6 @@ from datetime import timedelta
 from datetime import datetime
 import time
 
-
-
 def test_write():
     db.define_table('test_write',
         Field('value', 'integer' ),
@@ -165,7 +163,12 @@ def __next_step(current=None):
     
 def count_bluetooth():
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Bluetoothstation'
-    return count_bluetooth_station(station_id = 20)
+    stations = db_intime(db_intime.station.id).select(cacheable=True)
+    total = 0
+    #for s in stations:
+    #    total += count_bluetooth_station(station_id = 20)
+    total += count_bluetooth_station(station_id = 20)
+    return total 
     
 ### For each bluetooth statioin, count the number of bluetooth gathered in a window of 15minutes
 def count_bluetooth_station(station_id): 
@@ -175,12 +178,10 @@ def count_bluetooth_station(station_id):
 
     last_ts = db_intime((db_intime.elaborationhistory.type_id == type_id) & 
                         (db_intime.elaborationhistory.station_id == station_id)).select(db_intime.elaborationhistory.timestamp.max()).first()
-    print last_ts 
     if last_ts[db_intime.elaborationhistory.timestamp.max()]:
         last_ts = "'%s'" % (last_ts[db_intime.elaborationhistory.timestamp.max()] - datetime.timedelta(seconds=interval/2))
     else:
         last_ts = 'min(gathered_on)::date'
-    print last_ts
     query = """
         SELECT start_time, count(e.id) AS n_bluetooth
         FROM (
@@ -191,6 +192,54 @@ def count_bluetooth_station(station_id):
         GROUP  BY start_time
         ORDER  BY start_time asc;
     """ % {'station_id': station_id, 'since': last_ts, 'interval':interval}
+    rows = db.executesql(query, as_dict=True) 
+    if rows:
+        print rows[-1]['start_time'], rows[-1]['start_time'] + datetime.timedelta(seconds=interval/2)
+#    else:
+#        print 'empty'
+    # Save the data
+    for r in rows:
+        new_timestamp = r['start_time'] + datetime.timedelta(seconds=interval/2)
+        db_intime.elaborationhistory.update_or_insert(db_intime.elaborationhistory.timestamp == new_timestamp, 
+                    created_on=datetime.datetime.now(),
+                    timestamp = new_timestamp,
+                    value = r['n_bluetooth'],
+                    station_id = station_id,
+                    type_id = type_id,
+                    period  = 900)
+        db_intime.commit()
+    return len(rows)
+
+### For each bluetooth statioin, count the number of bluetooth gathered in a window of 15minutes
+def count_matches_station(station_id): 
+    type_id = 20     # Elaboration type is 19
+    interval = 900
+    ### check last value or set it as min(gathered_on)
+    
+    row = db_intime((db_intime.station.id == station_id) & (db_intime.linkbasicdata.station_id == db_intime.station.id)).select(db_intime.linkbasicdata.ALL, cacheable=True).first()
+    station_id_orig = row.origin
+    station_id_dest = row.destination
+    
+    last_ts = db_intime((db_intime.elaborationhistory.type_id == type_id) & 
+                        (db_intime.elaborationhistory.station_id == station_id)).select(db_intime.elaborationhistory.timestamp.max()).first()
+    
+    if last_ts[db_intime.elaborationhistory.timestamp.max()]:
+        last_ts = "'%s'" % (last_ts[db_intime.elaborationhistory.timestamp.max()] - datetime.timedelta(seconds=interval/2))
+    else:
+        last_ts = 'min(gathered_on_orig)::date'
+
+    query = """
+        SELECT start_time, count(e.id) AS n_bluetooth
+        FROM (
+           SELECT start_time, lead(start_time, 1, now()::timestamp) OVER (ORDER BY start_time) AS end_time
+           FROM ( SELECT generate_series(%(since)s, max(gathered_on_orig), '%(interval)s seconds'::interval) AS start_time 
+                  FROM   match 
+                  WHERE  station_id_orig = %(station_id_orig)s AND station_id_dest = %(station_id_dest)s) x
+           ) as g
+        left JOIN (SELECT gathered_on_orig, id FROM match where station_id_orig = %(station_id_orig)s AND station_id_dest = %(station_id_dest)s) e ON e.gathered_on_orig >= g.start_time AND e.gathered_on_orig < g.end_time
+        GROUP  BY start_time
+        ORDER  BY start_time asc;
+    """ % {'station_id_orig': station_id_orig,'station_id_dest': station_id_dest, 'since': last_ts, 'interval':interval}
     rows = db.executesql(query, as_dict=True) 
     if rows:
         print rows[-1]['start_time'], rows[-1]['start_time'] + datetime.timedelta(seconds=interval/2)
@@ -206,9 +255,7 @@ def count_bluetooth_station(station_id):
                     station_id = station_id,
                     type_id = type_id,
                     period  = 900)
+        db_intime.commit()                    
     return len(rows)
-    
-    
+        
 
-
-    

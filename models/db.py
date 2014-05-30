@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
 MIGRATE=False
-
 # user and pwd are defined in a different and not public model.
 db = DAL('postgres://%s:%s@10.8.0.1:5432/integreen' % (user, pwd),
 	migrate=MIGRATE,
@@ -164,6 +162,8 @@ db_intime.define_table('elaborationhistory',
 )
 
 db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
-
+cmd_options = request.global_settings.cmd_options
+if cmd_options and cmd_options.scheduler:
+    response.models_to_run.append("^scheduler/\\w+\\.py$")
 
 #if "auth" in locals(): auth.wikimenu()
