@@ -4,7 +4,7 @@ scheduler = Scheduler(db, migrate=False)
 
 from applications.vtraffic.modules.tools import EPOCH_M
 from datetime import timedelta
-from datetime import datetime
+import datetime
 import time
 
 def test_write():
