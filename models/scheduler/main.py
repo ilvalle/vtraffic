@@ -166,7 +166,7 @@ def count_bluetooth():
     stations = db_intime(db_intime.station.id).select(cacheable=True)
     total = 0
     for s in stations:
-        total += count_bluetooth_station(station_id = s.id, 900)
+        total += count_bluetooth_station(station_id = s.id, interval = 900)
     return total 
     
 ### For each bluetooth statioin, count the number of bluetooth gathered in a window of 15minutes
