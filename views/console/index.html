@@ -189,11 +189,11 @@
         timePickerIncrement: 1,
         timePicker12Hour: true,
         ranges: {
-            'Last 2 hours': [moment().subtract('hours', 2), moment()],
+            'Last 2 hours': [moment().subtract('hours', 2), moment().add('days', 1)],
             'Today': [moment({hour: 00, minute: 00}), moment()],
             'Yesterday': [moment({hour: 00, minute: 00}).subtract('days', 1), moment({hour: 23, minute: 59}).subtract('days', 1)],
-            'Last 7 Days': [moment().subtract('days', 6), moment()],
-            'Last 30 Days': [moment().subtract('days', 29), moment()],
+            'Last 7 Days': [moment().subtract('days', 6), moment().add('days', 1)],
+            'Last 30 Days': [moment().subtract('days', 29), moment().add('days', 1)],
             'This Month': [moment().startOf('month'), moment().endOf('month')],
             'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
         },
