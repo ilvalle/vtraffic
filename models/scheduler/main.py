@@ -221,15 +221,14 @@ def count_match():
     stations = db_intime(db_intime.station.id).select(cacheable=True)
     total = 0
     for s in stations:
-        total += count_matches_station(station_id = s.id)
+        total += count_matches_station(station_id = s.id, interval=900)
     return total 
     
 ### For each bluetooth statioin, count the number of bluetooth gathered in a window of 15minutes
-def count_matches_station(station_id): 
+def count_matches_station(station_id, interval): 
     type_id = 20     # Elaboration type is 19
-    interval = 900
+
     ### check last value or set it as min(gathered_on)
-    
     row = db_intime((db_intime.station.id == station_id) & (db_intime.linkbasicdata.station_id == db_intime.station.id)).select(db_intime.linkbasicdata.ALL, cacheable=True).first()
     station_id_orig = row.origin
     station_id_dest = row.destination
