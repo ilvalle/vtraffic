@@ -41,6 +41,8 @@ def run_valid_record():
 
 # compute and store the mode in the intime database    
 def run_mode():
+    type_id = 18
+    interval = 900
     link_stations = db_intime(db_intime.linkbasicdata.station_id == db_intime.station.id).select()
     for link in link_stations:
         origin = link.linkbasicdata.origin
@@ -52,32 +54,16 @@ def run_mode():
         # manca order by
         if last_value:
             query &= (db.match.gathered_on_orig > (last_value[0].timestamp + timedelta(seconds=last_value[0].period/2)))
-        print query
+        #print query
         data = __compute_mode(query, 900)['data']
         # save all data into elaborationhistory
-        for r in data:
-            db_intime.elaborationhistory.insert( 
-                        created_on=datetime.datetime.now(),
-                        timestamp =datetime.datetime.fromtimestamp(r[0]/1000 - 7200),   # TO be fixed
-                        value = r[1],
-                        station_id = link.linkbasicdata.station_id,
-                        type_id = 18,
-                        period  = 900)
-
-        if len(data) != 0:
-            last=data[len(data)-1]
-            db_intime.elaboration.insert( 
-                        created_on=datetime.datetime.now(),
-                        timestamp =datetime.datetime.fromtimestamp(last[0]/1000 - 7200), #TO be fixed
-                        value = last[1],
-                        station_id = link.linkbasicdata.station_id,
-                        type_id = 18,
-                        period  = 900)                
-            db_intime.commit()
-
+        # TODO fix timezone
+        rows = [{'timestamp': datetime.datetime.fromtimestamp(r[0]/1000 - 7200), 'value': r[1]/1000 if r[1] else 0} for r in data]
+        # Save the data
+        __save_elaboration(rows, link.linkbasicdata.station_id, type_id, interval)
         out = '%s %s - stored -> %s' % (origin, destination, len(data))
         
-    link_stations = db_intime(db_intime.elaboration).select()    
+    #link_stations = db_intime(db_intime.elaboration).select()    
     #elaboration
     # created_on    -> datetime.now
     # timestamp     -> output elaboration
