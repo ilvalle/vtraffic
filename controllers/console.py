@@ -22,7 +22,7 @@ if request.function != 'wiki' and zero and not(zero.isdigit()):
 baseurl = "http://ipchannels.integreen-life.bz.it"
 # ipchannels-test.integreen-life.bz.it/MeteoFrontEnd/get-records?station=8320&name=WG&unit=m/s&seconds=3000
 frontends = {'Meteo':'MeteoFrontEnd', 'Vehicle': 'VehicleFrontEnd', 'Environment':'EnvironmentFrontEnd', 'Parking': 'parkingFrontEnd', 
-		'Bluetooth':'BluetoothFrontEnd'} 
+		'Bluetooth':'BluetoothFrontEnd', 'Link':'LinkFrontEnd'} 
 @auth.requires_login()
 def index():
 	return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})
