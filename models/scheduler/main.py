@@ -42,15 +42,19 @@ def run_valid_record():
 # compute and store the mode in the intime database    
 def run_mode():
     type_id = 18
-    interval = 900
-    link_stations = db_intime(db_intime.linkbasicdata.station_id == db_intime.station.id).select()
+    period = 900
+    link_stations = db_intime(db_intime.linkbasicdata.station_id == db_intime.station.id).select(cacheable=True)
+    out = ''
     for link in link_stations:
         origin = link.linkbasicdata.origin
         destination = link.linkbasicdata.destination
         db.match._common_filter = None
       	query = (db.match.station_id_orig == origin) & (db.match.station_id_dest == destination) 
-        # Given an origin and a destination, we check the last stored match
-        last_value = db_intime(db_intime.elaborationhistory.station_id == link.linkbasicdata.station_id).select(limitby=(0,1), orderby=~db_intime.elaborationhistory.timestamp)
+        # Given an origin and a destination, we check the last stored elapsed time
+        last_value = db_intime((db_intime.elaborationhistory.station_id == link.linkbasicdata.station_id) &
+                               (db_intime.elaborationhistory.type_id == type_id) &
+                               (db_intime.elaborationhistory.period == period)).select(limitby=(0,1), cacheable=True, orderby=~db_intime.elaborationhistory.timestamp)
+
         # manca order by
         if last_value:
             query &= (db.match.gathered_on_orig > (last_value[0].timestamp + timedelta(seconds=last_value[0].period/2)))
@@ -60,21 +64,10 @@ def run_mode():
         # TODO fix timezone
         rows = [{'timestamp': datetime.datetime.fromtimestamp(r[0]/1000 - 7200), 'value': r[1]/1000 if r[1] else 0} for r in data]
         # Save the data
-        __save_elaboration(rows, link.linkbasicdata.station_id, type_id, interval)
-        out = '%s %s - stored -> %s' % (origin, destination, len(data))
+        __save_elaboration(rows, link.linkbasicdata.station_id, type_id, period)
+        out += '%s %s - stored -> %s' % (origin, destination, len(data))
         
-    #link_stations = db_intime(db_intime.elaboration).select()    
-    #elaboration
-    # created_on    -> datetime.now
-    # timestamp     -> output elaboration
-    # value         -> output elaboration
-    # station_id    -> link.linkbasicdata.station_id
-    # type_id       -> 18
-    # period        -> 900
-    ## Type operation is 18 for frame 15minutes long
     return out
-    
-
 
 
 def find_matches (id_origin, id_destination, query=None):
