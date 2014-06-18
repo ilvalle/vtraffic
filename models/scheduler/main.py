@@ -140,8 +140,7 @@ def __next_step(current=None):
     
     return timedelta(minutes=minutes)
     
-def count_bluetooth():
-    interval = request.args(0) or 900
+def count_bluetooth(interval=900):
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Bluetoothstation'
     stations = db_intime(db_intime.station.id).select(cacheable=True)
     total = 0
@@ -196,8 +195,7 @@ def __save_elaboration(rows, station_id, type_id, interval):
     db_intime.commit()
     return
 
-def count_match():
-    interval = request.args(0) or 900
+def count_match(interval=900):
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
     stations = db_intime(db_intime.station.id).select(cacheable=True)
     total = 0
