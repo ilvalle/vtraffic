@@ -141,11 +141,12 @@ def __next_step(current=None):
     return timedelta(minutes=minutes)
     
 def count_bluetooth():
+    interval = request.args(0) or 900
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Bluetoothstation'
     stations = db_intime(db_intime.station.id).select(cacheable=True)
     total = 0
     for s in stations:
-        total += count_bluetooth_station(station_id = s.id, interval = 900)
+        total += count_bluetooth_station(station_id = s.id, interval = interval)
     return total 
     
 ### For each bluetooth statioin, count the number of bluetooth gathered in a window of 15minutes
@@ -196,11 +197,12 @@ def __save_elaboration(rows, station_id, type_id, interval):
     return
 
 def count_match():
+    interval = request.args(0) or 900
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
     stations = db_intime(db_intime.station.id).select(cacheable=True)
     total = 0
     for s in stations:
-        total += count_matches_station(station_id = s.id, interval=900)
+        total += count_matches_station(station_id = s.id, interval = interval)
     return total 
     
 ### For each bluetooth statioin, count the number of bluetooth gathered in a window of 15minutes
