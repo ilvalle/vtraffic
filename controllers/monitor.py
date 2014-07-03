@@ -26,5 +26,7 @@ def scheduler():
         return 'ok'
         
 def situation():
+    if not(auth.is_logged_in()):
+        db.station.id.readable=False
     grid = SQLFORM.grid(db.station, csv=False, searchable=False)
     return {'grid':grid}
