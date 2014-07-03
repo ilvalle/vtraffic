@@ -24,3 +24,7 @@ def scheduler():
         raise(HTTP(500, 'task failed'))
     else:
         return 'ok'
+        
+def situation():
+    grid = SQLFORM.grid(db.station, csv=False, searchable=False)
+    return {'grid':grid}
