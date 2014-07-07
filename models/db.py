@@ -161,7 +161,15 @@ db_intime.define_table('elaborationhistory',
     Field('period', 'integer'),    
     migrate=False
 )
-
+db_intime.define_table('measurementhistory',
+    Field('created_on', 'datetime'),
+    Field('timestamp', 'datetime'),
+    Field('value', 'double'),
+    Field('station_id', 'reference station'),
+    Field('type_id', 'reference type'),
+    Field('period', 'integer'),    
+    migrate=False
+)
 db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
 cmd_options = request.global_settings.cmd_options
 if cmd_options and cmd_options.scheduler or request.controller in ['plugin_cs_monitor', 'test', 'monitor']:
