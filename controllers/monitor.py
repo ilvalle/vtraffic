@@ -42,7 +42,7 @@ def environment():
     
 # check for each type if the data is not older than 1day
 def __check_measurementhistory(name):
-    time_delta = request.now + datetime.timedelta(days=1)
+    time_delta = request.now - datetime.timedelta(days=1)
     max_ts = db_intime.measurementhistory.timestamp.max()
     query = (db_intime.measurementhistory.station_id == db_intime.station.id) & \
             (db_intime.measurementhistory.type_id == db_intime.type.id)
