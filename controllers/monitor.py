@@ -83,7 +83,7 @@ def parking_3rd_parties():
             assert value != None
         return 'ok'
     except:
-        raise(HTTP(500, 'Provider is either unreachable or no data are transferred'))
+        raise(HTTP(500, 'Provider is either unreachable or no data were transferred'))
     
     
     
