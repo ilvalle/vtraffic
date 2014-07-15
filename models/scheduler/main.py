@@ -154,11 +154,13 @@ def count_bluetooth_station(station_id, interval):
     ### check last value or set it as min(gathered_on)
 
     last_ts = db_intime((db_intime.elaborationhistory.type_id == type_id) & 
-                        (db_intime.elaborationhistory.station_id == station_id)).select(db_intime.elaborationhistory.timestamp.max()).first()
+                        (db_intime.elaborationhistory.station_id == station_id) &
+                        (db_intime.elaborationhistory.period == interval)).select(db_intime.elaborationhistory.timestamp.max()).first()
     if last_ts[db_intime.elaborationhistory.timestamp.max()]:
         last_ts = "'%s'" % (last_ts[db_intime.elaborationhistory.timestamp.max()] - datetime.timedelta(seconds=interval/2))
     else:
         last_ts = 'min(gathered_on)::date'
+
     query = """
         SELECT start_time as timestamp, count(e.id) AS n_bluetooth
         FROM (
