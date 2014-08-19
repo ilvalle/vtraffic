@@ -22,7 +22,7 @@ if request.function != 'wiki' and zero and not(zero.isdigit()):
 baseurl = "http://ipchannels.integreen-life.bz.it"
 # ipchannels-test.integreen-life.bz.it/MeteoFrontEnd/get-records?station=8320&name=WG&unit=m/s&seconds=3000
 frontends = {'Meteo':'MeteoFrontEnd', 'Vehicle': 'VehicleFrontEnd', 'Environment':'EnvironmentFrontEnd', 'Parking': 'parkingFrontEnd', 
-		'Bluetooth':'BluetoothFrontEnd', 'Link':'LinkFrontEnd'} 
+		'Bluetooth':'BluetoothFrontEnd', 'Link':'LinkFrontEnd', 'Street': 'StreetFrontEnd'} 
 @auth.requires_login()
 def index():
 	return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})
@@ -56,10 +56,12 @@ def get_data_types():
     r = requests.get(url, params={'station':station})
 
     data_types = r.json()
-    data_types_filtered = filter(lambda r: 'valid' not in r[0], data_types)
-    data_types_filtered = filter(lambda r: 'runtime' not in r[0], data_types_filtered)
-    data_types_filtered = filter(lambda r: 'id_' not in r[0], data_types_filtered)
-    data_types_filtered = filter(lambda r: 'gps_' not in r[0] or 'speed' in r[0], data_types_filtered)
+    data_types_filtered = data_types
+    if frontend.lower() == 'vehicle':
+        data_types_filtered = filter(lambda r: 'valid' not in r[0], data_types)
+        data_types_filtered = filter(lambda r: 'runtime' not in r[0], data_types_filtered)
+        data_types_filtered = filter(lambda r: 'id_' not in r[0], data_types_filtered)
+        data_types_filtered = filter(lambda r: 'gps_' not in r[0] or 'speed' in r[0], data_types_filtered)
     #data_types_filtered = [ [d[0].replace('_', ' '), d[1], d[2]] for d in data_types_filtered ]
     return response.render('console/data_types_legend.html', {'data_types':data_types_filtered, 'frontend':frontend, 'station':station })
 
@@ -70,15 +72,16 @@ def get_data():
     data_type = request.vars.data_type
     data_label = request.vars.data_label
     unit = request.vars.unit
+    period = request.vars.period
     seconds = request.vars.seconds
     from_epoch = int(request.vars['from'])
     to_epoch = int(request.vars.to)
 
     url = "%s/%s/rest/get-records-in-timeframe" % (baseurl, frontends[frontend])
-    params = {'station':station, 'name':data_type, 'unit':unit, 'from':from_epoch, 'to': to_epoch}
+    params = {'station':station, 'name':data_type, 'unit':unit, 'from':from_epoch, 'to': to_epoch, 'period': period}
     r = requests.get(url, params=params)
+    #print 'URL', r.url
     data = r.json()
-
     output = []
 
     f = lambda row: row['timestamp'] // 5000
