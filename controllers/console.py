@@ -92,7 +92,7 @@ def get_data():
         output.append( [key*5000, "%.2f" % avg_value] )
 
     # the id must be the same of the A element in the data type list
-    series = [{'data':output, 'id': 'type_%s_%s' % (station,data_type), 'station_id':'station_iud', 'label': "%s - %s" % (station, data_label)}]
+    series = [{'data':output, 'id': IS_SLUG()('type_%s_%s' % (station,data_type))[0], 'station_id':'station_iud', 'label': "%s - %s" % (station, data_label)}]
 
     return response.json({'series': series})
 
