@@ -58,3 +58,11 @@ class intimeDAL(DAL):
 
         self.commit()
         return len(rows)
+
+    ### return the last timestamp for the given set or parameters (station, type, period)
+    def get_last_ts(self, type_id, station_id, period, table):
+        t = self[table]
+        last_ts = self((t.type_id == type_id) &
+                       (t.station_id == station_id) &
+                       (t.period == period)).select(t.timestamp.max(), cacheable=True, limitby=(0,1), orderby_on_limitby=False).first()
+        return last_ts[t.timestamp.max()]
