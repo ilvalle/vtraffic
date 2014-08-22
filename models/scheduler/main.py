@@ -181,24 +181,24 @@ def count_bluetooth_station(station_id, interval):
     return len(rows)
 
 ## save everything in elaborationhistory & elaboration
-#def __save_elaboration(rows, station_id, type_id, interval):
-#    for r in rows:
-#        if interval != 1:
-#            new_timestamp = r['timestamp'] + datetime.timedelta(seconds=interval/2)
-#        else:
-#            new_timestamp = r['timestamp']
-#        db_intime.elaborationhistory.update_or_insert( (db_intime.elaborationhistory.timestamp == new_timestamp) & 
-#                                                       (db_intime.elaborationhistory.station_id == station_id) &
-#                                                       (db_intime.elaborationhistory.type_id == type_id) &
-#                                                       (db_intime.elaborationhistory.period == interval), 
-#                    created_on= datetime.datetime.now(),
-#                    timestamp = new_timestamp,
-#                    value = r['value'],
-#                    station_id = station_id,
-#                    type_id = type_id,
-#                    period  = interval)
-#    db_intime.commit()
-#    return
+def __save_elaboration(rows, station_id, type_id, interval):
+    for r in rows:
+        if interval != 1:
+            new_timestamp = r['timestamp'] + datetime.timedelta(seconds=interval/2)
+        else:
+            new_timestamp = r['timestamp']
+        db_intime.elaborationhistory.update_or_insert( (db_intime.elaborationhistory.timestamp == new_timestamp) & 
+                                                       (db_intime.elaborationhistory.station_id == station_id) &
+                                                       (db_intime.elaborationhistory.type_id == type_id) &
+                                                       (db_intime.elaborationhistory.period == interval), 
+                    created_on= datetime.datetime.now(),
+                    timestamp = new_timestamp,
+                    value = r['value'],
+                    station_id = station_id,
+                    type_id = type_id,
+                    period  = interval)
+    db_intime.commit()
+    return
 
 def count_match(interval=900):
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
