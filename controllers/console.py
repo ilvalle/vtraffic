@@ -78,7 +78,9 @@ def get_data():
     to_epoch = int(request.vars.to)
 
     url = "%s/%s/rest/get-records-in-timeframe" % (baseurl, frontends[frontend])
-    params = {'station':station, 'name':data_type, 'unit':unit, 'from':from_epoch, 'to': to_epoch, 'period': period}
+    params = {'station':station, 'name':data_type, 'unit':unit, 'from':from_epoch, 'to': to_epoch}
+    if period:
+        params['period'] = period
     r = requests.get(url, params=params)
     #print 'URL', r.url
     data = r.json()
