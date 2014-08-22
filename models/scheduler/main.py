@@ -148,7 +148,7 @@ def count_bluetooth(interval=900):
         total += count_bluetooth_station(station_id = s.id, interval = interval)
     return total 
     
-### For each bluetooth statioin, count the number of bluetooth gathered in a window of 15minutes
+### For each bluetooth station, count the number of bluetooth gathered in a window of 15minutes
 def count_bluetooth_station(station_id, interval): 
     type_id = 19     # Elaboration type is 19
     ### check last value or set it as min(gathered_on)
@@ -174,28 +174,31 @@ def count_bluetooth_station(station_id, interval):
     rows = db.executesql(query, as_dict=True) 
 
     rows = [{'timestamp': r['timestamp'], 'value':r['n_bluetooth'] } for r in rows]
+
     # Save the data
     __save_elaboration(rows, station_id, type_id, interval)
     
     return len(rows)
 
 ## save everything in elaborationhistory & elaboration
-def __save_elaboration(rows, station_id, type_id, interval):
-    for r in rows:
-        new_timestamp = r['timestamp'] + datetime.timedelta(seconds=interval/2)
-        db_intime.elaborationhistory.update_or_insert( (db_intime.elaborationhistory.timestamp == new_timestamp) & 
-                                                       (db_intime.elaborationhistory.station_id == station_id) &
-                                                       (db_intime.elaborationhistory.type_id == type_id) &
-                                                       (db_intime.elaborationhistory.period == interval), 
-                    created_on= datetime.datetime.now(),
-                    timestamp = new_timestamp,
-                    value = r['value'],
-                    station_id = station_id,
-                    type_id = type_id,
-                    period  = interval)
-                    
-    db_intime.commit()
-    return
+#def __save_elaboration(rows, station_id, type_id, interval):
+#    for r in rows:
+#        if interval != 1:
+#            new_timestamp = r['timestamp'] + datetime.timedelta(seconds=interval/2)
+#        else:
+#            new_timestamp = r['timestamp']
+#        db_intime.elaborationhistory.update_or_insert( (db_intime.elaborationhistory.timestamp == new_timestamp) & 
+#                                                       (db_intime.elaborationhistory.station_id == station_id) &
+#                                                       (db_intime.elaborationhistory.type_id == type_id) &
+#                                                       (db_intime.elaborationhistory.period == interval), 
+#                    created_on= datetime.datetime.now(),
+#                    timestamp = new_timestamp,
+#                    value = r['value'],
+#                    station_id = station_id,
+#                    type_id = type_id,
+#                    period  = interval)
+#    db_intime.commit()
+#    return
 
 def count_match(interval=900):
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
@@ -205,7 +208,7 @@ def count_match(interval=900):
         total += count_matches_station(station_id = s.id, interval = interval)
     return total 
     
-### For each bluetooth statioin, count the number of bluetooth gathered in a window of 15minutes
+### For each bluetooth station, count the number of matches in a time frame of @interval seconds
 def count_matches_station(station_id, interval): 
     type_id = 20     # Elaboration type is 19
 

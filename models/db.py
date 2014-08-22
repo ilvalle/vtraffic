@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from applications.vtraffic.modules.tools import intimeDAL
 
 MIGRATE=False
 # user and pwd are defined in a different and not public model.
@@ -104,7 +105,7 @@ db.define_table('match',
 
 
 
-db_intime = DAL('postgres://%s:%s@10.8.0.1:5432/integreenintime' % (user, pwd),
+db_intime = intimeDAL('postgres://%s:%s@10.8.0.1:5432/integreenintime' % (user, pwd),
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
 	#fake_migrate_all=True,
@@ -170,6 +171,18 @@ db_intime.define_table('measurementhistory',
     Field('period', 'integer'),    
     migrate=False
 )
+db_intime.define_table('measurementstringhistory',
+    Field('created_on', 'datetime'),
+    Field('timestamp', 'datetime'),
+    Field('value', 'string'),
+    Field('station_id', 'reference station'),
+    Field('type_id', 'reference type'),
+    Field('period', 'integer'),    
+    migrate=False
+)
+
+
+
 db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
 cmd_options = request.global_settings.cmd_options
 if cmd_options and cmd_options.scheduler or request.controller in ['plugin_cs_monitor', 'test', 'monitor']:

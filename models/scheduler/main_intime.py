@@ -54,10 +54,12 @@ def count_elements_intime(interval, output_type_id, input_type_id, input_table):
 def __count_elements_intime(station_id, interval, output_type_id, input_type_id, input_table):
     ### check last value timestamp or set it as min(gathered_on)
     last_ts = db_intime.get_last_ts(output_type_id, station_id, interval, 'elaborationhistory')
+    unique = True
     if last_ts:
         last_ts = "'%s'" % (last_ts - datetime.timedelta(seconds=interval/2))
     else:
         last_ts = 'min(timestamp)::date'
+        unique = False # Speedup, no data are in the db for the given combination of station_id/type_id/interval
 
     query = """
         SELECT start_time AS timestamp, count(e.id) AS value
@@ -79,7 +81,7 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
     # Adapt the result to be stored
     #rows = [{'timestamp': r['timestamp'], 'value':r['n_elements'] } for r in rows]
     # Save the data
-    db_intime.save_elaborations(rows, station_id, output_type_id, interval)
+    db_intime.save_elaborations(rows, station_id, output_type_id, interval, unique)
 
     return len(rows)
 
@@ -127,7 +129,7 @@ def compute_mode_intime(station_id, interval, output_type_id, input_type_id, inp
     # Adapt the result to be stored
     rows = [{'timestamp': r[0], 'value':r[1] } for r in rows]
     # Save the data
-    #__save_elaboration(rows, station_id, output_type_id, interval)
+    #db_intime.save_elaborations(rows, station_id, output_type_id, interval)
 
     return len(rows)
 

@@ -123,6 +123,7 @@
 	});
 	
     function get_data(a_obj) {
+        console.log(a_obj);
         var params = {
             frontend: a_obj.data('frontend'),
             seconds: {{=seconds}},
@@ -130,6 +131,7 @@
             unit: a_obj.data('unit'),
             data_type: a_obj.data('type'),
             data_label: a_obj.attr("title"),
+            period: a_obj.data("period"),
         };
 		var url = '{{=URL("console", "get_data.json")}}'
         var uri = url + '?' + $.param(params);
