@@ -40,7 +40,7 @@ def run_mode_intime(interval=900):
 
 ### Generic method to count the number of element in a window of @interval seconds for a given table
 def count_elements_intime(interval, output_type_id, input_type_id, input_table):
-    stations = db_intime(db_intime.station).select(db_intime.station.id, cacheable=True, limitby=(0,1),)
+    stations = db_intime(db_intime.station).select(db_intime.station.id, cacheable=True)
     total = 0
     for s in stations:
         print 'station ', s.id
