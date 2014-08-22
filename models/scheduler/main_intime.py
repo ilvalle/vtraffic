@@ -66,8 +66,10 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
         FROM (
            SELECT start_time, lead(start_time, 1, now()::timestamp) OVER (ORDER BY start_time) AS end_time
            FROM ( SELECT generate_series(%(since)s, max(timestamp), '%(interval)s seconds'::interval) AS start_time 
-                  from %(table)s
-                  where station_id = %(station_id)s and type_id = %(type_id)s) x
+                  FROM %(table)s
+                  WHERE station_id = %(station_id)s and type_id = %(type_id)s
+                  ORDER BY start_time ASC
+                  LIMIT 5000 ) x
            ) as g
            left JOIN (select timestamp, id 
                       from %(table)s
@@ -77,7 +79,6 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
         ORDER  BY start_time asc;
     """ % {'station_id': station_id, 'since': last_ts, 'interval':interval, 'type_id':input_type_id, 'table':input_table}
     rows = db_intime.executesql(query, as_dict=True) 
-
     # Adapt the result to be stored
     #rows = [{'timestamp': r['timestamp'], 'value':r['n_elements'] } for r in rows]
     # Save the data
