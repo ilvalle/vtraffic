@@ -11,7 +11,7 @@ def run_all_intime():
     
     stations = db_intime(db_intime.station.id == db_intime.linkbasicdata.station_id).select(db_intime.linkbasicdata.ALL, 
                                                                                             orderby=db_intime.station.id, 
-                                                                                            cacheable=True, limitby=(0,1))
+                                                                                            cacheable=True, limitby=(0,2))
     total = 0
     for link in stations:
         matches = find_matches_intime(link, period, output_type_id, input_type_id)
@@ -56,29 +56,20 @@ def find_matches_intime (link_station, period, output_type_id, input_type_id):
     return matches    
     
 def __get_rows_intime(query, use_cache=True, limitby=None):
-    def __get_rows_local(query):
-        query_1 = query & ((end_intime.timestamp.epoch() - start_intime.timestamp.epoch()) < 3600)
-        matches = db_intime( query_1 ).select(start_intime.ALL, end_intime.ALL,
-                                  orderby=start_intime.created_on,
-                                  left=start_intime.on( (start_intime.value == end_intime.value) & (start_intime.timestamp < end_intime.timestamp)),
-                                  limitby=limitby,
-                                  cacheable = True)
+    query_1 = query & ((end_intime.timestamp.epoch() - start_intime.timestamp.epoch()) < 3600)
+    matches = db_intime( query_1 ).select(start_intime.ALL, end_intime.ALL,
+                              orderby=start_intime.created_on,
+                              left=start_intime.on( (start_intime.value == end_intime.value) & (start_intime.timestamp < end_intime.timestamp)),
+                              limitby=limitby,
+                              cacheable = True)
 
-        matches = __remove_dup_intime(matches)	# Remove matches based on the same timestamp
+    matches = __remove_dup_intime(matches)	# Remove matches based on the same timestamp
 
-		# Compute the elapsed_time 	
-        for m in matches:
-            m.elapsed_time      = m.end_point.timestamp - m.start_point.timestamp   # TODO, DB elaboration?
+    # Compute the elapsed_time
+    for m in matches:
+        m.elapsed_time = m.end_point.timestamp - m.start_point.timestamp   # TODO, DB elaboration?
 
-        matches = __filter_twins_intime(matches) # Remove matches with the same elapsed_time at the same time
-        return matches
-    if use_cache:
-        key = 'rows_%s' % query
-        if len(key)>200:
-            key = 'rows_%s' % md5_hash(key)
-        matches = cache.ram( key, lambda: __get_rows_local(query), time_expire=CACHE_TIME_EXPIRE)
-    else: 
-        matches	= __get_rows_local(query)
+    matches = __filter_twins_intime(matches) # Remove matches with the same elapsed_time at the same time
     return matches
 	
 def __remove_dup_intime(rows):

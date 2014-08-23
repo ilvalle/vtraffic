@@ -69,7 +69,7 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
                   FROM %(table)s
                   WHERE station_id = %(station_id)s and type_id = %(type_id)s
                   ORDER BY start_time ASC
-                  LIMIT 5000 ) x
+                  LIMIT 10000 ) x
            ) as g
            left JOIN (select timestamp, id 
                       from %(table)s
@@ -78,7 +78,7 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
         GROUP  BY start_time
         ORDER  BY start_time asc;
     """ % {'station_id': station_id, 'since': last_ts, 'interval':interval, 'type_id':input_type_id, 'table':input_table}
-    rows = db_intime.executesql(query, as_dict=True) 
+    rows = db_intime.executesql(query, as_dict=True)
     # Adapt the result to be stored
     #rows = [{'timestamp': r['timestamp'], 'value':r['n_elements'] } for r in rows]
     # Save the data
