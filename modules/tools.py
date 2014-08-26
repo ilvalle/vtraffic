@@ -33,31 +33,41 @@ class intimeDAL(DAL):
 
     ## save data in a general intime table
     def __save_records(self, rows, station_id, type_id, interval, table, unique=True):
-        from datetime import timedelta
         t = self[table]
-
         for r in rows:
-            if interval != 1:
-                new_timestamp = r['timestamp'] + timedelta(seconds=interval/2)
-            else:
-                new_timestamp = r['timestamp']
-            values = {'created_on':datetime.datetime.now(),
-                      'timestamp': new_timestamp,
-                      'value': r['value'],
-                      'station_id': station_id,
-                      'type_id': type_id,
-                      'period': interval}
-            if unique:
-                t.update_or_insert(((t.timestamp == new_timestamp) &
-                                    (t.station_id == station_id) &
-                                    (t.type_id == type_id) &
-                                    (t.period == interval)),
-                                   **values)
-            else:
-                t.insert(**values)
+            self.__save_record(r, station_id, type_id, interval, t, unique)
+
+        # Store the most recent record in the general table
+        if table.endswith('history') and len(rows) != 0:
+            print rows
+            t=self[table[:-len('history')]]
+            self.__save_record(rows[-1], station_id, type_id, interval, t, unique=True, test_ts=False)
 
         self.commit()
         return len(rows)
+
+    def __save_record(self, r, station_id, type_id, interval, t, unique, test_ts=True):
+        from datetime import timedelta
+        if interval != 1:
+            new_timestamp = r['timestamp'] + timedelta(seconds=interval/2)
+        else:
+            new_timestamp = r['timestamp']
+        values = {'created_on':datetime.datetime.now(),
+                  'timestamp': new_timestamp,
+                  'value': r['value'],
+                  'station_id': station_id,
+                  'type_id': type_id,
+                  'period': interval}
+        if unique:
+            test = ((t.station_id == station_id) &
+                    (t.type_id == type_id) &
+                    (t.period == interval))
+            if test_ts:
+                test &= (t.timestamp == new_timestamp)
+            t.update_or_insert(test,
+                               **values)
+        else:
+            t.insert(**values)
 
     ### return the last timestamp for the given set or parameters (station, type, period)
     def get_last_ts(self, type_id, station_id, period, table):

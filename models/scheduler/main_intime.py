@@ -4,7 +4,7 @@ def create_matches():
 ### For each bluetooth station, count the number of bluetooth gathered in a window of @interval seconds
 def count_bluetooth_intime(interval=900):
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Bluetoothstation'
-    output_type_id = 919     # Elaboration type is 19
+    output_type_id = 19      # Elaboration type is 19
     input_type_id = 15       # Bluetooth detection type_id
     total = count_elements_intime(interval=interval,
                                   output_type_id=output_type_id,

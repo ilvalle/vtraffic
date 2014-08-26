@@ -162,13 +162,22 @@ db_intime.define_table('elaborationhistory',
     Field('period', 'integer'),    
     migrate=False
 )
-db_intime.define_table('measurementhistory',
+db_intime.define_table('measurement',
     Field('created_on', 'datetime'),
     Field('timestamp', 'datetime'),
     Field('value', 'double'),
     Field('station_id', 'reference station'),
     Field('type_id', 'reference type'),
     Field('period', 'integer'),    
+    migrate=False
+)
+db_intime.define_table('measurementhistory',
+    Field('created_on', 'datetime'),
+    Field('timestamp', 'datetime'),
+    Field('value', 'double'),
+    Field('station_id', 'reference station'),
+    Field('type_id', 'reference type'),
+    Field('period', 'integer'),
     migrate=False
 )
 db_intime.define_table('measurementstringhistory',
