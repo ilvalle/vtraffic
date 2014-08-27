@@ -26,7 +26,7 @@ def count_match_intime(interval=900):
 ### For each link station, count the number of match in a window of @interval seconds
 def run_mode_intime(interval=900):
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
-    stations = db_intime(db_intime.station.id).select(cacheable=True, limitby=(0,1),)
+    stations = db_intime(db_intime.station.id).select(cacheable=True)
     total = 0
     output_type_id = 918      # Elapsed time
     input_type_id = 921       # Bluetooth match
@@ -51,6 +51,45 @@ def count_elements_intime(interval, output_type_id, input_type_id, input_table):
                                          input_table=input_table)
     return total
 
+def create_bluetooth_lhv():
+    db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Bluetoothstation'
+    avg=(db_intime.trafficstreetfactor.factor * db_intime.trafficstreetfactor.hv_perc).avg()
+    stations = db_intime(db_intime.station.id==db_intime.trafficstreetfactor.id_spira).select(db_intime.trafficstreetfactor.id_spira,
+                                                                                              avg,
+                                                                                              groupby=db_intime.trafficstreetfactor.id_spira, cacheable=True, limitby=(0,1))
+
+    type_id_detections = 19
+    total = 0
+    eh = db_intime.elaborationhistory
+    for s in stations:
+        periods=db_intime( (eh.station_id == s.trafficstreetfactor.id_spira) & 
+                           (eh.type_id == type_id_detections)).select(eh.period, groupby=eh.period, cacheable=True)
+        for p in periods:
+            __create_heavy_light_v(type_id_detections, s.trafficstreetfactor.id_spira, s[avg], p[eh.period])
+            
+    return total   
+
+def __create_heavy_light_v(type_id_detections, station_id, factor, period):
+    type_id_light = 14
+    type_id_heavy = 13
+    eh = db_intime.elaborationhistory
+
+    last_ts = db_intime.get_last_ts( type_id_light, station_id, period, 'elaborationhistory')        
+    query = ((eh.station_id == station_id) & 
+             (eh.type_id == type_id_detections) &
+             (eh.period == period))
+    if last_ts:
+        query &= (eh.timestamp>last_ts)
+    rows = db_intime(query).select(eh.timestamp, eh.value, cacheable=True).as_list()
+
+    rows_light = [{'timestamp': r['timestamp'], 'value':int((r['value']/100) * factor), 'original': r['value']} for r in rows]
+    rows_heavy = [{'timestamp': r['timestamp'], 'value':r['original'] - r['value']} for r in rows_light]
+    print station_id, period, len(rows)
+    
+    db_intime.save_elaborations(rows_light, station_id, type_id_light, period, unique=True if last_ts else False)
+    db_intime.save_elaborations(rows_heavy, station_id, type_id_heavy, period, unique=True if last_ts else False)
+    return len(rows)*2
+
 def __count_elements_intime(station_id, interval, output_type_id, input_type_id, input_table):
     ### check last value timestamp or set it as min(gathered_on)
     last_ts = db_intime.get_last_ts(output_type_id, station_id, interval, 'elaborationhistory')
@@ -60,7 +99,8 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
     else:
         last_ts = 'min(timestamp)::date'
         unique = False # Speedup, no data are in the db for the given combination of station_id/type_id/interval
-
+    
+    last_ts = 'min(timestamp)::date'
     query = """
         SELECT start_time AS timestamp, count(e.id) AS value
         FROM (
@@ -69,7 +109,7 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
                   FROM %(table)s
                   WHERE station_id = %(station_id)s and type_id = %(type_id)s
                   ORDER BY start_time ASC
-                  LIMIT 10000 ) x
+                  LIMIT 5000 ) x
            ) as g
            left JOIN (select timestamp, id 
                       from %(table)s
@@ -79,11 +119,12 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
         ORDER  BY start_time asc;
     """ % {'station_id': station_id, 'since': last_ts, 'interval':interval, 'type_id':input_type_id, 'table':input_table}
     rows = db_intime.executesql(query, as_dict=True)
-    # Adapt the result to be stored
-    #rows = [{'timestamp': r['timestamp'], 'value':r['n_elements'] } for r in rows]
+    # if the limit is reached, the last frame window must be removed
+    if len(rows)>4999:
+        del rows[-1]
+
     # Save the data
     db_intime.save_elaborations(rows, station_id, output_type_id, interval, unique)
-
     return len(rows)
 
 ## Set all record to valid=False if there are null mac address
@@ -98,11 +139,13 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
 ### Generic method to count the number of element in a window of @interval seconds for a given table
 def compute_mode_intime(station_id, interval, output_type_id, input_type_id, input_table):
     ### check last value timestamp or set it as min(gathered_on)
-    last_ts = __get_last_ts(output_type_id, station_id, interval, 'elaborationhistory')
-    if last_ts[db_intime.elaborationhistory.timestamp.max()]:
-        last_ts = "'%s'" % (last_ts[db_intime.elaborationhistory.timestamp.max()] - datetime.timedelta(seconds=interval/2))
+    last_ts = db_intime.get_last_ts(output_type_id, station_id, interval, 'elaborationhistory')
+    unique = True
+    if last_ts:
+        last_ts = "'%s'" % (last_ts - datetime.timedelta(seconds=interval/2))
     else:
         last_ts = 'min(timestamp)::date'
+        unique=False
 
     query = """
         SELECT start_time, end_time, timestamp, e.value
@@ -130,7 +173,7 @@ def compute_mode_intime(station_id, interval, output_type_id, input_type_id, inp
     # Adapt the result to be stored
     rows = [{'timestamp': r[0], 'value':r[1] } for r in rows]
     # Save the data
-    #db_intime.save_elaborations(rows, station_id, output_type_id, interval)
+    db_intime.save_elaborations(rows, station_id, output_type_id, interval, unique)
 
     return len(rows)
 
