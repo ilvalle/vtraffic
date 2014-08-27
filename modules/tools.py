@@ -39,7 +39,6 @@ class intimeDAL(DAL):
 
         # Store the most recent record in the general table
         if table.endswith('history') and len(rows) != 0:
-            print rows
             t=self[table[:-len('history')]]
             self.__save_record(rows[-1], station_id, type_id, interval, t, unique=True, test_ts=False)
 
