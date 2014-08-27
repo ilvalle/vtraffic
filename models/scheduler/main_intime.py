@@ -100,7 +100,6 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
         last_ts = 'min(timestamp)::date'
         unique = False # Speedup, no data are in the db for the given combination of station_id/type_id/interval
     
-    last_ts = 'min(timestamp)::date'
     query = """
         SELECT start_time AS timestamp, count(e.id) AS value
         FROM (
