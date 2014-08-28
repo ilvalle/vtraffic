@@ -189,6 +189,14 @@ db_intime.define_table('measurementstringhistory',
     Field('period', 'integer'),    
     migrate=False
 )
+db_intime.define_table('trafficstreetfactor',
+    Field('id_arco', 'reference station'),
+    Field('id_spira', 'reference station'),
+    Field('factor', 'double'),
+    Field('length', 'double'),
+    Field('hv_perc', 'double'),
+    migrate=False
+)
 
 
 
