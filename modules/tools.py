@@ -32,13 +32,14 @@ class intimeDAL(DAL):
         return self.__save_records(rows, station_id, type_id, interval, table='measurementhistory', unique=unique)
 
     ## save data in a general intime table
-    def __save_records(self, rows, station_id, type_id, interval, table, unique=True):
+    def __save_records(self, rows, station_id, type_id, interval, table, unique=True, test_ts=True):
         t = self[table]
         for r in rows:
-            self.__save_record(r, station_id, type_id, interval, t, unique)
-
+            self.__save_record(r, station_id, type_id, interval, t, unique, test_ts=test_ts)
+        
         # Store the most recent record in the general table
         if table.endswith('history') and len(rows) != 0:
+            self.commit()
             t=self[table[:-len('history')]]
             self.__save_record(rows[-1], station_id, type_id, interval, t, unique=True, test_ts=False)
 
