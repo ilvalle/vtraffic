@@ -67,11 +67,8 @@ class intimeDAL(DAL):
             
             out = t.update_or_insert(query_test,
                                      **values)
-            print 'update %s' % out
         else:
             out = t.insert(**values)
-            print 'insert %s' % out
-
 
         return
 
