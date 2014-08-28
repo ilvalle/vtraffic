@@ -65,7 +65,7 @@ def create_bluetooth_lhv():
         periods=db_intime( (eh.station_id == s.trafficstreetfactor.id_spira) & 
                            (eh.type_id == type_id_detections)).select(eh.period, groupby=eh.period, cacheable=True)
         for p in periods:
-            __create_heavy_light_v(type_id_detections, s.trafficstreetfactor.id_spira, s[avg], p[eh.period])
+            total += __create_heavy_light_v(type_id_detections, s.trafficstreetfactor.id_spira, s[avg], p[eh.period])
             
     return total   
 
