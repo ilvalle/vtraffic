@@ -40,7 +40,7 @@ class intimeDAL(DAL):
         if table.endswith('history') and len(rows) != 0:
             self.commit()
             table = table[:-len('history')]
-            self.__save_record(rows[-1], station_id, type_id, interval, table, unique=unique, test_ts=False, update_ts=update_ts)
+            self.__save_record(rows[-1], station_id, type_id, interval, table, unique=False, test_ts=False, update_ts=update_ts)
 
         self.commit()
         return len(rows)
