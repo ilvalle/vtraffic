@@ -64,10 +64,14 @@ class intimeDAL(DAL):
                           (t.period == interval))
             if test_ts:
                 query_test &= (t.timestamp == new_timestamp)
-            t.update_or_insert(query_test,
-                               **values)
+            
+            out = t.update_or_insert(query_test,
+                                     **values)
+            print 'update %s' % out
         else:
-            t.insert(**values)
+            out = t.insert(**values)
+            print 'insert %s' % out
+
 
         return
 
