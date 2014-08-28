@@ -43,7 +43,6 @@ def count_elements_intime(interval, output_type_id, input_type_id, input_table):
     stations = db_intime(db_intime.station).select(db_intime.station.id, cacheable=True)
     total = 0
     for s in stations:
-        print 'station ', s.id
         total += __count_elements_intime(station_id=s.id, 
                                          interval=interval,
                                          output_type_id=output_type_id, 
@@ -56,7 +55,7 @@ def create_bluetooth_lhv():
     avg=(db_intime.trafficstreetfactor.factor * db_intime.trafficstreetfactor.hv_perc).avg()
     stations = db_intime(db_intime.station.id==db_intime.trafficstreetfactor.id_spira).select(db_intime.trafficstreetfactor.id_spira,
                                                                                               avg,
-                                                                                              groupby=db_intime.trafficstreetfactor.id_spira, cacheable=True, limitby=(0,1))
+                                                                                              groupby=db_intime.trafficstreetfactor.id_spira, cacheable=True)
 
     type_id_detections = 19
     total = 0
