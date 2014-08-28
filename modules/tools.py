@@ -33,21 +33,21 @@ class intimeDAL(DAL):
 
     ## save data in a general intime table
     def __save_records(self, rows, station_id, type_id, interval, table, unique=True, test_ts=True):
-        t = self[table]
         for r in rows:
-            self.__save_record(r, station_id, type_id, interval, t, unique, test_ts=test_ts)
+            self.__save_record(r, station_id, type_id, interval, table, unique, test_ts=test_ts)
         
         # Store the most recent record in the general table
         if table.endswith('history') and len(rows) != 0:
             self.commit()
-            t=self[table[:-len('history')]]
-            self.__save_record(rows[-1], station_id, type_id, interval, t, unique=True, test_ts=False)
+            table = table[:-len('history')]
+            self.__save_record(rows[-1], station_id, type_id, interval, table, unique=unique, test_ts=False)
 
         self.commit()
         return len(rows)
 
-    def __save_record(self, r, station_id, type_id, interval, t, unique, test_ts=True):
+    def __save_record(self, r, station_id, type_id, interval, table, unique, test_ts=True):
         from datetime import timedelta
+        t = self[table]
         if interval != 1:
             new_timestamp = r['timestamp'] + timedelta(seconds=interval/2)
         else:
@@ -59,15 +59,17 @@ class intimeDAL(DAL):
                   'type_id': type_id,
                   'period': interval}
         if unique:
-            test = ((t.station_id == station_id) &
-                    (t.type_id == type_id) &
-                    (t.period == interval))
+            query_test = ((t.station_id == station_id) &
+                          (t.type_id == type_id) &
+                          (t.period == interval))
             if test_ts:
-                test &= (t.timestamp == new_timestamp)
-            t.update_or_insert(test,
+                query_test &= (t.timestamp == new_timestamp)
+            t.update_or_insert(query_test,
                                **values)
         else:
             t.insert(**values)
+
+        return
 
     ### return the last timestamp for the given set or parameters (station, type, period)
     def get_last_ts(self, type_id, station_id, period, table):
