@@ -11,7 +11,7 @@ def run_all_intime():
     
     stations = db_intime(db_intime.station.id == db_intime.linkbasicdata.station_id).select(db_intime.linkbasicdata.ALL, 
                                                                                             orderby=db_intime.station.id, 
-                                                                                            cacheable=True, limitby=(0,2))
+                                                                                            cacheable=True, limitby=(0,5))
     total = 0
     for link in stations:
         matches = find_matches_intime(link, period, output_type_id, input_type_id)
