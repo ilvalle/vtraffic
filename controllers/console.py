@@ -40,6 +40,7 @@ def get_stations():
     stations = r.json()
     response.headers['web2py-component-content'] = 'hide'
     response.headers['web2py-component-command'] = "add_after_form(xhr, 'form_frontend');"
+    stations.sort(key=lambda v: v['name'])
     return response.render('console/stations_form.html', {'stations':stations, 'frontend':frontend})
 
 @auth.requires_login()
@@ -62,6 +63,8 @@ def get_data_types():
         data_types_filtered = filter(lambda r: 'runtime' not in r[0], data_types_filtered)
         data_types_filtered = filter(lambda r: 'id_' not in r[0], data_types_filtered)
         data_types_filtered = filter(lambda r: 'gps_' not in r[0] or 'speed' in r[0], data_types_filtered)
+
+    data_types_filtered.sort(key=lambda v: (v[0],int(v[3])) if len(v)>3 and v[3].isdigit() else v[0])
     #data_types_filtered = [ [d[0].replace('_', ' '), d[1], d[2]] for d in data_types_filtered ]
     return response.render('console/data_types_legend.html', {'data_types':data_types_filtered, 'frontend':frontend, 'station':station })
 
