@@ -81,8 +81,8 @@ def __create_heavy_light_v(type_id_detections, station_id, factor, period):
         query &= (eh.timestamp>last_ts)
     rows = db_intime(query).select(eh.timestamp, eh.value, cacheable=True).as_list()
 
-    rows_light = [{'timestamp': r['timestamp'], 'value':int((r['value']/100) * factor), 'original': r['value']} for r in rows]
-    rows_heavy = [{'timestamp': r['timestamp'], 'value':r['original'] - r['value']} for r in rows_light]
+    rows_heavy = [{'timestamp': r['timestamp'], 'value':int((r['value']/100) * factor), 'original': r['value']} for r in rows]
+    rows_light = [{'timestamp': r['timestamp'], 'value':r['original'] - r['value']} for r in rows_heavy]
     
     db_intime.save_elaborations(rows_light, station_id, type_id_light, period, unique=True if last_ts else False, update_ts=False)
     db_intime.save_elaborations(rows_heavy, station_id, type_id_heavy, period, unique=True if last_ts else False, update_ts=False)
