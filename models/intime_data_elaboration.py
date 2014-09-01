@@ -4,14 +4,14 @@ start_intime = db_intime.measurementstringhistory.with_alias('start_point')
 end_intime = db_intime.measurementstringhistory.with_alias('end_point')
 
 def run_all_intime():
-    output_type_id = 921 
+    output_type_id = 21 
     input_type_id = 15
     period = 1
     db_intime.station._common_filter = lambda query: (db_intime.station.active == True) & (db_intime.station.stationtype == 'Linkstation')
     
     stations = db_intime(db_intime.station.id == db_intime.linkbasicdata.station_id).select(db_intime.linkbasicdata.ALL, 
                                                                                             orderby=db_intime.station.id, 
-                                                                                            cacheable=True, limitby=(0,5))
+                                                                                            cacheable=True)
     total = 0
     for link in stations:
         matches = find_matches_intime(link, period, output_type_id, input_type_id)

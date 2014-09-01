@@ -16,7 +16,7 @@ def count_bluetooth_intime(interval=900):
 def count_match_intime(interval=900):
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
     output_type_id = 920     # Bluetooth count match
-    input_type_id = 921      # Bluetooth match
+    input_type_id = 21       # Bluetooth match
     total = count_elements_intime(interval=interval,
                                   output_type_id=output_type_id,
                                   input_type_id=input_type_id,
@@ -29,7 +29,7 @@ def run_mode_intime(interval=900):
     stations = db_intime(db_intime.station.id).select(cacheable=True)
     total = 0
     output_type_id = 918      # Elapsed time
-    input_type_id = 921       # Bluetooth match
+    input_type_id = 21        # Bluetooth match
     for s in stations:
         total += compute_mode_intime(station_id=s.id,
                                      interval=interval,
