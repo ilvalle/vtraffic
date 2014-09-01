@@ -15,7 +15,7 @@ def count_bluetooth_intime(interval=900):
 ### For each link station, count the number of match in a window of @interval seconds
 def count_match_intime(interval=900):
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
-    output_type_id = 920     # Bluetooth count match
+    output_type_id = 20      # Bluetooth count match
     input_type_id = 21       # Bluetooth match
     total = count_elements_intime(interval=interval,
                                   output_type_id=output_type_id,
