@@ -131,6 +131,8 @@ db_intime.define_table('linkbasicdata',
     Field('origin', 'reference station'),
     Field('destination', 'reference station'),
     Field('station_id', 'reference station'),
+    Field('street_ids_ref', 'list:reference streetbasicdata'),
+    Field('length', 'double'),
     #Field('lineprojection'),
     migrate=False
 )
@@ -195,6 +197,13 @@ db_intime.define_table('trafficstreetfactor',
     Field('factor', 'double'),
     Field('length', 'double'),
     Field('hv_perc', 'double'),
+    migrate=False
+)
+db_intime.define_table('streetbasicdata',
+    Field('station_id', 'reference station'),
+    Field('length', 'double'),
+    Field('description', 'string'),
+    Field('speed_default', 'double'),
     migrate=False
 )
 
