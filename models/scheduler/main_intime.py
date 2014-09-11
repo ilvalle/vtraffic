@@ -140,7 +140,7 @@ def compute_mode_intime(station_id, interval, output_type_id, input_type_id, inp
     last_ts = db_intime.get_last_ts(output_type_id, station_id, interval, 'elaborationhistory')
     unique = True
     if last_ts:
-        last_ts = "'%s'" % (last_ts - datetime.timedelta(seconds=interval/2))
+        last_ts = "'%s'" % roundTime(last_ts, interval)
     else:
         last_ts = 'min(timestamp)::date'
         unique=False
@@ -173,7 +173,6 @@ def compute_mode_intime(station_id, interval, output_type_id, input_type_id, inp
     rows = [{'timestamp': r[0], 'value':r[1] } for r in rows]
     # Save the data
     db_intime.save_elaborations(rows, station_id, output_type_id, interval, unique)
-
     return len(rows)
 
 # Return matches grouped to the specific time_frame they belong to 
