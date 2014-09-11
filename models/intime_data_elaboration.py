@@ -103,12 +103,12 @@ def __remove_dup_intime(rows):
 	
 # Remove matches with the same elapsed_time computed at the same time (issue: vehicle with more than one device onboard)
 def __filter_twins_intime(rows):
-	out = []
-	for pos, row in enumerate(rows):
-		next = rows[pos + 1 ] if pos != len(rows) -1 else None
-		if not (next) or row.start_point.timestamp != next.start_point.timestamp or row.elapsed_time != next.elapsed_time:
-			out.append(row)
-	return rows
+    out = []
+    for pos, row in enumerate(rows):
+        next = rows[pos + 1 ] if pos != len(rows) -1 else None
+        if not (next) or row.start_point.timestamp != next.start_point.timestamp or row.elapsed_time != next.elapsed_time:
+            out.append(row)
+    return out
 
 # this constraint must be executed after remove_dup 
 def __clean_progress_matches_intime(matches, destination_min_date):
