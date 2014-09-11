@@ -162,6 +162,7 @@ def compute_mode_intime(station_id, interval, output_type_id, input_type_id, inp
     rows = db_intime.executesql(query, as_dict=True) 
 
     list_blocks = __split_rows_2time_frame(rows)
+
     rows = __wrapper_elaboration_intime( list_blocks,
                                   __mode_intime,
                                   interval, 
@@ -205,28 +206,29 @@ def __wrapper_elaboration_intime( blocks_list,
 	
 # return the mode along a list of rows (block)
 def __mode_intime(block, block_seconds=0, vertical_block_seconds=0):
-	block = sorted(block, key=operator.itemgetter('value'))
-	initial_time_frame = block[0]['value']
-	end_time_frame     = block[-1]['value']
-	mode_value = {'counter':0, 'seconds':0}
-	i = 0
-	for second in range(0,int(end_time_frame-initial_time_frame), MODE_STEP):
-		current_initial = initial_time_frame + second
-		current_end     = current_initial + vertical_block_seconds
-		counter = 0
-		while i < len(block):
-			ele = block[i]
-			if current_initial <= ele['value'] < current_end:
-				counter = counter + 1 
-			elif current_end < ele['value']:
-				break
-			i = i + 1
-		if counter > mode_value['counter']:
-			mode_value['counter'] = counter
-			mode_value['seconds'] = current_initial
-	
-	if mode_value['seconds'] == 0:
-		value = 0
-	else:
-		value = mode_value['seconds'] + (vertical_block_seconds/2)
-	return value
+    block = sorted(block, key=operator.itemgetter('value'))
+    initial_time_frame = block[0]['value']
+    end_time_frame     = block[-1]['value']
+    mode_value = {'counter':0, 'seconds':0}
+
+    for pos, second in enumerate(range(0,int(end_time_frame-initial_time_frame), MODE_STEP)):
+        current_initial = initial_time_frame + second
+        current_end     = current_initial + vertical_block_seconds
+        counter = 0
+        i = 0
+        while i < len(block):
+            ele = block[i]
+            if current_initial <= ele['value'] < current_end:
+                counter = counter + 1
+            elif current_end < ele['value']:
+                break
+            i = i + 1
+        if counter > mode_value['counter']:
+            mode_value['counter'] = counter
+            mode_value['seconds'] = current_initial
+
+    if mode_value['seconds'] == 0:
+        value = 0
+    else:
+        value = mode_value['seconds'] + (vertical_block_seconds/2)
+    return value
