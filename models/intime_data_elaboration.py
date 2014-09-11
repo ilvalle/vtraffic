@@ -7,7 +7,7 @@ def run_all_intime():
     output_type_id = 21 
     input_type_id = 15
     period = 1
-    db_intime.station._common_filter = lambda query: (db_intime.station.active == True) & (db_intime.station.stationtype == 'Linkstation')
+    db_intime.station._common_filter = lambda query: (db_intime.station.stationtype == 'Linkstation')
     
     stations = db_intime(db_intime.station.id == db_intime.linkbasicdata.station_id).select(db_intime.linkbasicdata.ALL, 
                                                                                             orderby=db_intime.station.id, 
@@ -16,7 +16,6 @@ def run_all_intime():
     for link in stations:
         matches = find_matches_intime(link, period, output_type_id, input_type_id)
         rows = [{'timestamp': m.start_point.timestamp, 'value':m.elapsed_time.total_seconds()} for m in matches]
-        print len(rows)
         # Save the data
         total += db_intime.save_elaborations(rows, station_id=link.station_id, type_id=output_type_id, interval=period, unique=False)
 
@@ -28,9 +27,9 @@ def find_matches_intime (link_station, period, output_type_id, input_type_id):
     last_match_query = db_intime( (db_intime.elaborationhistory.station_id == link_station.station_id) &
                                   (db_intime.elaborationhistory.type_id == output_type_id) &
                                   (db_intime.elaborationhistory.period == period))._select(db_intime.elaborationhistory.ALL,
-                                                                                           orderby=~db_intime.elaborationhistory.timestamp, 
-                                                                                           cacheable = True, limitby=(0,1) )
-     
+                                                                                           orderby=~(db_intime.elaborationhistory.timestamp.epoch() + db_intime.elaborationhistory.value),
+                                                                                           limitby=(0,1) )
+
     last_match = db_intime.executesql(last_match_query, as_dict=True)
     query_od = (start_intime.station_id == link_station.origin) & (end_intime.station_id == link_station.destination)
     if last_match:
@@ -45,10 +44,11 @@ def find_matches_intime (link_station, period, output_type_id, input_type_id):
         n_prev_matches = len(matches)
         if last_match:
             # The constraint (end.gathered_on > initial_data) reduces the number of rows to sort before the left join
-            query = query_od & (start_intime.timestamp > initial_data ) & (end_intime.timestamp > initial_data)
+            query = query_od & (start_intime.timestamp > initial_data ) & (end_intime.timestamp > dest_timestamp)
+#            query &= (end_intime.timestamp > dest_timestamp)  # Fix to avoid duplicated value, the destination must be higher than the last match
             initial_data = initial_data - __next_step()
             matches = __get_rows_intime(query, use_cache=False)
-            matches = __clean_progress_matches_intime(matches, dest_timestamp) 
+            matches = __clean_progress_matches_intime(matches, dest_timestamp)
         else:
             matches = __get_rows_intime(query_od, use_cache=False)
             n_prev_matches = len(matches)         # force to stop
