@@ -66,7 +66,7 @@ def create_bluetooth_lhv():
         for p in periods:
             total += __create_heavy_light_v(type_id_detections, s.trafficstreetfactor.id_spira, s[avg], p[eh.period])
             
-    return total   
+    return total
 
 def __create_heavy_light_v(type_id_detections, station_id, factor, period):
     type_id_light = 14
@@ -78,6 +78,7 @@ def __create_heavy_light_v(type_id_detections, station_id, factor, period):
              (eh.type_id == type_id_detections) &
              (eh.period == period))
     if last_ts:
+        last_ts = (last_ts - datetime.timedelta(seconds=period/2))
         query &= (eh.timestamp>last_ts)
     rows = db_intime(query).select(eh.timestamp, eh.value, cacheable=True).as_list()
 
@@ -147,7 +148,7 @@ def compute_mode_intime(station_id, interval, output_type_id, input_type_id, inp
     query = """
         SELECT start_time, end_time, timestamp, e.value
         FROM (
-           SELECT start_time, lead(start_time, 1, now()::timestamp) OVER (ORDER BY start_time) AS end_time
+           SELECT start_time, lead(start_time, 1, '1970-01-01 00:00') OVER (ORDER BY start_time) AS end_time
            FROM ( SELECT generate_series(%(since)s, max(timestamp), '%(interval)s seconds'::interval) AS start_time 
                   from %(table)s
                   where station_id = %(station_id)s and type_id = %(type_id)s) x
@@ -195,15 +196,15 @@ def __wrapper_elaboration_intime( blocks_list,
         seconds = current['start_time']
      
         if prev and current['timestamp'] > (prev['timestamp'] + datetime.timedelta(seconds=(block_seconds*3))):	#fill the gap with two empty values
-            output.append ( [ prev_seconds + datetime.timedelta(seconds=(block_seconds + block_seconds/2)), 0] )
-            output.append ( [ seconds - datetime.timedelta(seconds=(block_seconds/2)), 0] )
+            output.append ( [ prev_seconds + datetime.timedelta(seconds=block_seconds), 0] )
+            output.append ( [ seconds - datetime.timedelta(seconds=block_seconds), 0] )
 
         value = function(block, block_seconds, vertical_block_seconds)
         #output.append ( [(seconds + block_seconds/2), value] )
         output.append ( [seconds, value] )
         prev, prev_seconds = current, seconds
     return output
-	
+
 # return the mode along a list of rows (block)
 def __mode_intime(block, block_seconds=0, vertical_block_seconds=0):
     block = sorted(block, key=operator.itemgetter('value'))
