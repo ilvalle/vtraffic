@@ -61,4 +61,26 @@ def emission_intime():
                           (eh.period == 1800) &
                           eh.station_id.belongs(link_stations)).select(eh.value.avg(), cacheable=True)
         print speed
-        
+
+# Compute the speed for all link stations
+# TODO cycle over all possible period, not only 900.
+def compute_bspeed():
+    stations = db_intime(db_intime.linkbasicdata).select(cacheable=True)
+    input_type_id = 918       # Elapsed time
+    output_type_id = 54       # Speed
+    eh = db_intime.elaborationhistory
+    tot=0
+    for station in stations:
+        period = 900
+        query = ((eh.type_id == input_type_id) &
+                 (eh.station_id == station.station_id) &
+                 (eh.period == period) &
+                 (eh.value != 0))
+        last_ts = db_intime.get_last_ts(output_type_id, station.station_id, period, 'elaborationhistory')
+        if last_ts:
+            last_ts = roundTime(last_ts, period)
+            query &= (eh.timestamp >= last_ts)
+        elapsed_times = db_intime(query).select(eh.timestamp, eh.value, cacheable=True)
+        rows_speed = [{'timestamp': r['timestamp'], 'value': 0 if not(r['value']) else ((station.length / r['value'])*3.6) } for r in elapsed_times]
+        db_intime.save_elaborations(rows_speed, station.station_id, output_type_id, period, True if last_ts else False, update_ts=False)
+    return tot
