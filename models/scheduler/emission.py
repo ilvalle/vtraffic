@@ -83,4 +83,5 @@ def compute_bspeed():
         elapsed_times = db_intime(query).select(eh.timestamp, eh.value, cacheable=True)
         rows_speed = [{'timestamp': r['timestamp'], 'value': 0 if not(r['value']) else ((station.length / r['value'])*3.6) } for r in elapsed_times]
         db_intime.save_elaborations(rows_speed, station.station_id, output_type_id, period, True if last_ts else False, update_ts=False)
+        tot += len(rows_speed)
     return tot

@@ -191,7 +191,7 @@ def task_group():
     if not group_name:
         return ''
     c = cache_tasks_counts(st)
-    paginate = 10
+    paginate = 20
     try:
         page = int(request.vars.page or 1)-1
     except ValueError:
@@ -238,7 +238,7 @@ def run_details():
     task_id = request.args(0)
     if not task_id:
         return ''
-    paginate = 10
+    paginate = 20
     try:
         page = int(request.vars.page or 1)-1
     except ValueError:
