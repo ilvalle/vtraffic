@@ -206,6 +206,25 @@ db_intime.define_table('streetbasicdata',
     Field('speed_default', 'double'),
     migrate=False
 )
+db_intime.define_table('copert_parcom',
+    Field('percent', 'double'),
+    Field('descriz', 'string'),
+    Field('id_class', 'integer'),
+    Field('eurocl', 'integer'),
+    migrate=False
+)
+db_intime.define_table('copert_emisfact',
+    Field('type_id', 'reference type'),
+    Field('copert_parcom_id', 'reference copert_parcom'),
+    Field('v_min', 'integer'),
+    Field('v_max', 'integer'),
+    Field('coef_a', 'double'),
+    Field('coef_b', 'double'),
+    Field('coef_c', 'double'),
+    Field('coef_d', 'double'),
+    Field('coef_e', 'double'),
+    migrate=False
+)
 
 
 

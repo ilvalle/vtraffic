@@ -16,7 +16,7 @@ def emission_intime():
         last_ts = 'min(timestamp)::date'
         unique = False # Speedup, no data are in the db for the given combination of station_id/type_id/interval
 
-    last_ts = "'2014-09-01 12:00'"
+    last_ts = "'2014-09-16 08:00'"
     # The following query assign the emission factor for each path of the 'grafo stradale'
     # the data starts from the traffic monitoring detector (bluetooth/spira)
     query = """
@@ -46,7 +46,8 @@ def emission_intime():
     """ % {'type_id_light':14, 'type_id_heavy':13, 'input_period':input_period, 'period':period, 
            'last_ts':last_ts, 'table':table}
     rows = db_intime.executesql(query, as_dict=True)
-    # get the speed if available, otherwise use default
+
+    # get the speed if available for the given arco, otherwise use default
     for r in rows:
         # Find the linkstations that belong to the given arco stradale
         link_stations = db_intime((db_intime.streetbasicdata.station_id == r['station_id']) &
@@ -58,9 +59,42 @@ def emission_intime():
         eh = db_intime.elaborationhistory
         speed = db_intime((eh.type_id == 54) & 
                           (eh.timestamp > r['start']) & (eh.timestamp < r['end_time']) &
-                          (eh.period == 1800) &
-                          eh.station_id.belongs(link_stations)).select(eh.value.avg(), cacheable=True)
-        print speed
+                          (eh.period == 900) &
+                          (eh.station_id.belongs(link_stations))).select(eh.value.avg(), cacheable=True).first()[eh.value.avg()]
+
+        if speed:
+            r['speed_default'] = speed
+
+    inquinanti_ids = db_intime(db_intime.copert_emisfact).select(db_intime.copert_emisfact.type_id, groupby=db_intime.copert_emisfact.type_id, orderby=db_intime.copert_emisfact.type_id, cacheable=True)
+    inquinanti_ids = [ i[db_intime.copert_emisfact.type_id] for i in inquinanti_ids]
+    # ciclo su tutti gli archi (streetstation) valorizzati prima
+    for r in rows:
+        v = r["speed_default"]			## intime.trafficstreetfactor.vel_default
+        nh = r["heavy_vehicle"]            ## intime.elaborationhistory.type=14
+        nl = r["light_vehicle"]            ## intime.elaborationhistory.type=13
+        for inq_type_id in inquinanti_ids:			## ciclo su ogni inquinante
+            em_tot = 0
+            pm_fe = db_intime( (db_intime.copert_emisfact.copert_parcom_id == db_intime.copert_parcom.id) &
+                               (db_intime.copert_emisfact.type_id == inq_type_id)).select(cacheable=True)
+            for ip in pm_fe:		## ciclo su ogni classe di veicolo
+                eml = emh = 0
+                idclass = ip["copert_parcom.id_class"]
+                percent = ip["copert_parcom.percent"]
+                a = ip["copert_emisfact.coef_a"]
+                b = ip["copert_emisfact.coef_b"]
+                c = ip["copert_emisfact.coef_c"]
+                d = ip["copert_emisfact.coef_d"]
+                e = ip["copert_emisfact.coef_e"]
+                fe = (a+b*v+c*v*v)/(1+d*v+e*v*v)
+                if (idclass==1) or (idclass==5): ## calcolo emissioni per veicoli leggeri
+                    eml = fe*percent/100*nl  ##
+                else:                            ## calcolo emissioni per veicoli pesanti
+                    emh = fe*percent/100*nh  ##
+                em_tot += (emh+eml)        ## calcolo emissione totale per ogni arco, per ogni inquinante per tutte le classi di veicolo
+
+            print r['station_id'], inq_type_id, em_tot
+            #db_intime.save_elaborations([{'value':em_tot, 'timestamp':r['start']}], r['station_id'], inq_type_id, 3600)
+    return len(rows)
 
 # Compute the speed for all link stations
 # TODO cycle over all possible period, not only 900.
