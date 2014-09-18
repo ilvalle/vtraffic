@@ -3,31 +3,30 @@
 </div>
 
 <div class="row">
-<div class="span6">
+<div class="span12">
 <ul class="thumbnails">
 {{for m in modes:}}
     <li class="span3">
-    <div class='thumbnail'>
-        <h3><i class="icon icon-home" style="margin-top: 8px; margin-right: 8px;"></i>{{=m['station_orig']['name']}}</h3> <h3><i class="icon icon-map-marker" style="margin-top: 8px; margin-right: 8px;"></i>{{=m['station_dest']['name']}}</h3> <span class="label label-{{='success' if m['mode'] > m['mode_prev'] else 'warning'}}">{{=m['string']}}</span>
+    <div class='thumbnail' style="height: 100px;">
+        <h4><i class="icon icon-map-marker" style="margin-top: 1px; margin-right: 8px;"></i>{{=m['station']['name']}}</h4><span title='{{=m['mode_ts']}}' class="label label-{{='success' if m['mode'] > m['mode_prev'] else 'warning'}}">{{=m['string']}}</span>
         
     </div>    
     </li>
 {{pass}}
 </ul>
 </div>
-<div class="span6">
 
-<div id='map' class="chart"></div>
+<!--div id='map' class="chart"></div-->
 <script>
-    var map = L.map('map').setView([51.505, -0.09], 10);
-    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    map_stations = L.map('map').setView([51.505, -0.09], 10);
+    //L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    //    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    //}).addTo(map_stations);
  
     $(document).ready(function() {
         $.getJSON('{{=URL('plot', 'get_geojson_stations')}}', function( data ) { 
-            geojsonL = L.geoJson(data, {onEachFeature: onEachFeature}).addTo(map); 
-            map.fitBounds(geojsonL);    
+            geojsonL = L.geoJson(data, {onEachFeature: onEachFeature}).addTo(map_stations); 
+            map_stations.fitBounds(geojsonL.getBounds());    
         });
     });
     
@@ -39,6 +38,5 @@
         layer.bindPopup(popupContent);
     }
 </script>
-</div>
 </div>
 
