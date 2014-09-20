@@ -5,17 +5,9 @@ session.forget()
 def box():
     if not(request.vars.id) or not(request.vars.id.isdigit()): return 'specificare id (integer)'
     station_id = int(request.vars.id)
-    station = db(db.station.id == station_id).select(limitby=(0,1)).first()
-    if not(station):
-        raise(HTTP(500, "requested station doesn't exist"))
-    station.update_record(last_check_on=request.now)
-    time_delta = request.now - datetime.timedelta(days=1)
-    query = (db.record.station_id == station_id) & (db.record.gathered_on > time_delta)
-    empty = db(query).isempty()
-    if empty:
-        raise(HTTP(500, 'no logs'))
-    else:
-        return 'ok'        
+    db_intime.station._common_filter = lambda query: ((db_intime.station.stationtype == 'Bluetoothstation') &
+                                                      (db_intime.station.id == station_id))
+    return __check_history('Bluetooth', 'measurementstringhistory')
 
 def scheduler():
     query = (db.scheduler_task.status == 'FAILED')
@@ -46,13 +38,17 @@ def parking():
 
 # check for each type if the data is not older than 1day
 def __check_measurementhistory(name):
+    return __check_history(name, 'measurementhistory')
+
+def __check_history(name, table):
     time_delta = request.now - datetime.timedelta(days=1)
-    max_ts = db_intime.measurementhistory.timestamp.max()
-    query = (db_intime.measurementhistory.station_id == db_intime.station.id) & \
-            (db_intime.measurementhistory.type_id == db_intime.type.id)
+    t = db_intime[table]
+    max_ts = t.timestamp.max()
+    query = (t.station_id == db_intime.station.id) & \
+            (t.type_id == db_intime.type.id)
     query_having = (max_ts < time_delta)            
-    id_list = db_intime(query).select(db_intime.measurementhistory.type_id,db_intime.measurementhistory.station_id, cacheable=True, 
-                                      groupby=db_intime.measurementhistory.station_id | db_intime.measurementhistory.type_id, having=query_having).as_list()
+    id_list = db_intime(query).select(t.type_id, t.station_id, cacheable=True, 
+                                      groupby=t.station_id | t.type_id, having=query_having).as_list()
     if len(id_list) != 0:
         raise(HTTP(500, '%s logs are older than 1day, %s' % (name, id_list)))
     else:
@@ -79,21 +75,9 @@ def parking_3rd_parties():
         parking_list = provider.pGuide.getElencoIdentificativiParcheggi()
         assert len(parking_list) != 0
         for p in parking_list:
-            value = provider.pGuide.getPostiLiberiParcheggio(p)
+            value = provider.pGuide.getPostiLiberiParcheggioExt(p)
+            print value
             assert value != None
         return 'ok'
     except:
         raise(HTTP(500, 'Provider is either unreachable or no data were transferred'))
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
