@@ -6,6 +6,9 @@ from gluon.tools import prettydate
 db.record._common_filter = lambda query: db.record.gathered_on > period_limit
 db.match._common_filter = lambda query: db.match.gathered_on_orig > period_limit
 db.station._common_filter = lambda query: db.station.dtype == 'Bluetoothstation'
+db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Bluetoothstation'
+db_intime.measurementstring._common_filter = lambda query: db_intime.measurementstring.timestamp > period_limit
+db_intime.elaborationhistory._common_filter = lambda query: db_intime.elaborationhistory.timestamp > period_limit
 
 if request.function != 'wiki':
     from gluon.tools import Wiki
@@ -13,33 +16,32 @@ if request.function != 'wiki':
 
 #@cache('plot_index_%s' % (requested_period), time_expire=5000, cache_model=cache.memcache)
 def index():
-    stations = db(db.station.id == db.record.station_id).select(db.station.ALL,
-                                                                groupby=db.station.ALL,
-                                                                orderby=~db.record.station_id.count(),
-                                                                cacheable=True)
-
+    m = db_intime.measurementstring
+    stations = db_intime(db_intime.station.id == m.station_id).select(db_intime.station.ALL,
+                                                                      groupby=db_intime.station.ALL,
+                                                                      cacheable=True)
     return response.render('plot/index.html', {'stations':stations, 'station_id':stations.first().id})
 
 station_id = request.args(0) or 'index'
 n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
 
-@cache('get_history_%s_%s_%s' % (station_id, n_hours, requested_period), time_expire=300, cache_model=cache.memcache)
+#@cache('get_history_%s_%s_%s' % (station_id, n_hours, requested_period), time_expire=300, cache_model=cache.memcache)
 def get_history():
     session.forget()
     if not(request.ajax): raise HTTP(403)
     station_id = request.args(0) or 'index'
     n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
-    station = db(db.station.id == station_id).select(db.station.name, cacheable=True, cache=(cache.memcache, 80000))
+    station = db_intime(db_intime.station.id == station_id).select(db_intime.station.name, cacheable=True, cache=(cache.memcache, 80000))
     if not(station_id and station_id.isdigit()) or len(station) != 1: raise HTTP(404)
     station = station.first()
-
-    query = db( (db.record.station_id == station_id) )._select(db.record.utc_in_ms,
-                                                               orderby=db.record.utc_in_ms)
-    data = db.executesql(query, as_dict=True)
+    eh = db_intime.elaborationhistory
+    rows = db_intime( (eh.station_id == station_id) &
+                      (eh.type_id == 19) &
+                      (eh.period  == (n_hours * 1800))).select(eh.value,eh.timestamp.epoch(), orderby=~eh.timestamp, cacheable=True)
 
     output = []
-    for key, group in groupby(data, lambda x: (x['utc_in_ms']) / ( 60 * 60 * n_hours * 1000)):
-        output.append( [ key*60*60*1000*n_hours, len(list(group))] )
+    for key, group in groupby(rows, lambda x: (x[eh.timestamp.epoch()]) / ( 60 * 60 * n_hours)):
+        output.append( [ key*60*60*1000*n_hours, sum(r[eh.value] for r in list(group))] )
 
     series = [{'data':output, 'id': 'station_%s' % station_id, 'station_id':station_id, 'label': station.name}]    if len(output) != 0 else []
     return response.json({'series': series})
@@ -117,8 +119,6 @@ def get_real_time():
                           ).select(eh.ALL, orderby=~eh.timestamp, limitby=(0,2))
         if len(rows)<2:
             continue
-        print rows
-        print rows[0]
         modes.append({'mode': rows[0].value, 'mode_ts': rows[0].timestamp, 'mode_prev': rows[1].value, 'string':str(datetime.timedelta(seconds=rows[0].value)), 'station': station})
 
     return response.render('plot/tab_real_time.html', {'modes':modes} )

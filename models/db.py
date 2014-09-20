@@ -182,6 +182,15 @@ db_intime.define_table('measurementhistory',
     Field('period', 'integer'),
     migrate=False
 )
+db_intime.define_table('measurementstring',
+    Field('created_on', 'datetime'),
+    Field('timestamp', 'datetime'),
+    Field('value', 'string'),
+    Field('station_id', 'reference station'),
+    Field('type_id', 'reference type'),
+    Field('period', 'integer'),    
+    migrate=False
+)
 db_intime.define_table('measurementstringhistory',
     Field('created_on', 'datetime'),
     Field('timestamp', 'datetime'),
