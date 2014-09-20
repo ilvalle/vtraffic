@@ -27,7 +27,7 @@
 
 <div id="myTabContent" class="tab-content">
 <section id="realtime" class="tab-pane fade">
-	{{=LOAD('plot', 'get_real_time', ajax=True, timeout=1000, times="infinity")}}
+	{{=LOAD('plot', 'get_real_time', ajax=True, timeout=100000, times="infinity")}}
 </section>
 
 <section id='vehiclesDetected' class="tab-pane fade in active row-fluid">
@@ -36,7 +36,7 @@
 		<ul id='stations' class="load_data nav nav-list">
 			<li class="nav-header">Monitoring stations</li>
 			{{for station in stations:}}
-				<li><a id='station_{{=station['id']}}' title="{{='%s %s' % (T('Station'), station['name']) }}" href="#" class="muted" data-content="{{=get_static_img( station['lat'], station['lgt'])}}">
+				<li><a id='station_{{=station['id']}}' title="{{='%s %s' % (T('Station'), station['name']) }}" href="#" class="muted" data-content="{{#=get_static_img( station['lat'], station['lgt'])}}">
 					<span class="legend_box_color"> </span>
 					{{=station['name']}}
 				</a></li>	
@@ -125,7 +125,7 @@
 	timezoneJS.timezone.zoneFileBasePath = '{{=URL('vtraffic', 'static/js', 'tz')}}';
 	var options_vehicles_detected = { 
 		xaxis: { 
-			mode: "time", timezone: false, alignTicksWithAxis:true,
+			mode: "time", timezone: "Europe/Rome", alignTicksWithAxis:true,
 			dayNames: ['{{=T('Sun')}}', '{{=T('Mon')}}', '{{=T('Tue')}}', '{{=T('Wen')}}', '{{=T('Thu')}}', '{{=T('Fri')}}', '{{=T('Sat')}}'] 
 		},
 		yaxis: { axisLabel: "{{=T('Vehicles detected')}}", zoomRange: false, panRange: false,},
@@ -173,6 +173,7 @@
 	});
 
 	$(document).on('click', "li a[class='group']", function() {
+	    console.log('onclick');
 		$(this).parent().siblings().removeClass('active');
 		$(this).parent().addClass('active');
 		var next_interval = $(this).attr('id').split('_')[1];
