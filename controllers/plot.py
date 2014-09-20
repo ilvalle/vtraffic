@@ -31,7 +31,7 @@ def get_history():
     if not(request.ajax): raise HTTP(403)
     station_id = request.args(0) or 'index'
     n_hours = int(request.vars.interval) if request.vars.interval and request.vars.interval.isdigit() else 1
-    station = db_intime(db_intime.station.id == station_id).select(db_intime.station.name, cacheable=True, cache=(cache.memcache, 80000))
+    station = db_intime(db_intime.station.id == station_id).select(db_intime.station.name, cacheable=True)
     if not(station_id and station_id.isdigit()) or len(station) != 1: raise HTTP(404)
     station = station.first()
     eh = db_intime.elaborationhistory
