@@ -3,31 +3,38 @@ def emission_intime():
     period=3600         # Period of the result
     input_period=1800   # Period of the input data 
     output_type_id = 42 # Reference type_id (PM10)
-    
+
+    inquinanti_ids = db_intime(db_intime.copert_emisfact).select(db_intime.copert_emisfact.type_id,
+                                                                 groupby=db_intime.copert_emisfact.type_id,
+                                                                 orderby=db_intime.copert_emisfact.type_id, cacheable=True)
+    inquinanti_ids = [ i[db_intime.copert_emisfact.type_id] for i in inquinanti_ids]
+
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Streetstation'
-    station_id=db_intime(db_intime.station).select(db.station.id, cacheable=True, limitby=(0,1), orderby=db.station.id).first().id
-    
-    ### check last value timestamp or set it as min(gathered_on)
-    last_ts = db_intime.get_last_ts(output_type_id, station_id, period, table)
+    # Find out the most recent timestamp for a given set of types
+    last_ts=db_intime( (db_intime.station.id == db_intime.elaborationhistory.station_id) &
+                       (db_intime.elaborationhistory.type_id.belongs(inquinanti_ids)) ).select(db_intime.elaborationhistory.timestamp.max(),
+                                                                                               cacheable=True).first()[db_intime.elaborationhistory.timestamp.max()]
+
     unique = True
     if last_ts:
-        last_ts = "'%s'" % (last_ts - datetime.timedelta(seconds=interval/2))
+        last_ts = "'%s'" % roundTime(last_ts, period) #% (last_ts - datetime.timedelta(seconds=interval/2))
     else:
         last_ts = 'min(timestamp)::date'
         unique = False # Speedup, no data are in the db for the given combination of station_id/type_id/interval
 
-    last_ts = "'2014-09-16 08:00'"
     # The following query assign the emission factor for each path of the 'grafo stradale'
     # the data starts from the traffic monitoring detector (bluetooth/spira)
+    # debug    SELECT id_arco as station_id, start, end_time, n_vehicle_l * factor as light_vehicle, n_vehicle_h* factor as heavy_vehicle, n_vehicle_l, n_vehicle_h, factor,  ii.speed_default
+
     query = """
-    SELECT id_arco as station_id, start, end_time, n_vehicle_l * factor as light_vehicle, n_vehicle_h* factor as heavy_vehicle, n_vehicle_l, n_vehicle_h, factor,  ii.speed_default
+    SELECT id_arco as station_id, start, end_time, n_vehicle_l * factor as light_vehicle, n_vehicle_h* factor as heavy_vehicle, ii.speed_default
     FROM (
 	    (SELECT station_id, start_time AS start, end_time, count(a.id) AS n_element, sum(vehicle) as n_vehicle_l, sum(vehicles_heavy) as n_vehicle_h
 	     FROM ( (SELECT start_time, lead(start_time, 1, '1070-01-01 00:00:00') OVER (ORDER BY start_time) AS end_time
 	             FROM ( SELECT generate_series(%(last_ts)s, max(timestamp), '%(period)s seconds'::interval) AS start_time 
 		                FROM intime.elaborationhistory
-		                WHERE type_id = %(type_id_light)s and value!=0
-		                LIMIT 2) x) as g
+		                WHERE type_id = %(type_id_light)s and value!=0) x
+		         WHERE start_time::time > '05:30:00' and start_time::time < '22:30:00' ) as g
 	            LEFT JOIN (SELECT station_id, timestamp, id, value as vehicle, type_id
 			               FROM intime.elaborationhistory
 			               WHERE (type_id = %(type_id_light)s) and period = %(input_period)s) e
@@ -42,7 +49,7 @@ def emission_intime():
 	     ON t.id_spira = aa.station_id) i
 	     INNER JOIN intime.streetbasicdata ii
 	     ON ii.station_id = i.id_arco
-    ORDER  BY start asc
+    ORDER  BY start asc, station_id asc
     """ % {'type_id_light':14, 'type_id_heavy':13, 'input_period':input_period, 'period':period, 
            'last_ts':last_ts, 'table':table}
     rows = db_intime.executesql(query, as_dict=True)
@@ -65,9 +72,8 @@ def emission_intime():
         if speed:
             r['speed_default'] = speed
 
-    inquinanti_ids = db_intime(db_intime.copert_emisfact).select(db_intime.copert_emisfact.type_id, groupby=db_intime.copert_emisfact.type_id, orderby=db_intime.copert_emisfact.type_id, cacheable=True)
-    inquinanti_ids = [ i[db_intime.copert_emisfact.type_id] for i in inquinanti_ids]
     # ciclo su tutti gli archi (streetstation) valorizzati prima
+
     for r in rows:
         v = r["speed_default"]			## intime.trafficstreetfactor.vel_default
         nh = r["heavy_vehicle"]            ## intime.elaborationhistory.type=14
@@ -75,25 +81,31 @@ def emission_intime():
         for inq_type_id in inquinanti_ids:			## ciclo su ogni inquinante
             em_tot = 0
             pm_fe = db_intime( (db_intime.copert_emisfact.copert_parcom_id == db_intime.copert_parcom.id) &
-                               (db_intime.copert_emisfact.type_id == inq_type_id)).select(cacheable=True)
+                               (db_intime.copert_emisfact.type_id == inq_type_id)).select(cacheable=True, 
+                                                                                          cache=(cache.ram,3600))
             for ip in pm_fe:		## ciclo su ogni classe di veicolo
-                eml = emh = 0
-                idclass = ip["copert_parcom.id_class"]
-                percent = ip["copert_parcom.percent"]
-                a = ip["copert_emisfact.coef_a"]
-                b = ip["copert_emisfact.coef_b"]
-                c = ip["copert_emisfact.coef_c"]
-                d = ip["copert_emisfact.coef_d"]
-                e = ip["copert_emisfact.coef_e"]
+                em = 0              #useless
+                ce = ip.copert_emisfact 
+                cp = ip.copert_parcom
+                idclass = cp.id_class
+                percent = cp.percent
+                a = ce.coef_a
+                b = ce.coef_b
+                c = ce.coef_c
+                d = ce.coef_d
+                e = ce.coef_e
                 fe = (a+b*v+c*v*v)/(1+d*v+e*v*v)
                 if (idclass==1) or (idclass==5): ## calcolo emissioni per veicoli leggeri
-                    eml = fe*percent/100*nl  ##
+                    em = fe*percent/100*nl  ##
                 else:                            ## calcolo emissioni per veicoli pesanti
-                    emh = fe*percent/100*nh  ##
-                em_tot += (emh+eml)        ## calcolo emissione totale per ogni arco, per ogni inquinante per tutte le classi di veicolo
+                    em = fe*percent/100*nh  ##
+                em_tot += em        ## calcolo emissione totale per ogni arco, per ogni inquinante per tutte le classi di veicolo
 
-            print r['station_id'], inq_type_id, em_tot
-            #db_intime.save_elaborations([{'value':em_tot, 'timestamp':r['start']}], r['station_id'], inq_type_id, 3600)
+            db_intime.save_elaborations([{'value':em_tot, 'timestamp':r['start']}], r['station_id'], inq_type_id, perio, commit=False)
+
+        print r['station_id']
+    db.commit()
+    print db._timings
     return len(rows)
 
 # Compute the speed for all link stations
