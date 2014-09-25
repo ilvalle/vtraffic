@@ -4,7 +4,7 @@
 		{{for data_type in data_types:}}
 		    <li><a id='{{=IS_SLUG()("type_%s_%s_%s" % (station,data_type[0],data_type[3]))[0]}}' title="{{="%s (%s)s" % (data_type[2],data_type[3]) if len(data_type) > 3 else (data_type[2] or data_type[0])}}" data-type='{{=data_type[0]}}' {{=XML('data-period="%s"' % data_type[3]) if len(data_type) > 3 else ''}} data-frontend="{{=frontend}}" data-station="{{=station}}" data-unit="{{=data_type[1]}}" href="#" class="muted">
 		    <span class="legend_box_color"> </span>
-		    {{="%s (%ss)" % (data_type[0],data_type[3]) if len(data_type) > 3 else (data_type[0])}}
+		    {{="%s (%ss) %s" % (data_type[0],data_type[3],("(%s)" % data_type[1]) if data_type[1] != '' else '') if len(data_type) > 3 else (data_type[0])}}
 			</a></li>	
 		{{pass}}
 	</ul>
