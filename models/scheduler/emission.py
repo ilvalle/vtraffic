@@ -20,6 +20,7 @@ def emission_intime():
         last_ts = "'%s'" % roundTime(last_ts, period) #% (last_ts - datetime.timedelta(seconds=interval/2))
     else:
         last_ts = 'min(timestamp)::date'
+        last_ts = "'2014-09-16 06:00:00'"   # Debug purposes
         unique = False # Speedup, no data are in the db for the given combination of station_id/type_id/interval
 
     # The following query assign the emission factor for each path of the 'grafo stradale'
@@ -36,7 +37,7 @@ def emission_intime():
 	             FROM ( SELECT generate_series(%(last_ts)s, max(timestamp), '%(period)s seconds'::interval) AS start_time 
 		                FROM intime.elaborationhistory
 		                WHERE type_id = %(type_id_light)s and value!=0
-		                LIMIT 500) x) as g
+		                LIMIT 200) x) as g
 	            LEFT JOIN (SELECT station_id, timestamp, id, value as vehicle, type_id
 			               FROM intime.elaborationhistory
 			               WHERE (type_id = %(type_id_light)s) and period = %(input_period)s) e
@@ -116,16 +117,15 @@ def emission_intime():
                                        (eh.timestamp > last_24_h)).select(eh.value.avg(), cacheable=True, cache=(cache.ram,3600)).first()[eh.value.avg()]
                     if value:
                         em_tot = (value/100) * 6.5
-                    print r['station_id'], r['start'], em_tot
+                    #print r['station_id'], r['start'], em_tot
                 else:
-                    print 'skip'
+                    #print 'skip'
                     continue
-                    print 'skip2'
             db_intime.save_elaborations([{'value':em_tot, 'timestamp':r['start']}], r['station_id'], inq_type_id, period, commit=False)
-        print r['station_id']
+        #print r['station_id']
     db.commit()
     t2 = time.time()
-    print t2-t0
+    #print t2-t0
     return len(rows)
 
 # Compute the speed for all link stations
