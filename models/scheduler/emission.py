@@ -25,7 +25,9 @@ def emission_intime():
     # The following query assign the emission factor for each path of the 'grafo stradale'
     # the data starts from the traffic monitoring detector (bluetooth/spira)
     # debug    SELECT id_arco as station_id, start, end_time, n_vehicle_l * factor as light_vehicle, n_vehicle_h* factor as heavy_vehicle, n_vehicle_l, n_vehicle_h, factor,  ii.speed_default
-
+    # last_ts = "'2014-09-16 06:00:00'"
+    import time
+    t0 = time.time()
     query = """
     SELECT id_arco as station_id, start, end_time, n_vehicle_l * factor as light_vehicle, n_vehicle_h* factor as heavy_vehicle, ii.speed_default
     FROM (
@@ -33,8 +35,8 @@ def emission_intime():
 	     FROM ( (SELECT start_time, lead(start_time, 1, '1070-01-01 00:00:00') OVER (ORDER BY start_time) AS end_time
 	             FROM ( SELECT generate_series(%(last_ts)s, max(timestamp), '%(period)s seconds'::interval) AS start_time 
 		                FROM intime.elaborationhistory
-		                WHERE type_id = %(type_id_light)s and value!=0) x
-		         WHERE start_time::time > '05:30:00' and start_time::time < '22:30:00' ) as g
+		                WHERE type_id = %(type_id_light)s and value!=0
+		                LIMIT 500) x) as g
 	            LEFT JOIN (SELECT station_id, timestamp, id, value as vehicle, type_id
 			               FROM intime.elaborationhistory
 			               WHERE (type_id = %(type_id_light)s) and period = %(input_period)s) e
@@ -54,6 +56,7 @@ def emission_intime():
            'last_ts':last_ts, 'table':table}
     rows = db_intime.executesql(query, as_dict=True)
 
+    eh = db_intime.elaborationhistory
     # get the speed if available for the given arco, otherwise use default
     for r in rows:
         # Find the linkstations that belong to the given arco stradale
@@ -63,7 +66,7 @@ def emission_intime():
                                                                                                                           cacheable=True)
         link_stations = [l['station_id'] for l in link_stations]
         # Check the speed value (type_id=54) and compute the average if more than one linkstations affect the given 'arco'
-        eh = db_intime.elaborationhistory
+
         speed = db_intime((eh.type_id == 54) & 
                           (eh.timestamp > r['start']) & (eh.timestamp < r['end_time']) &
                           (eh.period == 900) &
@@ -73,39 +76,56 @@ def emission_intime():
             r['speed_default'] = speed
 
     # ciclo su tutti gli archi (streetstation) valorizzati prima
-
+    print 'rows', len(rows)
     for r in rows:
-        v = r["speed_default"]			## intime.trafficstreetfactor.vel_default
+        v = r["speed_default"]             ## intime.trafficstreetfactor.vel_default
         nh = r["heavy_vehicle"]            ## intime.elaborationhistory.type=14
         nl = r["light_vehicle"]            ## intime.elaborationhistory.type=13
+        last_24_h = r['start'] - datetime.timedelta(days=24)
         for inq_type_id in inquinanti_ids:			## ciclo su ogni inquinante
             em_tot = 0
-            pm_fe = db_intime( (db_intime.copert_emisfact.copert_parcom_id == db_intime.copert_parcom.id) &
-                               (db_intime.copert_emisfact.type_id == inq_type_id)).select(cacheable=True, 
-                                                                                          cache=(cache.ram,3600))
-            for ip in pm_fe:		## ciclo su ogni classe di veicolo
-                em = 0              #useless
-                ce = ip.copert_emisfact 
-                cp = ip.copert_parcom
-                idclass = cp.id_class
-                percent = cp.percent
-                a = ce.coef_a
-                b = ce.coef_b
-                c = ce.coef_c
-                d = ce.coef_d
-                e = ce.coef_e
-                fe = (a+b*v+c*v*v)/(1+d*v+e*v*v)
-                if (idclass==1) or (idclass==5): ## calcolo emissioni per veicoli leggeri
-                    em = fe*percent/100*nl  ##
-                else:                            ## calcolo emissioni per veicoli pesanti
-                    em = fe*percent/100*nh  ##
-                em_tot += em        ## calcolo emissione totale per ogni arco, per ogni inquinante per tutte le classi di veicolo
-
-            db_intime.save_elaborations([{'value':em_tot, 'timestamp':r['start']}], r['station_id'], inq_type_id, perio, commit=False)
-
+            if (nl != 0) and (nh != 0):
+                pm_fe = db_intime( (db_intime.copert_emisfact.copert_parcom_id == db_intime.copert_parcom.id) &
+                                   (db_intime.copert_emisfact.type_id == inq_type_id)).select(cacheable=True,
+                                                                                              cache=(cache.ram,3600))
+                for ip in pm_fe:		## ciclo su ogni classe di veicolo
+                    #em = 0              #useless
+                    ce = ip.copert_emisfact
+                    cp = ip.copert_parcom
+                    idclass = cp.id_class
+                    percent = cp.percent
+                    a = ce.coef_a
+                    b = ce.coef_b
+                    c = ce.coef_c
+                    d = ce.coef_d
+                    e = ce.coef_e
+                    fe = (a+b*v+c*v*v)/(1+d*v+e*v*v)
+                    if (idclass==1) or (idclass==5): ## calcolo emissioni per veicoli leggeri
+                        em = fe*percent/100*nl  ##
+                    else:                            ## calcolo emissioni per veicoli pesanti
+                        em = fe*percent/100*nh  ##
+                    em_tot += em        ## calcolo emissione totale per ogni arco, per ogni inquinante per tutte le classi di veicolo
+            else:
+                # 0 vehicles during night are estinated, otherwise (day) skip
+                if ((r['start'].time() >= datetime.time(22,00)) and (r['start'].time() < datetime.time(06, 00))):
+                    # Take the average of the last 24h
+                    value = db_intime( (eh.type_id == inq_type_id) &
+                                       (eh.station_id == r['station_id']) &
+                                       (eh.period == period) &
+                                       (eh.value != 0) &
+                                       (eh.timestamp > last_24_h)).select(eh.value.avg(), cacheable=True, cache=(cache.ram,3600)).first()[eh.value.avg()]
+                    if value:
+                        em_tot = (value/100) * 6.5
+                    print r['station_id'], r['start'], em_tot
+                else:
+                    print 'skip'
+                    continue
+                    print 'skip2'
+            db_intime.save_elaborations([{'value':em_tot, 'timestamp':r['start']}], r['station_id'], inq_type_id, period, commit=False)
         print r['station_id']
     db.commit()
-    print db._timings
+    t2 = time.time()
+    print t2-t0
     return len(rows)
 
 # Compute the speed for all link stations
