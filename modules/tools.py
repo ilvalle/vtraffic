@@ -24,25 +24,24 @@ class TimeoutTransport(xmlrpclib.Transport):
 
 class intimeDAL(DAL):
     ## save everything in elaborationhistory
-    def save_elaborations(self, rows, station_id, type_id, interval, unique=True, update_ts=True):
-        return self.__save_records(rows, station_id, type_id, interval, table='elaborationhistory', unique=unique, update_ts=update_ts)
+    def save_elaborations(self, rows, station_id, type_id, interval, unique=True, update_ts=True, commit=True):
+        return self.__save_records(rows, station_id, type_id, interval, table='elaborationhistory', unique=unique, update_ts=update_ts, commit=commit)
 
     ## save everything in measurementhistory
-    def save_measurements(self, rows, station_id, type_id, interval, unique=True, update_ts=True):
-        return self.__save_records(rows, station_id, type_id, interval, table='measurementhistory', unique=unique, update_ts=update_ts)
+    def save_measurements(self, rows, station_id, type_id, interval, unique=True, update_ts=True, commit=True):
+        return self.__save_records(rows, station_id, type_id, interval, table='measurementhistory', unique=unique, update_ts=update_ts, commit=commit)
 
     ## save data in a general intime table
-    def __save_records(self, rows, station_id, type_id, interval, table, unique=True, test_ts=True, update_ts=True):
+    def __save_records(self, rows, station_id, type_id, interval, table, unique=True, test_ts=True, update_ts=True, commit=True):
         for r in rows:
             self.__save_record(r, station_id, type_id, interval, table, unique, test_ts=test_ts, update_ts=update_ts)
         
         # Store the most recent record in the general table
         if table.endswith('history') and len(rows) != 0:
-            self.commit()
             table = table[:-len('history')]
             self.__save_record(rows[-1], station_id, type_id, interval, table, unique=True, test_ts=False, update_ts=update_ts)
-
-        self.commit()
+        if commit:
+            self.commit()
         return len(rows)
 
     def __save_record(self, r, station_id, type_id, interval, table, unique, test_ts=True, update_ts=True):
