@@ -75,9 +75,16 @@ def emission_intime():
 
         if speed:
             r['speed_default'] = speed
-
+    skip=0
     # ciclo su tutti gli archi (streetstation) valorizzati prima
     print 'rows', len(rows)
+
+    # Get once all values
+    pm_fe_dict = {}
+    for inq_type_id in inquinanti_ids:
+        pm_fe_dict[inq_type_id] = db_intime( (db_intime.copert_emisfact.copert_parcom_id == db_intime.copert_parcom.id) &
+                                             (db_intime.copert_emisfact.type_id == inq_type_id)).select(cacheable=True)
+
     for r in rows:
         v = r["speed_default"]             ## intime.trafficstreetfactor.vel_default
         nh = r["heavy_vehicle"]            ## intime.elaborationhistory.type=14
@@ -86,9 +93,7 @@ def emission_intime():
         for inq_type_id in inquinanti_ids:			## ciclo su ogni inquinante
             em_tot = 0
             if (nl != 0) and (nh != 0):
-                pm_fe = db_intime( (db_intime.copert_emisfact.copert_parcom_id == db_intime.copert_parcom.id) &
-                                   (db_intime.copert_emisfact.type_id == inq_type_id)).select(cacheable=True,
-                                                                                              cache=(cache.ram,3600))
+                pm_fe = pm_fe_dict[inq_type_id]
                 for ip in pm_fe:		## ciclo su ogni classe di veicolo
                     #em = 0              #useless
                     ce = ip.copert_emisfact
@@ -108,23 +113,24 @@ def emission_intime():
                     em_tot += em        ## calcolo emissione totale per ogni arco, per ogni inquinante per tutte le classi di veicolo
             else:
                 # 0 vehicles during night are estinated, otherwise (day) skip
-                if ((r['start'].time() >= datetime.time(22,00)) and (r['start'].time() < datetime.time(06, 00))):
+                if ((r['start'].time() >= datetime.time(22,00)) or (r['start'].time() < datetime.time(06, 00))):
                     # Take the average of the last 24h
                     value = db_intime( (eh.type_id == inq_type_id) &
                                        (eh.station_id == r['station_id']) &
                                        (eh.period == period) &
                                        (eh.value != 0) &
-                                       (eh.timestamp > last_24_h)).select(eh.value.avg(), cacheable=True, cache=(cache.ram,3600)).first()[eh.value.avg()]
+                                       (eh.timestamp > last_24_h)).select(eh.value.avg(), cacheable=True).first()[eh.value.avg()]
                     if value:
                         em_tot = (value/100) * 6.5
                     #print r['station_id'], r['start'], em_tot
                 else:
-                    #print 'skip'
+                    skip += 1
                     continue
             db_intime.save_elaborations([{'value':em_tot, 'timestamp':r['start']}], r['station_id'], inq_type_id, period, commit=False)
         #print r['station_id']
-    db.commit()
+    db_intime.commit()
     t2 = time.time()
+    print 's', skip
     #print t2-t0
     return len(rows)
 
