@@ -170,7 +170,6 @@ def filter_vehicle_data():
     if last_ts:
         query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=delay)))
     print last_ts
-    return
     rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,50000), orderby=mmh.ts_ms)
     t1 = time.time()
 
