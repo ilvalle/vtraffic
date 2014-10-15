@@ -1,3 +1,4 @@
+import time
 def emission_intime():
     table='elaborationhistory'
     period=3600         # Period of the result
@@ -75,10 +76,8 @@ def emission_intime():
 
         if speed:
             r['speed_default'] = speed
-    skip=0
-    # ciclo su tutti gli archi (streetstation) valorizzati prima
-    print 'rows', len(rows)
 
+    # ciclo su tutti gli archi (streetstation) valorizzati prima
     # Get once all values
     pm_fe_dict = {}
     for inq_type_id in inquinanti_ids:
@@ -124,13 +123,11 @@ def emission_intime():
                         em_tot = (value/100) * 6.5
                     #print r['station_id'], r['start'], em_tot
                 else:
-                    skip += 1
                     continue
             db_intime.save_elaborations([{'value':em_tot, 'timestamp':r['start']}], r['station_id'], inq_type_id, period, commit=False)
         #print r['station_id']
     db_intime.commit()
     t2 = time.time()
-    print 's', skip
     #print t2-t0
     return len(rows)
 
@@ -157,3 +154,62 @@ def compute_bspeed():
         db_intime.save_elaborations(rows_speed, station.station_id, output_type_id, period, True if last_ts else False, update_ts=False)
         tot += len(rows_speed)
     return tot
+
+# Read all valid values from measurementmobilehistory
+def filter_vehicle_data():
+    ### 1' elaboration: MOVING AVERAGE
+    ###
+    tot = 0
+    t0 = time.time()
+    mmh = db_intime.measurementmobilehistory
+    delay = 12
+    # Find the last value stored by a former elaboration
+    last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
+    query = (mmh.no2_1_ppb != None)
+    print db_intime(query).count()
+    if last_ts:
+        query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=delay)))
+    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,1000), orderby=mmh.ts_ms)
+    t1 = time.time()
+
+    # Parameter to convert from ppb to microgm3
+    NO2MolarWeight = 46.00449
+    T_0 = 273    ## it is the reference temperature in [°K], equal to 0 [°C]
+    T_1 = 277    ## it is the current temperature in [°K]. During the measurements, T_air measured by the meteo station has been on average 4 [°C] 
+    V_0 = 22.414 ## it is the molar volume in [l/mol] at the conditions (T_0, P_0 = 1013 [kPa])
+    for r in rows:
+        r['no2_1_microgm3'] = (r.no2_1_ppb)*(NO2MolarWeight/V_0)*(T_0/T_1)
+
+    last_ts  = datetime.datetime.fromtimestamp(0)
+    n_values = 0
+    to_recject = 0
+    total    = 0
+    temporalWindowWidth = 7
+
+    # compute moving average
+    for pos, r in enumerate(rows):
+        # If there is a gap between two samples the moving average is not valid.
+        # The delay is the amount of time occured by the air to be pumped in the pipe and to reach the no2 sensor detector.
+        # if the is a gap, the first delay records (1per seconds) are rejected, after that we can start to accomulate data
+        # when we have temporalWindowWidth records in the total, we can store the value.
+        if r.ts_ms > (last_ts + datetime.timedelta(seconds=1800)):
+            total = 0
+            n_values = 0
+            to_recject = delay
+        else:
+            to_recject -= 1
+        if to_recject > 0:
+            continue
+        total += r['no2_1_microgm3']
+        last_ts = r.ts_ms
+        n_values += 1
+
+        if n_values == temporalWindowWidth +1:
+            total -= rows[pos-temporalWindowWidth]['no2_1_microgm3']    # Remove the first value in the moving window
+            n_values -= 1
+        if n_values == temporalWindowWidth:
+            r.update_record(no2_1_microgm3_ma = total)
+    t2 = time.time()
+    db_intime.commit()
+    return "%s %s" % (len(rows), t2-t1)
+
