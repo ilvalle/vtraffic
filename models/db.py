@@ -234,6 +234,12 @@ db_intime.define_table('copert_emisfact',
     Field('coef_e', 'double'),
     migrate=False
 )
+db_intime.define_table('measurementmobilehistory',
+    Field('no2_1_ppb', 'double'),
+    Field('ts_ms', 'datetime'),
+    Field('no2_1_microgm3_ma', 'double'),
+    migrate=False
+)
 
 
 
