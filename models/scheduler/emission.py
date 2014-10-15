@@ -168,8 +168,8 @@ def filter_vehicle_data():
     last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
     if last_ts:
         query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=delay)))
-
-    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,10000), orderby=mmh.ts_ms)
+    print last_ts
+    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,50000), orderby=mmh.ts_ms)
     t1 = time.time()
 
     # Parameters to convert from ppb to microgm3
