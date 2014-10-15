@@ -166,10 +166,10 @@ def filter_vehicle_data():
     # Find the last value stored by a former elaboration
     last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
 
-#    if last_ts:
-#        query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=delay)))
+    if last_ts:
+        query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=delay)))
     print last_ts
-    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,20), orderby=mmh.ts_ms)
+    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,50000), orderby=mmh.ts_ms)
     t1 = time.time()
 
     # Parameters to convert from ppb to microgm3
@@ -179,7 +179,6 @@ def filter_vehicle_data():
     V_0 = float(22.414) ## it is the molar volume in [l/mol] at the conditions (T_0, P_0 = 1013 [kPa])
     for r in rows:
         r['no2_1_microgm3'] = (r.no2_1_ppb)*(NO2MolarWeight/V_0)*(T_0/T_1)
-        print r.no2_1_ppb, r['no2_1_microgm3']
     
     last_ts  = datetime.datetime.fromtimestamp(0)
     n_values = 0
@@ -201,16 +200,13 @@ def filter_vehicle_data():
             to_recject -= 1
         last_ts = r.ts_ms
         if to_recject > 0:
-            print 'rejected due to pump delay', to_recject
             continue
         total += r['no2_1_microgm3']
         n_values += 1
-        print 'total', total
         if n_values == temporalWindowWidth +1:
             total -= rows[pos-temporalWindowWidth]['no2_1_microgm3']    # Remove the first value in the moving window
             n_values -= 1
         if n_values == temporalWindowWidth:
-            print 'memorizzo', total
             r.update_record(no2_1_microgm3_ma = total)
     t2 = time.time()
     db_intime.commit()
