@@ -163,16 +163,16 @@ def filter_vehicle_data():
     t0 = time.time()
     mmh = db_intime.measurementmobilehistory
     delay = 12
+    query = (mmh.no2_1_ppb != None)
     # Find the last value stored by a former elaboration
     last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
-    query = (mmh.no2_1_ppb != None)
-    print db_intime(query).count()
     if last_ts:
         query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=delay)))
-    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,1000), orderby=mmh.ts_ms)
+
+    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,10000), orderby=mmh.ts_ms)
     t1 = time.time()
 
-    # Parameter to convert from ppb to microgm3
+    # Parameters to convert from ppb to microgm3
     NO2MolarWeight = 46.00449
     T_0 = 273    ## it is the reference temperature in [°K], equal to 0 [°C]
     T_1 = 277    ## it is the current temperature in [°K]. During the measurements, T_air measured by the meteo station has been on average 4 [°C] 
