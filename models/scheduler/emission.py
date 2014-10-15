@@ -157,8 +157,7 @@ def compute_bspeed():
 
 # Read all valid values from measurementmobilehistory
 def filter_vehicle_data():
-    ### 1' elaboration: MOVING AVERAGE
-    ###
+### 1' elaboration: MOVING AVERAGE
     tot = 0
     t0 = time.time()
     mmh = db_intime.measurementmobilehistory
@@ -166,7 +165,7 @@ def filter_vehicle_data():
     query = (mmh.no2_1_ppb != None)
     # Find the last value stored by a former elaboration
     last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
-    print db_intime(mmh.no2_1_microgm3_ma)._select(mmh.ts_ms.max())
+
     if last_ts:
         query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=delay)))
     print last_ts
