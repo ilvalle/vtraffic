@@ -46,8 +46,8 @@ def run_mode():
     link_stations = db_intime(db_intime.linkbasicdata.station_id == db_intime.station.id).select(cacheable=True)
     out = ''
     for link in link_stations:
-        origin = link.linkbasicdata.origin
-        destination = link.linkbasicdata.destination
+        origin = link.linkbasicdata.origin_id
+        destination = link.linkbasicdata.destination_id
         db.match._common_filter = None
       	query = (db.match.station_id_orig == origin) & (db.match.station_id_dest == destination) 
         # Given an origin and a destination, we check the last stored elapsed time
@@ -214,8 +214,8 @@ def count_matches_station(station_id, interval):
 
     ### check last value or set it as min(gathered_on)
     row = db_intime((db_intime.station.id == station_id) & (db_intime.linkbasicdata.station_id == db_intime.station.id)).select(db_intime.linkbasicdata.ALL, cacheable=True).first()
-    station_id_orig = row.origin
-    station_id_dest = row.destination
+    station_id_orig = row.origin_id
+    station_id_dest = row.destination_id
     
     last_ts = db_intime((db_intime.elaborationhistory.type_id == type_id) & 
                         (db_intime.elaborationhistory.station_id == station_id)).select(db_intime.elaborationhistory.timestamp.max()).first()

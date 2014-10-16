@@ -31,7 +31,7 @@ def find_matches_intime (link_station, period, output_type_id, input_type_id):
                                                                                            limitby=(0,1) )
 
     last_match = db_intime.executesql(last_match_query, as_dict=True)
-    query_od = (start_intime.station_id == link_station.origin) & (end_intime.station_id == link_station.destination)
+    query_od = (start_intime.station_id == link_station.origin_id) & (end_intime.station_id == link_station.destination_id)
     if last_match:
         match = last_match[0]
 
