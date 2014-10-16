@@ -157,6 +157,16 @@ def compute_bspeed():
 
 # Read all valid values from measurementmobilehistory
 def filter_vehicle_data():
+    db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Mobilestation'
+    vehicles = db_intime(db_intime.station).select(cacheable=True)
+    tot = ''
+    for v in vehicles:
+        db_intime.measurementmobilehistory._common_filter = lambda query: db_intime.measurementmobilehistory.station_id == v.id
+        tot += __filter_vehicle_data()
+
+    return tot
+
+def __filter_vehicle_data():
 ### 1' elaboration: MOVING AVERAGE
     tot = 0
     t0 = time.time()
