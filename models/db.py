@@ -128,8 +128,8 @@ db_intime.define_table('station',
 )
 
 db_intime.define_table('linkbasicdata',
-    Field('origin', 'reference station'),
-    Field('destination', 'reference station'),
+    Field('origin_id', 'reference station'),
+    Field('destination_id', 'reference station'),
     Field('station_id', 'reference station'),
     Field('street_ids_ref', 'list:reference streetbasicdata'),
     Field('length', 'double'),
