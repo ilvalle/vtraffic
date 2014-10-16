@@ -172,12 +172,13 @@ def __filter_vehicle_data():
     t0 = time.time()
     mmh = db_intime.measurementmobilehistory
     delay = 12
+    temporalWindowWidth = 7
     query = (mmh.no2_1_ppb != None)
     # Find the last value stored by a former elaboration
     last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
 
     if last_ts:
-        query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=delay)))
+        query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=temporalWindowWidth)))
     print last_ts
     rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,50000), orderby=mmh.ts_ms)
     t1 = time.time()
@@ -194,7 +195,7 @@ def __filter_vehicle_data():
     n_values = 0
     to_recject = 0
     total    = 0
-    temporalWindowWidth = 7
+
 
     # compute moving average
     for pos, r in enumerate(rows):
