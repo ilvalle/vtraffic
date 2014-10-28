@@ -25,10 +25,12 @@ frontends = {'Meteo':'MeteoFrontEnd', 'Vehicle': 'VehicleFrontEnd', 'Environment
 		'Bluetooth':'BluetoothFrontEnd', 'Link':'LinkFrontEnd', 'Street': 'StreetFrontEnd', 'Traffic': 'TrafficFrontEnd'} 
 @auth.requires_login()
 def index():
-	return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})
+    session.forget(request)
+    return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})
 
 @auth.requires_login()
 def get_stations():
+    session.forget(request)
     frontend = request.vars.frontend
     if not frontend or frontend not in frontends:
         response.headers['web2py-component-flash'] = 'Select something'
@@ -45,6 +47,7 @@ def get_stations():
 
 @auth.requires_login()
 def get_data_types():
+    session.forget(request)
     station = request.vars.station
     frontend = request.vars.frontend
     if not (frontend and station) or frontend not in frontends:
@@ -70,6 +73,7 @@ def get_data_types():
 
 @auth.requires_login()
 def get_data():
+    session.forget(request)
     frontend = request.vars.frontend
     station = request.vars.station 
     data_type = request.vars.data_type
@@ -87,14 +91,19 @@ def get_data():
     r = requests.get(url, params=params)
     #print 'URL', r.url
     data = r.json()
-    output = []
 
-    f = lambda row: row['timestamp'] // 5000
-    for key, group in groupby(data, f):
-        list_ = list(group)
-        list_values = [float(e['value']) for e in list_]
-        avg_value = reduce(lambda x, y: x + y, list_values) / len(list_values)
-        output.append( [key*5000, "%.2f" % avg_value] )
+    if frontend == "VehicleFrontEnd":
+        #### Average value every 5 seconds
+        output = []
+        f = lambda row: row['timestamp'] // 5000
+        for key, group in groupby(data, f):
+            list_ = list(group)
+            list_values = [float(e['value']) for e in list_]
+            avg_value = reduce(lambda x, y: x + y, list_values) / len(list_values)
+            output.append( [key*5000, "%.2f" % avg_value] )
+    else:
+        #### Take 1 value every 5 or 10
+        output = [ [data[i]['timestamp'], "%.2f" % float(data[i]['value'])]  for i in xrange(0, len(data), 10)]
 
     # the id must be the same of the A element in the data type list
     series = [{'data':output, 'id': IS_SLUG()('type_%s_%s_%s' % (station,data_type,period))[0], 'station_id':'station_iud', 'label': "%s - %s" % (station, data_label)}]
