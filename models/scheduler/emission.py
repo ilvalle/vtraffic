@@ -173,6 +173,7 @@ def __filter_vehicle_data():
     mmh = db_intime.measurementmobilehistory
     delay = 12
     temporalWindowWidth = 7
+    offset = 76
     query = (mmh.no2_1_ppb != None)
     # Find the last value stored by a former elaboration
     last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
@@ -218,7 +219,7 @@ def __filter_vehicle_data():
             total -= rows[pos-temporalWindowWidth]['no2_1_microgm3']    # Remove the first value in the moving window
             n_values -= 1
         if n_values == temporalWindowWidth:
-            value = (float(total)/temporalWindowWidth)
+            value = (float(total)/temporalWindowWidth) - offset
             r.update_record(no2_1_microgm3_ma = value)
     t2 = time.time()
     db_intime.commit()
