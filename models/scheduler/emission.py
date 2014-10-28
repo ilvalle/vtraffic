@@ -218,7 +218,8 @@ def __filter_vehicle_data():
             total -= rows[pos-temporalWindowWidth]['no2_1_microgm3']    # Remove the first value in the moving window
             n_values -= 1
         if n_values == temporalWindowWidth:
-            r.update_record(no2_1_microgm3_ma = total)
+            value = (float(total)/temporalWindowWidth)
+            r.update_record(no2_1_microgm3_ma = value)
     t2 = time.time()
     db_intime.commit()
     return "%s %s" % (len(rows), t2-t1)
