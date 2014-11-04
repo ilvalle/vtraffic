@@ -1,4 +1,6 @@
 import time
+from itertools import groupby
+
 def emission_intime():
     table='elaborationhistory'
     period=3600         # Period of the result
@@ -162,7 +164,7 @@ def filter_vehicle_data():
     tot = ''
     for v in vehicles:
         db_intime.measurementmobilehistory._common_filter = lambda query: db_intime.measurementmobilehistory.station_id == v.id
-        tot += __filter_vehicle_data()
+        tot += __filter_vehicle_data() + "</br>"
 
     return tot
 
@@ -171,6 +173,7 @@ def __filter_vehicle_data():
     tot = 0
     t0 = time.time()
     mmh = db_intime.measurementmobilehistory
+    mh = db_intime.measurementhistory
     delay = 12
     temporalWindowWidth = 7
     offset = 76
@@ -180,23 +183,31 @@ def __filter_vehicle_data():
 
     if last_ts:
         query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=temporalWindowWidth)))
+
     print last_ts
-    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.no2_1_microgm3_ma, limitby=(0,50000), orderby=mmh.ts_ms)
+    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.ts_ms.epoch(), mmh.no2_1_microgm3_ma, limitby=(0,50000), orderby=mmh.ts_ms.epoch())
     t1 = time.time()
 
     # Parameters to convert from ppb to microgm3
     NO2MolarWeight = float(46.00449)
     T_0 = float(273)    ## it is the reference temperature in [°K], equal to 0 [°C]
-    T_1 = float(277)    ## it is the current temperature in [°K]. During the measurements, T_air measured by the meteo station has been on average 4 [°C] 
+#    T_1 = float(277)    ## it is the current temperature in [°K]. During the measurements, T_air measured by the meteo station has been on average 4 [°C]
     V_0 = float(22.414) ## it is the molar volume in [l/mol] at the conditions (T_0, P_0 = 1013 [kPa])
-    for r in rows:
-        r['no2_1_microgm3'] = (r.no2_1_ppb)*(NO2MolarWeight/V_0)*(T_0/T_1)
-    
+    type_id_air_temperature = 8
+    f = lambda r: r[mmh.ts_ms.epoch()] // 3600        # one hour
+    for key, group in groupby(rows, f):
+        d = datetime.datetime.fromtimestamp(key*3600+3600)
+        row = db_intime((mh.type_id == type_id_air_temperature) &
+                        (mh.timestamp < d)).select(mh.value, mh.timestamp, orderby=~mh.timestamp, limitby=(0,1)).first()
+
+        T_1 = float(273 + row.value) if row.value else float(277)
+        for r in group:
+            r['no2_1_microgm3'] = (r.measurementmobilehistory.no2_1_ppb)*(NO2MolarWeight/V_0)*(T_0/T_1)
+
     last_ts  = datetime.datetime.fromtimestamp(0)
     n_values = 0
     to_recject = 0
     total    = 0
-
 
     # compute moving average
     for pos, r in enumerate(rows):
@@ -204,13 +215,13 @@ def __filter_vehicle_data():
         # The delay is the amount of time occured by the air to be pumped in the pipe and to reach the no2 sensor detector.
         # if the is a gap, the first delay records (1per seconds) are rejected, after that we can start to accomulate data
         # when we have temporalWindowWidth records in the total, we can store the value.
-        if r.ts_ms > (last_ts + datetime.timedelta(seconds=1800)):
+        if r.measurementmobilehistory.ts_ms > (last_ts + datetime.timedelta(seconds=1800)):
             total = 0
             n_values = 0
             to_recject = delay
         else:
             to_recject -= 1
-        last_ts = r.ts_ms
+        last_ts = r.measurementmobilehistory.ts_ms
         if to_recject > 0:
             continue
         total += r['no2_1_microgm3']
