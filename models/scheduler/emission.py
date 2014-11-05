@@ -232,7 +232,7 @@ def __filter_vehicle_data():
             n_values -= 1
         if n_values == temporalWindowWidth:
             value = (float(total)/temporalWindowWidth) - offset
-            db_intime(mmh.id == r.measurementmobilehistory.id).update(no2_1_microgm3_ma = value)
+            db_intime(mmh.id == r.measurementmobilehistory.id).update(no2_1_microgm3_ma = round(value, 2))
     t2 = time.time()
     db_intime.commit()
     return "%s %s" % (len(rows), t2-t1)
