@@ -198,7 +198,8 @@ def __filter_vehicle_data():
     for key, group in groupby(rows, f):
         d = datetime.datetime.fromtimestamp(key*3600+3600)
         row = db_intime((mh.type_id == type_id_air_temperature) &
-                        (mh.timestamp < d)).select(mh.value, mh.timestamp, orderby=~mh.timestamp, limitby=(0,1)).first()
+                        (mh.timestamp < d)).select(mh.value, mh.timestamp, orderby=~mh.timestamp,
+                                                   limitby=(0,1), cacheable=True).first()
 
         T_1 = float(273 + row.value) if row.value else float(277)
         for r in group:
@@ -206,8 +207,8 @@ def __filter_vehicle_data():
 
     last_ts  = datetime.datetime.fromtimestamp(0)
     n_values = 0
-    to_recject = 0
-    total    = 0
+    to_reject = 0
+    total = 0
 
     # compute moving average
     for pos, r in enumerate(rows):
@@ -218,11 +219,11 @@ def __filter_vehicle_data():
         if r.measurementmobilehistory.ts_ms > (last_ts + datetime.timedelta(seconds=1800)):
             total = 0
             n_values = 0
-            to_recject = delay
+            to_reject = delay
         else:
-            to_recject -= 1
+            to_reject -= 1
         last_ts = r.measurementmobilehistory.ts_ms
-        if to_recject > 0:
+        if to_reject > 0:
             continue
         total += r['no2_1_microgm3']
         n_values += 1
@@ -231,7 +232,7 @@ def __filter_vehicle_data():
             n_values -= 1
         if n_values == temporalWindowWidth:
             value = (float(total)/temporalWindowWidth) - offset
-            r.update_record(no2_1_microgm3_ma = value)
+            db_intime(mmh.id == r.measurementmobilehistory.id).update(no2_1_microgm3_ma = value)
     t2 = time.time()
     db_intime.commit()
     return "%s %s" % (len(rows), t2-t1)
