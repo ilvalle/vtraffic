@@ -19,10 +19,17 @@ zero = request.args(0) or 'index'
 if request.function != 'wiki' and zero and not(zero.isdigit()):
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth, migrate=False).menu(function="wiki")
+
 baseurl = "http://ipchannels.integreen-life.bz.it"
-# ipchannels-test.integreen-life.bz.it/MeteoFrontEnd/get-records?station=8320&name=WG&unit=m/s&seconds=3000
-frontends = {'Meteo':'MeteoFrontEnd', 'Vehicle': 'VehicleFrontEnd', 'Environment':'EnvironmentFrontEnd', 'Parking': 'parkingFrontEnd', 
-		'Bluetooth':'BluetoothFrontEnd', 'Link':'LinkFrontEnd', 'Street': 'StreetFrontEnd', 'Traffic': 'TrafficFrontEnd'} 
+frontends = {'Meteo':'MeteoFrontEnd', 
+             'Vehicle': 'VehicleFrontEnd', 
+             'Environment':'EnvironmentFrontEnd', 
+             'Parking': 'parkingFrontEnd',
+             'Bluetooth':'BluetoothFrontEnd', 
+             'Link':'LinkFrontEnd', 
+             'Street': 'StreetFrontEnd', 
+             'Traffic': 'TrafficFrontEnd'}
+ 
 @auth.requires_login()
 def index():
     session.forget(request)
@@ -89,10 +96,12 @@ def get_data():
     if period:
         params['period'] = period
     r = requests.get(url, params=params)
-    #print 'URL', r.url
     data = r.json()
 
     if frontend == "VehicleFrontEnd":
+        #### Take 1 value every 5 or 10
+        output = [ [data[i]['timestamp'], "%.2f" % float(data[i]['value'])]  for i in xrange(0, len(data), 10)]
+    else:
         #### Average value every 5 seconds
         output = []
         f = lambda row: row['timestamp'] // 5000
@@ -101,12 +110,7 @@ def get_data():
             list_values = [float(e['value']) for e in list_]
             avg_value = reduce(lambda x, y: x + y, list_values) / len(list_values)
             output.append( [key*5000, "%.2f" % avg_value] )
-    else:
-        #### Take 1 value every 5 or 10
-        output = [ [data[i]['timestamp'], "%.2f" % float(data[i]['value'])]  for i in xrange(0, len(data), 10)]
 
     # the id must be the same of the A element in the data type list
     series = [{'data':output, 'id': IS_SLUG()('type_%s_%s_%s' % (station,data_type,period))[0], 'station_id':'station_iud', 'label': "%s - %s" % (station, data_label)}]
-
     return response.json({'series': series})
-
