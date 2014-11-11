@@ -238,6 +238,8 @@ db_intime.define_table('measurementmobilehistory',
     Field('no2_1_ppb', 'double'),
     Field('ts_ms', 'datetime'),
     Field('no2_1_microgm3_ma', 'double'),
+    Field('gps_1_speed_mps', 'double'),
+    Field('no2_1_microgm3_exp', 'double'),
     Field('station_id', 'reference station'),
     migrate=False
 )
