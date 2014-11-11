@@ -1,5 +1,6 @@
 import time
 from itertools import groupby
+import math
 
 def emission_intime():
     table='elaborationhistory'
@@ -184,8 +185,7 @@ def __filter_vehicle_data():
     if last_ts:
         query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=temporalWindowWidth)))
 
-    print last_ts
-    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms, mmh.ts_ms.epoch(), mmh.no2_1_microgm3_ma, limitby=(0,50000), orderby=mmh.ts_ms.epoch())
+    rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms,  mmh.gps_1_speed_mps, mmh.ts_ms.epoch(), mmh.no2_1_microgm3_ma, limitby=(0,50000), orderby=mmh.ts_ms.epoch())
     t1 = time.time()
 
     # Parameters to convert from ppb to microgm3
@@ -204,15 +204,19 @@ def __filter_vehicle_data():
         T_1 = float(273 + row.value) if row.value else float(277)
         for r in group:
             r['no2_1_microgm3'] = (r.measurementmobilehistory.no2_1_ppb)*(NO2MolarWeight/V_0)*(T_0/T_1)
+            r['no2_1_microgm3_exp'] = 0
+            r['alpha'] = 0
 
     last_ts  = datetime.datetime.fromtimestamp(0)
     n_values = 0
     to_reject = 0
     total = 0
+    alpha_exp = float(75)
 
     # compute moving average
+    # compute exponential negative filter
     for pos, r in enumerate(rows):
-        # If there is a gap between two samples the moving average is not valid.
+        # If there is a gap between two samples the value is not valid.
         # The delay is the amount of time occured by the air to be pumped in the pipe and to reach the no2 sensor detector.
         # if the is a gap, the first delay records (1per seconds) are rejected, after that we can start to accomulate data
         # when we have temporalWindowWidth records in the total, we can store the value.
@@ -226,13 +230,28 @@ def __filter_vehicle_data():
         if to_reject > 0:
             continue
         total += r['no2_1_microgm3']
+        r['alpha'] = math.tanh( float(rows[pos-delay].measurementmobilehistory.gps_1_speed_mps)/alpha_exp)
         n_values += 1
         if n_values == temporalWindowWidth +1:
             total -= rows[pos-temporalWindowWidth]['no2_1_microgm3']    # Remove the first value in the moving window
             n_values -= 1
+        value_ma = 0
+        #moving average
         if n_values == temporalWindowWidth:
-            value = (float(total)/temporalWindowWidth) - offset
-            db_intime(mmh.id == r.measurementmobilehistory.id).update(no2_1_microgm3_ma = round(value, 2))
+            value_ma = round((float(total)/temporalWindowWidth) - offset, 2)
+
+        #exponential negative filter
+        p=[0]*(temporalWindowWidth + 3)
+        value_exp=0
+        for i in xrange(1,temporalWindowWidth + 1, 1):
+            p[i] = math.exp( -r['alpha'] * (i-1))
+            r['no2_1_microgm3_exp'] += p[i] * rows[pos-(i-1)]['no2_1_microgm3']
+        r['no2_1_microgm3_exp'] = float(r['no2_1_microgm3_exp'])/float(sum(p))
+        value_exp = round(r['no2_1_microgm3_exp'], 2) - offset
+
+        #Store computed values
+        db_intime(mmh.id == r.measurementmobilehistory.id).update(no2_1_microgm3_ma = value_ma,
+                                                                  no2_1_microgm3_exp= value_exp)
     t2 = time.time()
     db_intime.commit()
     return "%s %s" % (len(rows), t2-t1)
