@@ -207,7 +207,7 @@ def __filter_vehicle_data():
             r['no2_1_microgm3_exp'] = 0
             r['alpha'] = 0
 
-    last_ts  = datetime.datetime.fromtimestamp(0)
+    last_ts  = datetime.datetime.fromtimestamp(0) if len(rows) == 0 else rows[0].measurementmobilehistory.ts_ms
     n_values = 0
     to_reject = 0
     total = 0
@@ -232,26 +232,26 @@ def __filter_vehicle_data():
         total += r['no2_1_microgm3']
         r['alpha'] = math.tanh( float(rows[pos-delay].measurementmobilehistory.gps_1_speed_mps)/alpha_exp)
         n_values += 1
+        values={}
         if n_values == temporalWindowWidth +1:
             total -= rows[pos-temporalWindowWidth]['no2_1_microgm3']    # Remove the first value in the moving window
             n_values -= 1
-        value_ma = 0
+
         #moving average
         if n_values == temporalWindowWidth:
-            value_ma = round((float(total)/temporalWindowWidth) - offset, 2)
+            values['no2_1_microgm3_ma'] = round((float(total)/temporalWindowWidth) - offset, 2)
 
         #exponential negative filter
         p=[0]*(temporalWindowWidth + 3)
-        value_exp=0
+
         for i in xrange(1,temporalWindowWidth + 1, 1):
             p[i] = math.exp( -r['alpha'] * (i-1))
             r['no2_1_microgm3_exp'] += p[i] * rows[pos-(i-1)]['no2_1_microgm3']
         r['no2_1_microgm3_exp'] = float(r['no2_1_microgm3_exp'])/float(sum(p))
-        value_exp = round(r['no2_1_microgm3_exp'], 2) - offset
+        values['no2_1_microgm3_exp'] = round(r['no2_1_microgm3_exp'], 2) - offset
 
         #Store computed values
-        db_intime(mmh.id == r.measurementmobilehistory.id).update(no2_1_microgm3_ma = value_ma,
-                                                                  no2_1_microgm3_exp= value_exp)
+        db_intime(mmh.id == r.measurementmobilehistory.id).update(**values)
     t2 = time.time()
     db_intime.commit()
     return "%s %s" % (len(rows), t2-t1)
