@@ -183,7 +183,7 @@ def __filter_vehicle_data():
     last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
 
     if last_ts:
-        query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=temporalWindowWidth)))
+        query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=max(delay,temporalWindowWidth))))
 
     rows = db_intime(query).select(mmh.id, mmh.no2_1_ppb, mmh.ts_ms,  mmh.gps_1_speed_mps, mmh.ts_ms.epoch(), mmh.no2_1_microgm3_ma, limitby=(0,50000), orderby=mmh.ts_ms.epoch())
     t1 = time.time()
