@@ -154,6 +154,12 @@ function lplot (ph, options) {
                     $(that.placeholder).trigger($.Event('loaded',{}));
                 }
 		    },
+		    error: function() {
+		        that.n_active_operations = that.n_active_operations - 1;
+		        if (that.n_active_operations === 0) {
+                    $(that.placeholder).trigger($.Event('loaded',{}));
+                }
+		    },
 		});
 	};
 

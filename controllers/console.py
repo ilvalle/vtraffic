@@ -20,6 +20,8 @@ if request.function != 'wiki' and zero and not(zero.isdigit()):
 	from gluon.tools import Wiki
 	response.menu += Wiki(auth, migrate=False).menu(function="wiki")
 
+response.flash = ""
+
 baseurl = "http://ipchannels.integreen-life.bz.it"
 frontends = {'Meteo':'MeteoFrontEnd', 
              'Vehicle': 'VehicleFrontEnd', 
@@ -96,9 +98,10 @@ def get_data():
     if period:
         params['period'] = period
     r = requests.get(url, params=params)
+    #print r.url
     data = r.json()
 
-    if frontend == "VehicleFrontEnd":
+    if frontend == "Vehicle":
         #### Take 1 value every 5 or 10
         output = [ [data[i]['timestamp'], "%.2f" % float(data[i]['value'])]  for i in xrange(0, len(data), 10)]
     else:
