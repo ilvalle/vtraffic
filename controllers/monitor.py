@@ -20,10 +20,10 @@ def scheduler():
 def situation():
     if not(auth.is_logged_in()):
         db.station.id.readable=False
-    grid = SQLFORM.grid(db.station, csv=False, searchable=False)
+    db_intime.station._common_filter = lambda query: (db_intime.station.stationtype == 'Bluetoothstation')
+    grid = SQLFORM.grid(db_intime.station, csv=False, searchable=False)
     return {'grid':grid}
-    
-    
+
 def meteo():
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Meteostation'
     return __check_measurementhistory('Meteo')
@@ -35,6 +35,10 @@ def environment():
 def parking():
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'ParkingStation'
     return __check_parkinghistory()
+
+def parking_forecast():
+    db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'ParkingStation'
+    return __check_measurementhistory('parking-forecast')
 
 # check for each type if the data is not older than 1day
 def __check_measurementhistory(name):
