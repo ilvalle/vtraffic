@@ -1,0 +1,41 @@
+{{extend 'layout.html'}}
+<div class="map-cont box">
+    <div id="map" style="height: 600px"></div>
+</div>
+<script>
+    var map = L.map('map').setView([46.493, 11.34], 14);
+    var popup_selected;
+    var geojsonLayer;
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    var l_pm10 = L.tileLayer.wms("http://geodata.integreen-life.bz.it/geoserver/edi/wms", {
+        layers: 'edi:pollution_pm10',
+        transparent: true,
+        attribution: "",
+        format: 'image/png',
+    });
+    
+    var l_nox = L.tileLayer.wms("http://geodata.integreen-life.bz.it/geoserver/edi/wms", {
+        layers: 'edi:pollution_nox',
+        transparent: true,
+        attribution: "",
+        format: 'image/png',
+    });
+
+    var l_congestion = L.tileLayer.wms("http://geodata.integreen-life.bz.it/geoserver/edi/wms", {
+        layers: 'edi:congestion',
+        transparent: true,
+        attribution: "",
+        format: 'image/png',
+    });
+    
+    var overlays = {
+        "Pm 10": l_pm10,
+        "NOx": l_nox,
+        "Congestion": l_congestion
+    };
+    var layerControl = L.control.layers(null, overlays);
+    map.addControl(layerControl);
+</script>

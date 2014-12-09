@@ -117,3 +117,7 @@ def get_data():
     # the id must be the same of the A element in the data type list
     series = [{'data':output, 'id': IS_SLUG()('type_%s_%s_%s' % (station,data_type,period))[0], 'station_id':'station_iud', 'label': "%s - %s" % (station, data_label)}]
     return response.json({'series': series})
+
+# Return the template of the map
+def map():
+    return {}
