@@ -24,12 +24,12 @@
 	response.files.append(URL('static','js/vtraffic.js'))
 	response.files.append(URL('static','js/app.js'))
 	response.files.append(URL('static','js/modernizr.custom.js'))
+    response.files.append('http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js')
+    response.files.append('http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css')
 	if request.controller != 'console':	
     	response.files.append(URL('static','js/OpenLayers.js'))
     	response.files.append(URL('static','js/d3.v3.min.js'))
     	response.files.append(URL('static','js/sankey.js'))
-    	response.files.append('http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js')
-        response.files.append('http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css')
     else:
     	response.files.append(URL('static','css/daterangepicker-bs2.css'))
     	response.files.append(URL('static','js/moment.min.js'))        
