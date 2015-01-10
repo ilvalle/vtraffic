@@ -49,11 +49,12 @@ def __check_history(name, table):
     t = db_intime[table]
     max_ts = t.timestamp.max()
     query = (t.station_id == db_intime.station.id) & \
-            (t.type_id == db_intime.type.id)
-    query_having = (max_ts < time_delta)            
-    id_list = db_intime(query).select(t.type_id, t.station_id, cacheable=True, 
+            (t.type_id == db_intime.type.id) & \
+            (t.timestamp > time_delta)
+    query_having = (max_ts > time_delta)
+    id_list = db_intime(query).select(t.type_id, t.station_id, cacheable=True, limitby=(0,1),
                                       groupby=t.station_id | t.type_id, having=query_having).as_list()
-    if len(id_list) != 0:
+    if len(id_list) == 0:
         raise(HTTP(500, '%s logs are older than 1day, %s' % (name, id_list)))
     else:
         return 'ok'
