@@ -38,7 +38,7 @@ def parking():
 
 def parking_forecast():
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'ParkingStation'
-    return __check_measurementhistory('parking-forecast')
+    return __check_history('parking-forecast', 'elaborationhistory')
 
 # check for each type if the data is not older than 1day
 def __check_measurementhistory(name):
