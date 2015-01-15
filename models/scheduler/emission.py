@@ -164,7 +164,7 @@ def filter_vehicle_data():
     vehicles = db_intime(db_intime.station).select(cacheable=True)
     tot = ''
     for v in vehicles:
-        if v.stationcode == 1:
+        if v.stationcode == '1':
             db_intime.measurementmobilehistory._common_filter = lambda query: db_intime.measurementmobilehistory.station_id == v.id
             tot += __filter_vehicle_data() + "</br>"
     return tot
