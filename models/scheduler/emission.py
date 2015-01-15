@@ -213,6 +213,10 @@ def __filter_vehicle_data():
     total = 0
     alpha_exp = float(75)
 
+    if len(rows) < max(delay,temporalWindowWidth):
+        db_intime.commit()
+        return 'postponed'
+
     # compute moving average
     # compute exponential negative filter
     for pos, r in enumerate(rows):
@@ -226,13 +230,14 @@ def __filter_vehicle_data():
             to_reject = delay
         else:
             to_reject -= 1
+
         last_ts = r.measurementmobilehistory.ts_ms
         if to_reject > 0:
             continue
         total += r['no2_1_microgm3']
-        r['alpha'] = math.tanh( float(rows[pos-delay].measurementmobilehistory.gps_1_speed_mps)/alpha_exp)
+        r['alpha'] = math.tanh( float(rows[pos].measurementmobilehistory.gps_1_speed_mps)/alpha_exp)
         n_values += 1
-        values={}
+        values = {}
         if n_values == temporalWindowWidth +1:
             total -= rows[pos-temporalWindowWidth]['no2_1_microgm3']    # Remove the first value in the moving window
             n_values -= 1
