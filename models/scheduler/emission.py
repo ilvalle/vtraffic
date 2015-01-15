@@ -177,7 +177,7 @@ def __filter_vehicle_data():
     mh = db_intime.measurementhistory
     delay = 12
     temporalWindowWidth = 7
-    offset = 76
+    offset = 0
     query = (mmh.no2_1_ppb != None)
     # Find the last value stored by a former elaboration
     last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
@@ -194,18 +194,24 @@ def __filter_vehicle_data():
 #    T_1 = float(277)    ## it is the current temperature in [°K]. During the measurements, T_air measured by the meteo station has been on average 4 [°C]
     V_0 = float(22.414) ## it is the molar volume in [l/mol] at the conditions (T_0, P_0 = 1013 [kPa])
     type_id_air_temperature = 8
-    f = lambda r: r[mmh.ts_ms.epoch()] // 3600        # one hour
-    for key, group in groupby(rows, f):
-        d = datetime.datetime.fromtimestamp(key*3600+3600)
-        row = db_intime((mh.type_id == type_id_air_temperature) &
-                        (mh.timestamp < d)).select(mh.value, mh.timestamp, orderby=~mh.timestamp,
-                                                   limitby=(0,1), cacheable=True).first()
+#    f = lambda r: r[mmh.ts_ms.epoch()] // 3600        # one hour
+#    for key, group in groupby(rows, f):
+#        d = datetime.datetime.fromtimestamp(key*3600+3600)
+#        row = db_intime((mh.type_id == type_id_air_temperature) &
+#                        (mh.timestamp < d)).select(mh.value, mh.timestamp, orderby=~mh.timestamp,
+#                                                   limitby=(0,1), cacheable=True).first()
 
-        T_1 = float(273 + row.value) if row.value else float(277)
-        for r in group:
-            r['no2_1_microgm3'] = (r.measurementmobilehistory.no2_1_ppb)*(NO2MolarWeight/V_0)*(T_0/T_1)
-            r['no2_1_microgm3_exp'] = 0
-            r['alpha'] = 0
+#        T_1 = float(273 + row.value) if row.value else float(277)
+#        for r in group:
+#            r['no2_1_microgm3'] = (r.measurementmobilehistory.no2_1_ppb)
+#            r['no2_1_microgm3_exp'] = 0
+#            r['alpha'] = 0
+
+    for r in rows:
+        r['no2_1_microgm3'] = (r.measurementmobilehistory.no2_1_ppb)
+        r['no2_1_microgm3_exp'] = 0
+        r['alpha'] = 0
+
 
     last_ts  = datetime.datetime.fromtimestamp(0) if len(rows) == 0 else rows[0].measurementmobilehistory.ts_ms
     n_values = 0
