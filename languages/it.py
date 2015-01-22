@@ -1,4 +1,4 @@
-# coding: utf8
+# -*- coding: utf-8 -*-
 {
 ' Km': ' Km',
 '!=': '!=',
@@ -98,6 +98,7 @@
 'Email and SMS': 'Email and SMS',
 'Email non valida': 'Email non valida',
 'enter a number between %(min)g and %(max)g': 'enter a number between %(min)g and %(max)g',
+'Enter an integer between %(min)g and %(max)g': 'Enter an integer between %(min)g and %(max)g',
 'enter an integer between %(min)g and %(max)g': 'enter an integer between %(min)g and %(max)g',
 'Errors': 'Errors',
 'Errors in form, please check it out.': 'Errors in form, please check it out.',
@@ -134,6 +135,7 @@
 'Invalid login': 'Invalid login',
 'Invalid Query': 'Richiesta (query) non valida',
 'invalid request': 'richiesta non valida',
+'Invalid username': 'Invalid username',
 'Is Active': 'Is Active',
 'Key': 'Key',
 'Last name': 'Cognome',
@@ -236,6 +238,7 @@
 'The output of the file is a dictionary that was rendered by the view %s': 'L\'output del file è un "dictionary" che è stato visualizzato dalla vista %s',
 'The Views': 'The Views',
 'This App': 'This App',
+'This email already has an account': 'This email already has an account',
 'This is a copy of the scaffolding application': "Questa è una copia dell'applicazione di base (scaffold)",
 'Time in Cache (h:m:s)': 'Time in Cache (h:m:s)',
 'Timestamp': 'Ora (timestamp)',
@@ -257,6 +260,7 @@
 'User %(id)s Username retrieved': 'User %(id)s Username retrieved',
 'User ID': 'ID Utente',
 'Username': 'Username',
+'Username already taken': 'Username already taken',
 'value already in database or empty': 'value already in database or empty',
 'Verify Password': 'Verify Password',
 'Videos': 'Videos',

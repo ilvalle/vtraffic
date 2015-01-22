@@ -1,2 +1,2 @@
-user='abc'
-pwd='abc'
+user='integreen'
+pwd='integreen123'

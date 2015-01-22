@@ -104,7 +104,7 @@ db.define_table('match',
 )
 
 
-
+MIGRATE=True
 db_intime = intimeDAL('postgres://%s:%s@10.8.0.1:5432/integreenintime' % (user, pwd),
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
@@ -143,6 +143,7 @@ db_intime.define_table('type',
     Field('cunit'),
     Field('description'),
     Field('rtype'),
+    format="%(cname)s",
     migrate=False
 )
 
@@ -241,9 +242,17 @@ db_intime.define_table('measurementmobilehistory',
     Field('gps_1_speed_mps', 'double'),
     Field('no2_1_microgm3_exp', 'double'),
     Field('station_id', 'reference station'),
+    Field('id_vehicle_nr', 'integer'),
     migrate=False
 )
 
+db_intime.define_table('classification',
+    Field('type_id', 'reference type'),
+    Field('threshold', 'string', requires=IS_IN_SET(['black', 'red', 'yellow', 'green'])),
+    Field('min', 'double'),
+    Field('max', 'double'),
+    migrate=True
+)
 
 
 db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
