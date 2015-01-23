@@ -180,9 +180,8 @@ def __filter_vehicle_data():
     offset = 0
     query = (mmh.no2_1_ppb != None)
     # Find the last value stored by a former elaboration
-    print db_intime(mmh.no2_1_microgm3_ma)._select(mmh.ts_ms.max())
+
     last_ts = db_intime(mmh.no2_1_microgm3_ma).select(mmh.ts_ms.max(), cacheable=True).first()[mmh.ts_ms.max()]
-    print last_ts
 
     if last_ts:
         query &= (mmh.ts_ms > (last_ts - datetime.timedelta(seconds=max(delay,temporalWindowWidth))))
@@ -244,7 +243,7 @@ def __filter_vehicle_data():
             continue
         total += r['no2_1_microgm3']
         r['alpha'] = math.tanh( float(rows[pos].measurementmobilehistory.gps_1_speed_mps)/alpha_exp)
-        print 'a', r['alpha']
+
         n_values += 1
         values = {}
         if n_values == temporalWindowWidth +1:
@@ -260,12 +259,10 @@ def __filter_vehicle_data():
 
         for i in xrange(1,temporalWindowWidth + 1, 1):
             p[i] = math.exp( -r['alpha'] * (i-1))
-            print p[i]
             r['no2_1_microgm3_exp'] += p[i] * rows[pos-(i-1)]['no2_1_microgm3']
-        print r['no2_1_microgm3_exp']
+
         r['no2_1_microgm3_exp'] = float(r['no2_1_microgm3_exp'])/float(sum(p))
         values['no2_1_microgm3_exp'] = round(r['no2_1_microgm3_exp'], 2) - offset
-        print r['no2_1_microgm3'], values
         #Store computed values
         #db_intime(mmh.id == r.measurementmobilehistory.id).update(**values)
     t2 = time.time()
