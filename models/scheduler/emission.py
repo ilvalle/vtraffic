@@ -128,10 +128,10 @@ def emission_intime():
                 else:
                     continue
             db_intime.save_elaborations([{'value':em_tot, 'timestamp':r['start']}], r['station_id'], inq_type_id, period, commit=False)
-        #print r['station_id']
+
     db_intime.commit()
     t2 = time.time()
-    #print t2-t0
+
     return len(rows)
 
 # Compute the speed for all link stations
