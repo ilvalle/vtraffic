@@ -264,7 +264,7 @@ def __filter_vehicle_data():
         r['no2_1_microgm3_exp'] = float(r['no2_1_microgm3_exp'])/float(sum(p))
         values['no2_1_microgm3_exp'] = round(r['no2_1_microgm3_exp'], 2) - offset
         #Store computed values
-        #db_intime(mmh.id == r.measurementmobilehistory.id).update(**values)
+        db_intime(mmh.id == r.measurementmobilehistory.id).update(**values)
     t2 = time.time()
     db_intime.commit()
     return "%s %s" % (len(rows), t2-t1)

@@ -151,7 +151,7 @@ def compute_mode_intime(station_id, interval, output_type_id, input_type_id, inp
            SELECT start_time, lead(start_time, 1, '1970-01-01 00:00') OVER (ORDER BY start_time) AS end_time
            FROM ( SELECT generate_series(%(since)s, max(timestamp), '%(interval)s seconds'::interval) AS start_time 
                   from %(table)s
-                  where station_id = %(station_id)s and type_id = %(type_id)s limit 2) x
+                  where station_id = %(station_id)s and type_id = %(type_id)s) x
            ) as g
            left JOIN (select timestamp, id, value
                       from %(table)s
