@@ -41,7 +41,7 @@
     
     function load_geojson() {
         var url = 'http://parking.bz.it/parkbzNew/default/get_geojson';
-        var params = {};
+        var params = {url_base:true};
         var url_request = url + '?' + jQuery.param(params);
         if (geojsonLayer !== undefined){
             console.log('rimuovo layer');
@@ -88,5 +88,10 @@
             popup_selected = popup;
         }
     }
-    
+    $(document).on('click', '.forecast h3', function(){
+        var el = $(this);
+	    $(this).toggleClass('open').next().slideToggle('fast', function() {
+	        $(el).trigger('slidend');
+	    });
+    });
 </script>

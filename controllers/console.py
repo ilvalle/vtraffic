@@ -121,4 +121,7 @@ def get_data():
 # Return the template of the map
 def map():
     response.files.insert(1,URL('static','css/standard.css'))
+    # Direct load for parking javascript app (client)
+    response.files.append('http://parking.bz.it/parkbzNew/static/js/app.js')
+
     return {}

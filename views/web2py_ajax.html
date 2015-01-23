@@ -3,7 +3,11 @@
     var w2p_ajax_confirm_message = "{{=T('Are you sure you want to delete this object?')}}";
     var w2p_ajax_date_format = "{{=T('%Y-%m-%d')}}";
     var w2p_ajax_datetime_format = "{{=T('%Y-%m-%d %H:%M:%S')}}";
-    var ajax_error_500 = '{{=XML(T('An error occured, please %s the page') % A(T('reload'), _href=URL(args=request.args, vars=request.get_vars))) }}'
+    var ajax_error_500 = '{{=XML(T('An error occured, please %s the page') % A(T('reload'), _href=URL(args=request.args, vars=request.get_vars))) }}';
+    var free_slot_text = '{{=T("Free slots")}}';
+    var capacity = '{{=T("Capacity")}}';
+    var appName = '{{=request.application}}';
+    var data_not_available_str = '{{=T("Predictions currently unavailable")}}';
     //--></script>
 {{
 	response.files.insert(0,URL('static','js/jquery.min.js'))
