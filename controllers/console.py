@@ -125,3 +125,60 @@ def map():
     response.files.append('http://parking.bz.it/parkbzNew/static/js/app.js')
 
     return {}
+    
+    
+def get_geojson():
+    session.forget(request)
+    frontend = request.vars.frontend
+    frontend = frontends[frontend] if frontend in frontends else ''
+    data_type = request.vars.type
+    period = request.vars.period
+
+    stations = __get_stations_info(frontend)
+
+    for s in stations:
+        s['last_value'] = __get_last_value(frontend, s['id'], data_type, period)
+        print frontend, 'L', 'latitude' in s
+    
+    features= [{"type": "Feature",
+                "properties": {
+                    "popupContent": "%s %s" % (s['name'], s['last_value']),
+                    "openPopup": False,
+                    "last_value": s['last_value'],
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [s['longitude'], s['latitude']]
+                },} for s in stations] 
+
+    response.headers['Content-Type'] = 'application/json'
+    return response.json({"type": "FeatureCollection", 'features': features}) 
+
+# Return basic info for all available parking lots
+def __get_stations_info(frontend):
+    r = requests.get("%s/%s/rest/get-station-details" % (baseurl, frontend))
+    #print r.url
+    if 'exceptionMessage' in r.json():
+        return []
+    return r.json()
+
+def __get_last_value(frontend, _id,  _type, _period):
+    rest_url = "%s/%s" % (baseurl, frontend)
+    method = "rest/get-records"
+    params = {'name':_type, 'period':_period, 'station':_id, 'seconds': 7200}
+    r = requests.get("%s/%s" % (rest_url, method), params=params)
+    #print r.url
+    data=r.json()
+
+    index = len(data)-1 # last value
+    if frontend == 'BluetoothFrontEnd':
+        index = len(data)-2      # last but one value
+
+    if 'exceptionMessage' in data or len(data) < -(index):
+        return -1
+
+    obj=data[index]
+    return int(obj['value'])
+
+
+
