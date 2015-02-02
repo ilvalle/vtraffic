@@ -103,7 +103,7 @@ def get_data():
 
     if frontend == "Vehicle":
         #### Take 1 value every 5 or 10
-        output = [ [data[i]['timestamp'], "%.2f" % float(data[i]['value'])]  for i in xrange(0, len(data), 1)]
+        output = [ [data[i]['timestamp'], "%.2f" % float(data[i]['value'])]  for i in xrange(0, len(data), 10)]
     else:
         #### Average value every 5 seconds
         output = []
