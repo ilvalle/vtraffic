@@ -89,7 +89,8 @@
         $.getJSON(url_request, function( data ) {
             geojsonLayer = L.geoJson(data, {
                 pointToLayer: function (feature, latlng) {
-                    icon = 'green';
+                    var v = feature.properties.last_value;
+                    icon = ((v < 50)? "green" : ((v < 100) ? "yellow" : ((v < 200)? "red" : "grey")))
                     var markerIcon = new L.Icon.Default({
                         iconUrl: "/vtraffic/static/js/images/marker-icon-" + icon + ".png",
                         iconRetinaUrl: "/vtraffic/static/js/images/marker-icon-" + icon + "-2x.png",
