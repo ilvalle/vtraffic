@@ -1,0 +1,44 @@
+#Sito
+Bolzano
+#Inquinante
+PM10
+#microg/m3 -> 0; PPM -> 1
+0
+#Peso molecolare (serve solo se PPM)
+46
+#Tempo di media [s]; z0 [cm]
+60. 150.
+#velocita di caduta, velocita di deposizione [cm/s]
+1.9 0.
+#passo di griglia recettori: Est, Nord [m]
+50 50
+#N. segmenti maschera
+24
+#x/y segmenti maschera [m]
+673609 5153463
+674824 5155312
+678295 5155358
+681229 5155395
+682056 5153515
+686800 5152248
+688395 5152932
+688826 5151970
+688908 5150075
+687098 5149700
+683255 5149362
+682251 5148728
+681788 5146907
+681621 5144491
+679690 5144566
+678875 5143311
+676135 5143272
+675949 5144917
+675793 5146712
+675589 5148419
+675099 5149261
+674776 5150096
+673598 5152170
+673609 5153463
+#Quota recettori sul terreno [m]
+1.5
+#N. link lineari
