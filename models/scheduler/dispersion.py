@@ -9,100 +9,102 @@ from subprocess import call
 import os
 
 def pasquill(vel,rad,month):
-	"""
-	Calcola la classe di stabilita atmosferica di Pasquill 
-	sulla base delle formule di Briggs, che servono a caline come input
-	per il calcolo della dispersione.
-	"""
-	if (rad >0.):
-		if (vel < 2.):
-			if(rad > 540.) :
-				pasquill = 1
-			elif (rad <= 540. and rad > 270.) :
-				pasquill = 2
-			elif (rad <= 270. and rad > 140.) :
-				pasquill = 3
-			else:
-				pasquill = 4
-		elif(vel >= 2. and vel < 3.) :
-				if (rad > 700.):
-					pasquill = 1
-				elif(rad <= 700. and rad > 270.) :
-						pasquill = 2
-				elif (rad <= 270. and rad > 140.) :
-						pasquill = 3
-				else:
-						pasquill = 4
-		elif (vel >= 3. and vel < 4.) :
-				if (rad > 400.) :
-					pasquill = 2
-				elif (rad <= 400. and rad > 140.) :
-					pasquill = 3
-				else:
-					pasquill = 4
-		elif (vel >= 4. and vel < 5.) :
-				if (rad > 540.) :
-					pasquill = 2
-				elif (rad <= 540. and rad > 270.) :
-					pasquill = 3
-				else:
-					pasquill = 4
-		elif (vel >= 5. and vel < 6.) :
-				if (rad > 270.) :
-						pasquill = 3
-				else:
-						pasquill = 4
-		else:
-				if (rad > 540.) :
-					pasquill = 3
-				else:
-					pasquill = 4
-	else:
-		if (month >= 1 and month <= 3 or month >= 9 and month <= 12) :
-			if (vel < 1.) :
-				pasquill = 6
-			elif (vel >= 1. and vel < 3.) :
-				pasquill = 5
-			else:
-				pasquill = 4
-		else:
-			if (vel < 1.) :
-				pasquill = 5
-			elif (vel >= 1. and vel < 3.) :
-				pasquill = 4
-			else:
-				pasquill = 4
-	return pasquill
+    """
+    Calcola la classe di stabilita atmosferica di Pasquill 
+    sulla base delle formule di Briggs, che servono a caline come input
+    per il calcolo della dispersione.
+    """
+    if (rad >0.):
+        if (vel < 2.):
+            if(rad > 540.) :
+                pasquill = 1
+            elif (rad <= 540. and rad > 270.) :
+                pasquill = 2
+            elif (rad <= 270. and rad > 140.) :
+                pasquill = 3
+            else:
+                pasquill = 4
+        elif(vel >= 2. and vel < 3.) :
+                if (rad > 700.):
+                    pasquill = 1
+                elif(rad <= 700. and rad > 270.) :
+                        pasquill = 2
+                elif (rad <= 270. and rad > 140.) :
+                        pasquill = 3
+                else:
+                        pasquill = 4
+        elif (vel >= 3. and vel < 4.) :
+                if (rad > 400.) :
+                    pasquill = 2
+                elif (rad <= 400. and rad > 140.) :
+                    pasquill = 3
+                else:
+                    pasquill = 4
+        elif (vel >= 4. and vel < 5.) :
+                if (rad > 540.) :
+                    pasquill = 2
+                elif (rad <= 540. and rad > 270.) :
+                    pasquill = 3
+                else:
+                    pasquill = 4
+        elif (vel >= 5. and vel < 6.) :
+                if (rad > 270.) :
+                        pasquill = 3
+                else:
+                        pasquill = 4
+        else:
+                if (rad > 540.) :
+                    pasquill = 3
+                else:
+                    pasquill = 4
+    else:
+        if (month >= 1 and month <= 3 or month >= 9 and month <= 12) :
+            if (vel < 1.) :
+                pasquill = 6
+            elif (vel >= 1. and vel < 3.) :
+                pasquill = 5
+            else:
+                pasquill = 4
+        else:
+            if (vel < 1.) :
+                pasquill = 5
+            elif (vel >= 1. and vel < 3.) :
+                pasquill = 4
+            else:
+                pasquill = 4
+    return pasquill
 
 def mixheight(pasq):
-	"""
-	Calcola la mixing height
-	sulla base della classe di stabilita di Pasquill.
-	"""
-	if (pasq ==1):
-		mixheight = 3000.
-	elif(pasq==2):
-		mixheight = 1500.
-	elif(pasq==3):
-		mixheight = 800.
-	elif(pasq==4):
-		mixheight = 500.
-	elif(pasq==5):
-		mixheight = 300.
-	else:
-		mixheight = 200.
-	return mixheight
+    """
+    Calcola la mixing height
+    sulla base della classe di stabilita di Pasquill.
+    """
+    if (pasq ==1):
+        mixheight = 3000.
+    elif(pasq==2):
+        mixheight = 1500.
+    elif(pasq==3):
+        mixheight = 800.
+    elif(pasq==4):
+        mixheight = 500.
+    elif(pasq==5):
+        mixheight = 300.
+    else:
+        mixheight = 200.
+    return mixheight
 
 # MAIN PROGRAM
 def intime_dispersion_model():
     #apro il file di testo che sara l'input per caline per il calcolo degli NOx e PM10
-    fileinputNOX = os.path.join(request.folder, 'dispersion/input_caline_NOx.txt')
-    fileinputPM10 = os.path.join(request.folder, 'dispersion/input_caline_PM10.txt')
-    fileoutputNOX = os.path.join(request.folder, 'dispersion/output_caline_NO2.asc') # output gia' convertito NOx (emissione) -> NO2 (immissione)
-    fileoutputPM10 = os.path.join(request.folder, 'dispersion/output_caline_PM10.asc')
-    filelogNOX = os.path.join(request.folder, 'dispersion/caline_NOx.log')
-    filelogPM10 = os.path.join(request.folder, 'dispersion/caline_PM10.log')
-    fileCalineMask = os.path.join(request.folder, "dispersion/caline_mask.txt")
+    fileinputNOX_name = 'input_caline_NOx.txt'
+    fileinputPM10_name = 'input_caline_PM10.txt'
+    fileinputNOX = os.path.join(request.folder, 'dispersion/%s' % fileinputNOX_name)
+    fileinputPM10 = os.path.join(request.folder, 'dispersion/%s' % fileinputPM10_name)
+    fileoutputNOX = 'output_caline_NO2.asc' # output gia' convertito NOx (emissione) -> NO2 (immissione)
+    fileoutputPM10 = 'output_caline_PM10.asc'
+    filelogNOX = 'caline_NOx.log'
+    filelogPM10 = 'caline_PM10.log'
+    fileCalineMask = os.path.join(request.folder, 'dispersion/caline_mask.txt')
 
     fwNOx = open(fileinputNOX, "w")
     fwPM10 = open(fileinputPM10, "w")
@@ -150,9 +152,9 @@ def intime_dispersion_model():
     fwPM10.write(str(len(lines)) + '\n')
     fwPM10.write('#x/y segmenti maschera [m]' + '\n')
     for i in lines:
-	    s = i.strip()
-	    fwNOx.write(s + '\n')
-	    fwPM10.write(s + '\n')
+        s = i.strip()
+        fwNOx.write(s + '\n')
+        fwPM10.write(s + '\n')
     mask.close()
     fwNOx.write('#Quota recettori sul terreno [m]' + '\n')
     fwNOx.write('1.5' + '\n')
@@ -164,73 +166,65 @@ def intime_dispersion_model():
     print "  * Lettura grafo stradale ed emissioni"
     # Lettura il grafo stradale e le relative emissioni calcolate con il modulo precedente
     # dove la query non restituisce risultato (dato traffico non presente?) poniamo emissione pari a zero
-    conn_string = "dbname='integreenintime'"
-    conn = psycopg2.connect(conn_string)
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    sqlwid = "SELECT station_id from intime.streetbasicdata order by station_id asc;"
-    cursor.execute(sqlwid)
-    arco_id = cursor.fetchall()
-    sqlwnp_tot = "SELECT ST_NPoints(\"linegeometry\") from intime.streetbasicdata;"
-    cursor.execute(sqlwnp_tot)
-    nsegmenti = cursor.fetchall()
-    nlink = reduce(lambda n,m:n+m,reduce(lambda n,m:n+m,nsegmenti))-len(arco_id)
+    archi = db_intime(db_intime.streetbasicdata).select(db_intime.streetbasicdata.station_id, 
+                                                             orderby=db_intime.streetbasicdata.station_id)
+   
+    nsegmenti = db_intime(db_intime.streetbasicdata).select(db_intime.streetbasicdata.linegeometry.st_npoints())
+    nsegmentiL = [r[db_intime.streetbasicdata.linegeometry.st_npoints()] for r in nsegmenti]
+
+    nlink = reduce(lambda n,m:n+m, nsegmentiL)-len(archi)
+
     # ciclo sul numero di archi
     fwNOx.write(str(nlink) + '\n')
     fwPM10.write(str(nlink) + '\n')
     fwNOx.write('#Nome    tipo x1     y1      x2     y2       g/km/h h[m] l[m]' + '\n')
     fwPM10.write('#Nome    tipo x1     y1      x2     y2       g/km/h h[m] l[m]' + '\n')
-    print "  * Numero archi: ",len(arco_id)
-    for j in range (0, len(arco_id)):
-    #	NOx
-	    sql = "select * from intime.elaborationhistory where type_id=44 and period=3600 and station_id="+str(arco_id[j][0])+" order by timestamp desc limit 1;"
-	    cursor.execute(sql)
-	    liststr = cursor.fetchall()
-	    if (len(liststr)==0):
-		    em_nox=0
-	    else:
-		    em_nox=liststr[0][3]
-    #	PM10
-	    sql = "select * from intime.elaborationhistory where type_id=42 and period=3600 and station_id="+str(arco_id[j][0])+" order by timestamp desc limit 1;"
-	    cursor.execute(sql)
-	    liststr = cursor.fetchall()
-	    if (len(liststr)==0):
-		    em_pm10=0
-	    else:
-		    em_pm10=liststr[0][3]
-	    sqlwx = "SELECT ST_X ( (ST_DumpPoints(\"linegeometry\")).geom ) as geom from intime.streetbasicdata where station_id="+str(arco_id[j][0])+";"
-	    cursor.execute(sqlwx)
-	    valueX = cursor.fetchall()
-	    sqlwy = "SELECT ST_Y ( (ST_DumpPoints(\"linegeometry\")).geom ) as geom from intime.streetbasicdata where station_id="+str(arco_id[j][0])+";"
-	    cursor.execute(sqlwy)
-	    valueY = cursor.fetchall()
-	    sqlwnp = "SELECT ST_NPoints(\"linegeometry\") from intime.streetbasicdata where station_id="+str(arco_id[j][0])+";"
-	    cursor.execute(sqlwnp)
-	    npoints = cursor.fetchall()
-	    for i in range (0, npoints[0][0]-1):
-    #		scrivo nei file per caline l'elenco dei segmenti (link) su cui verra' eseguito il calcolo
-		    fwNOx.write("LINK"+ "%3.3i" %(arco_id[j][0])+"_%2.2i" %(i+1)+" AG "+"%12.3f" %(valueX[i][0])+" "+"%12.3f" %(valueY[i][0])+" "+"%12.3f" %(valueX[i+1][0])+" "+" "+"%12.3f" %(valueY[i+1][0])+" "+ "%10.2f" %(em_nox)+" 0.5 5.0"'\n')
-		    fwPM10.write("LINK"+ "%3.3i" %(arco_id[j][0])+"_%2.2i" %(i+1)+" AG "+"%12.3f" %(valueX[i][0])+" "+"%12.3f" %(valueY[i][0])+" "+"%12.3f" %(valueX[i+1][0])+" "+" "+"%12.3f" %(valueY[i+1][0])+" "+ "%10.2f" %(em_pm10)+" 0.5 5.0"'\n')
-    conn.commit()
-    conn.close()
+    print "  * Numero archi: %s" % len(archi)
+    eh = db_intime.elaborationhistory
+    for j, arco in enumerate(archi):
+        #    NOx
+        em_nox = db_intime( (eh.type_id == 44) &
+                            (eh.period == 3600) &
+                            (eh.station_id == arco.station_id)).select(eh.timestamp, eh.value, limitby=(0,1), orderby=~eh.timestamp).first()
 
+        em_nox = em_nox.value if em_nox else 0
+
+        #    PM10
+        em_pm10 = db_intime( (eh.type_id == 42) &
+                            (eh.period == 3600) &
+                            (eh.station_id == arco.station_id)).select(eh.timestamp, eh.value, limitby=(0,1), orderby=~eh.timestamp).first()
+
+        em_pm10 = em_pm10.value if em_pm10 else 0                     
+        
+        # link geometry data
+        st_x = db_intime.streetbasicdata.linegeometry.st_dumppoints().st_x()
+        st_y = db_intime.streetbasicdata.linegeometry.st_dumppoints().st_y()
+        st_npoints = db_intime.streetbasicdata.linegeometry.st_npoints()
+        geo_data = db_intime( (db_intime.streetbasicdata.station_id == arco.station_id)).select(st_x, st_y, st_npoints)
+        
+        for i in range(0, len(geo_data) -1):
+            link = geo_data[i]
+            link_n = geo_data[i+1]
+            # scrivo nei file per caline l'elenco dei segmenti (link) su cui verra' eseguito il calcolo
+            fwNOx.write("LINK"+ "%3.3i" %(arco.station_id)+"_%2.2i" %(i+1)+" AG "+"%12.3f" %(link[st_x])+" "+"%12.3f" %(link[st_y])+" "+"%12.3f" %(link_n[st_x])+" "+" "+"%12.3f" %(link_n[st_y])+" "+ "%10.2f" %(em_nox)+" 0.5 5.0"'\n')
+            fwPM10.write("LINK"+ "%3.3i" %(arco.station_id)+"_%2.2i" %(i+1)+" AG "+"%12.3f" %(link[st_x])+" "+"%12.3f" %(link[st_y])+" "+"%12.3f" %(link_n[st_x])+" "+" "+"%12.3f" %(link_n[st_y])+" "+ "%10.2f" %(em_pm10)+" 0.5 5.0"'\n')
+        
     print "  * Lettura dati meteo"
     # leggo dal DB meteo le informazioni che mi servono (velocita' e direzione del vento, radiazione globale, mese corrente)
-    conn_string = "dbname='integreenintime'"
-    conn = psycopg2.connect(conn_string)
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    sqlwd = "select * from intime.measurementhistory where station_id=23 and type_id=6 order by timestamp desc limit 1;"
-    sqlws = "select * from intime.measurementhistory where station_id=23 and type_id=2 order by timestamp desc limit 1;"
-    sqlrg = "select * from intime.measurementhistory where station_id=23 and type_id=3 order by timestamp desc limit 1;"
-    cursor.execute(sqlwd)
-    value_dir = cursor.fetchall()[0][3]
-    cursor.execute(sqlws)
-    value_vel = cursor.fetchall()[0][3]
-    cursor.execute(sqlrg)
-    res = cursor.fetchall()
-    value_rad = res[0][3]
-    month = res[0][2].month
-    conn.commit()
-    conn.close()
+    mh = db_intime.measurementhistory
+    wd = db_intime( (mh.type_id == 6) &
+                    (mh.station_id == 23)).select(mh.value, limitby=(0,1), orderby=~mh.timestamp).first()
+    value_dir = wd.value if wd else 0
+
+    ws = db_intime( (mh.type_id == 2) &
+                    (mh.station_id == 23)).select(mh.value, limitby=(0,1), orderby=~mh.timestamp).first()
+    value_vel = ws.value if ws else 0
+
+    rg = db_intime( (mh.type_id == 3) &
+                    (mh.station_id == 23)).select(mh.timestamp.month(), mh.value, limitby=(0,1), orderby=~mh.timestamp).first()
+
+    month = rg[mh.timestamp.month()] if rg else 1
+    value_rad = rg[mh.value] if rg else 0
 
     print "  * Calcolo stabilita' atmosferica"
     # Calcolo la classe di stabilita di Pasquill sulla base di radiazione, velocita del vento e mese dell'anno; Calcolo l'altezza di mescolamento
@@ -259,9 +253,10 @@ def intime_dispersion_model():
     # eseguo CALINE
     # "t" -> verbose output, "f" -> non verbose
     print "Run modello CALINE NOx..."
-    caline_file = os.path.join(request.folder, "caline_mod2")
-    call([caline_file, fileinputNOX, fileoutputNOX, filelogNOX, "t"])
+    caline_file = os.path.join(request.folder, "dispersion/caline_mod2")
+    
+    call([caline_file, fileinputNOX_name, fileoutputNOX, filelogNOX, "t"])
     print "Fine modello CALINE NOx\n"
     print "Run modello CALINE PM10..."
-    call([caline_file, fileinputPM10, fileoutputPM10, filelogPM10, "t"])
+    call([caline_file, fileinputPM10_name, fileoutputPM10, filelogPM10, "t"])
     print "Fine modello CALINE PM10\n"
