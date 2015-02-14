@@ -107,12 +107,19 @@ db.define_table('match',
 from gluon.dal import ADAPTERS, PostgreSQLAdapter
 
 class ExtendedPostgreSQLAdapter(PostgreSQLAdapter):
-    def ST_NPoints(self, first):
+    def ST_NPOINTS(self, first):
         """
         http://postgis.org/docs/ST_NPoints.html
         """
-        return 'ST_NPoints(%s)' %(self.expand(first))
+        return 'ST_NPoints(%s)' % (self.expand(first))
 
+    def ST_DUMPPOINTS(self, first):
+        """
+        http://postgis.org/docs/ST_DumpPoints.html
+        """
+        return '(ST_DumpPoints(%s)).geom' % (self.expand(first))
+        
+    
 
 ADAPTERS.update( {
     'intimepostgres': ExtendedPostgreSQLAdapter
@@ -148,7 +155,6 @@ db_intime.define_table('linkbasicdata',
     Field('station_id', 'reference station'),
     Field('street_ids_ref', 'list:reference streetbasicdata'),
     Field('length', 'double'),
-    #Field('lineprojection'),
     migrate=False
 )
 
@@ -229,6 +235,7 @@ db_intime.define_table('streetbasicdata',
     Field('length', 'double'),
     Field('description', 'string'),
     Field('speed_default', 'double'),
+    Field('linegeometry', 'geometry()'),    
     migrate=False
 )
 db_intime.define_table('copert_parcom',
