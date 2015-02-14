@@ -104,8 +104,23 @@ db.define_table('match',
 )
 
 
-MIGRATE=True
-db_intime = intimeDAL('postgres://%s:%s@10.8.0.1:5432/integreenintime' % (user, pwd),
+from gluon.dal import ADAPTERS, PostgreSQLAdapter
+
+class ExtendedPostgreSQLAdapter(PostgreSQLAdapter):
+    def ST_NPoints(self, first):
+        """
+        http://postgis.org/docs/ST_NPoints.html
+        """
+        return 'ST_NPoints(%s)' %(self.expand(first))
+
+
+ADAPTERS.update( {
+    'intimepostgres': ExtendedPostgreSQLAdapter
+})
+
+
+MIGRATE=False
+db_intime = intimeDAL('intimepostgres://%s:%s@10.8.0.1:5432/integreenintime' % (user, pwd),
 	migrate=MIGRATE,
 	migrate_enabled=MIGRATE,
 	#fake_migrate_all=True,
@@ -251,7 +266,7 @@ db_intime.define_table('classification',
     Field('threshold', 'string', requires=IS_IN_SET(['black', 'red', 'yellow', 'green'])),
     Field('min', 'double'),
     Field('max', 'double'),
-    migrate=True
+    migrate=False
 )
 
 
