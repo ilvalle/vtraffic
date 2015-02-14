@@ -6,6 +6,7 @@
 import psycopg2
 import psycopg2.extras
 from subprocess import call
+import os
 
 def pasquill(vel,rad,month):
 	"""
@@ -92,16 +93,17 @@ def mixheight(pasq):
 		mixheight = 200.
 	return mixheight
 
-print 'ok'
 # MAIN PROGRAM
 def intime_dispersion_model():
     #apro il file di testo che sara l'input per caline per il calcolo degli NOx e PM10
-    fileinputNOX = 'input_caline_NOx.txt'
-    fileinputPM10 = 'input_caline_PM10.txt'
-    fileoutputNOX = 'output_caline_NO2.asc' # output gia' convertito NOx (emissione) -> NO2 (immissione)
-    fileoutputPM10 = 'output_caline_PM10.asc'
-    filelogNOX = 'caline_NOx.log'
-    filelogPM10 = 'caline_PM10.log'
+    fileinputNOX = os.path.join(request.folder, 'dispersion/input_caline_NOx.txt')
+    fileinputPM10 = os.path.join(request.folder, 'input_caline_PM10.txt')
+    fileoutputNOX = os.path.join(request.folder, 'output_caline_NO2.asc') # output gia' convertito NOx (emissione) -> NO2 (immissione)
+    fileoutputPM10 = os.path.join(request.folder, 'output_caline_PM10.asc')
+    filelogNOX = os.path.join(request.folder, 'caline_NOx.log')
+    filelogPM10 = os.path.join(request.folder, 'caline_PM10.log')
+    fileCalineMask = os.path.join(request.folder, "caline_mask.txt")
+
     fwNOx = open(fileinputNOX, "w")
     fwPM10 = open(fileinputPM10, "w")
 
@@ -139,7 +141,7 @@ def intime_dispersion_model():
     # Leggo il file della maschera da applicare nel calcolo della concentrazione in caline
     # EVENTUALMENTE SI PUO' LEGGERE LA MASCHERA DAL DB, MA SERVE AGGIUNGERE UNA TABELLA
     print "  * Lettura file maschera di calcolo"
-    mask = open("caline_mask.txt","r")
+    mask = open(fileCalineMask, "r")
     lines = mask.readlines()
     fwNOx.write('#N. segmenti maschera' + '\n')
     fwNOx.write(str(len(lines)) + '\n')
@@ -257,8 +259,9 @@ def intime_dispersion_model():
     # eseguo CALINE
     # "t" -> verbose output, "f" -> non verbose
     print "Run modello CALINE NOx..."
-    call(["./caline_mod2", fileinputNOX, fileoutputNOX, filelogNOX, "t"])
+    caline_file = os.path.join(request.folder, "caline_mod2")
+    call([caline_file, fileinputNOX, fileoutputNOX, filelogNOX, "t"])
     print "Fine modello CALINE NOx\n"
     print "Run modello CALINE PM10..."
-    call(["./caline_mod2", fileinputPM10, fileoutputPM10, filelogPM10, "t"])
+    call([caline_file, fileinputPM10, fileoutputPM10, filelogPM10, "t"])
     print "Fine modello CALINE PM10\n"
