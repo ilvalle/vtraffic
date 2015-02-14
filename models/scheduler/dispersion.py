@@ -97,12 +97,12 @@ def mixheight(pasq):
 def intime_dispersion_model():
     #apro il file di testo che sara l'input per caline per il calcolo degli NOx e PM10
     fileinputNOX = os.path.join(request.folder, 'dispersion/input_caline_NOx.txt')
-    fileinputPM10 = os.path.join(request.folder, 'input_caline_PM10.txt')
-    fileoutputNOX = os.path.join(request.folder, 'output_caline_NO2.asc') # output gia' convertito NOx (emissione) -> NO2 (immissione)
-    fileoutputPM10 = os.path.join(request.folder, 'output_caline_PM10.asc')
-    filelogNOX = os.path.join(request.folder, 'caline_NOx.log')
-    filelogPM10 = os.path.join(request.folder, 'caline_PM10.log')
-    fileCalineMask = os.path.join(request.folder, "caline_mask.txt")
+    fileinputPM10 = os.path.join(request.folder, 'dispersion/input_caline_PM10.txt')
+    fileoutputNOX = os.path.join(request.folder, 'dispersion/output_caline_NO2.asc') # output gia' convertito NOx (emissione) -> NO2 (immissione)
+    fileoutputPM10 = os.path.join(request.folder, 'dispersion/output_caline_PM10.asc')
+    filelogNOX = os.path.join(request.folder, 'dispersion/caline_NOx.log')
+    filelogPM10 = os.path.join(request.folder, 'dispersion/caline_PM10.log')
+    fileCalineMask = os.path.join(request.folder, "dispersion/caline_mask.txt")
 
     fwNOx = open(fileinputNOX, "w")
     fwPM10 = open(fileinputPM10, "w")
