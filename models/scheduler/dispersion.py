@@ -3,8 +3,6 @@
 # Ilaria Todeschini, Chiara Lora, Gianluca Antonacci - CISMA Srl
 # Ultima revisione 2015-02-10
 
-import psycopg2
-import psycopg2.extras
 from subprocess import call
 import os
 
@@ -100,10 +98,10 @@ def intime_dispersion_model():
     fileinputPM10_name = 'input_caline_PM10.txt'
     fileinputNOX = os.path.join(request.folder, 'dispersion/%s' % fileinputNOX_name)
     fileinputPM10 = os.path.join(request.folder, 'dispersion/%s' % fileinputPM10_name)
-    fileoutputNOX = 'output_caline_NO2.asc' # output gia' convertito NOx (emissione) -> NO2 (immissione)
-    fileoutputPM10 = 'output_caline_PM10.asc'
-    filelogNOX = 'caline_NOx.log'
-    filelogPM10 = 'caline_PM10.log'
+    fileoutputNOX = os.path.join(request.folder, 'dispersion/output_caline_NO2.asc') # output gia' convertito NOx (emissione) -> NO2 (immissione)
+    fileoutputPM10 = os.path.join(request.folder, 'dispersion/output_caline_PM10.asc')
+    filelogNOX = os.path.join(request.folder, 'dispersion/caline_NOx.log')
+    filelogPM10 = os.path.join(request.folder, 'dispersion/caline_PM10.log')
     fileCalineMask = os.path.join(request.folder, 'dispersion/caline_mask.txt')
 
     fwNOx = open(fileinputNOX, "w")
@@ -259,8 +257,7 @@ def intime_dispersion_model():
     print "Fine modello CALINE NOx\n"
     print "Run modello CALINE PM10..."
     call([caline_file, fileinputPM10, fileoutputPM10, filelogPM10, "f"])
-    print "Fine modello CALINE PM10\n"
     
     # gdal_translate -co "TILED=YES" -co "BLOCKXSIZE=512" -co "BLOCKYSIZE=512"
     # output_caline_NO2.asc output_caline_NO2.tiff
-
+    return 'ok'
