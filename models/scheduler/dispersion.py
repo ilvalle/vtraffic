@@ -255,8 +255,12 @@ def intime_dispersion_model():
     print "Run modello CALINE NOx..."
     caline_file = os.path.join(request.folder, "dispersion/caline_mod2")
     
-    call([caline_file, fileinputNOX_name, fileoutputNOX, filelogNOX, "t"])
+    call([caline_file, fileinputNOX, fileoutputNOX, filelogNOX, "f"])
     print "Fine modello CALINE NOx\n"
     print "Run modello CALINE PM10..."
-    call([caline_file, fileinputPM10_name, fileoutputPM10, filelogPM10, "t"])
+    call([caline_file, fileinputPM10, fileoutputPM10, filelogPM10, "f"])
     print "Fine modello CALINE PM10\n"
+    
+    # gdal_translate -co "TILED=YES" -co "BLOCKXSIZE=512" -co "BLOCKYSIZE=512"
+    # output_caline_NO2.asc output_caline_NO2.tiff
+

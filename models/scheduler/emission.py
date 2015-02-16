@@ -132,6 +132,8 @@ def emission_intime():
     db_intime.commit()
     t2 = time.time()
 
+    # Start the elaboration for the dispersion model
+    # intime_dispersion_model()
     return len(rows)
 
 # Compute the speed for all link stations
