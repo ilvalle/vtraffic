@@ -35,6 +35,9 @@ frontends = {'Meteo':'MeteoFrontEnd',
 @auth.requires_login()
 def index():
     session.forget(request)
+    response.files.insert(1,URL('static','css/standard.css'))
+    # Direct load for parking javascript app (client)
+    response.files.append('http://parking.bz.it/parkbzNew/static/js/app.js')
     return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})
 
 @auth.requires_login()
@@ -138,7 +141,6 @@ def get_geojson():
 
     for s in stations:
         s['last_value'] = __get_last_value(frontend, s['id'], data_type, period)
-        print frontend, 'L', 'latitude' in s
     
     features= [{"type": "Feature",
                 "properties": {

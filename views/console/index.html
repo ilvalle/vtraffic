@@ -1,230 +1,244 @@
 {{layout_fluid=True}}
 {{extend 'layout.html'}}
-<section class="span12">
-    <span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
+
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#console" data-toggle="tab">Console</a></li>
+  <li><a href="#maptab" data-toggle="tab">Map</a></li>
+</ul>
+
+<div class="tab-content console">
+  <div class="tab-pane active" id="console">
+    <section class="span12">
+        <span id='loading' class="alert alert-error span4 offset4 center">Loading...</span>
 	
-	<div class="btn-toolbar pull-right">
-	<div class="btn-group graph" data-toggle="buttons-radio">
-        <button type="button" class="btn">Bars</button>
-        <button type="button" class="btn active">Lines</button>
-    </div>
-	<div class="btn-group">
-		<a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> Live </a>
-		<a class="btn" id="reset_zoom" href="#" title="{{=T('Reset zoom')}}" data-toggle="tooltip"><i class="icon-remove"></i> </a>
-		<div id="reportrange" class="pull-right btn">
-            <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
-            <span></span> <b class="caret"></b>
+	    <div class="btn-toolbar pull-right">
+	    <div class="btn-group graph" data-toggle="buttons-radio">
+            <button type="button" class="btn">Bars</button>
+            <button type="button" class="btn active">Lines</button>
         </div>
-		<!--a class="btn dropdown-toggle" data-toggle="dropdown" href="#test">
-			<span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period] if requested_period in PERIODS else 'custom'}}</strong>
-			<span class="caret"></span>
-		</a>
+	    <div class="btn-group">
+		    <a class="btn" id="reload" href="#" title="{{=T('Reload')}}" data-toggle="tooltip"><i class="icon-repeat"></i> Live </a>
+		    <a class="btn" id="reset_zoom" href="#" title="{{=T('Reset zoom')}}" data-toggle="tooltip"><i class="icon-remove"></i> </a>
+		    <div id="reportrange" class="btn">
+                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                <span></span> <b class="caret"></b>
+            </div>
+		    <!--a class="btn dropdown-toggle" data-toggle="dropdown" href="#test">
+			    <span class=""><i class="icon-calendar"></i> Period: </span><strong class="">{{=PERIODS['%s' % requested_period] if requested_period in PERIODS else 'custom'}}</strong>
+			    <span class="caret"></span>
+		    </a>
 
-		<ul id="periods" class="dropdown-menu">
-			{{for key, value in PERIODS.items():}}
-			<li class=""><a href="{{=URL(args=request.args, vars={'period':key})}}">{{=value}}</a></li>
-			{{pass}}
-		</ul-->
-	</div>
-	</div>
+		    <ul id="periods" class="dropdown-menu">
+			    {{for key, value in PERIODS.items():}}
+			    <li class=""><a href="{{=URL(args=request.args, vars={'period':key})}}">{{=value}}</a></li>
+			    {{pass}}
+		    </ul-->
+	    </div>
+	    </div>
 	
-	<div class="btn-toolbar pull-left" id='select_frontend'>
-	<!-- select fronend -->
-	<form id="form_frontend" class="form-inline btn-group" action="{{=URL('console', 'get_stations')}}">
-	<div class="input-prepend input-append success">
-		<span class="add-on success" for="inputWarning">Frontend</span>
-		<select class="" name="frontend" id="select_frontend">
-		<option value=""></option>
-		{{for frontend in frontends.keys():}}
-			<option value="{{=frontend}}">{{=frontend}}</option>
-		{{pass}}
-		</select>
-		<input id='frontend_frontend' type="submit" class="update btn btn-success" value="Add">
-	</div>
-    </form>
-	</div>
-</section>
+	    <div class="btn-toolbar pull-left" id='select_frontend'>
+	    <!-- select fronend -->
+	    <form id="form_frontend" class="form-inline btn-group" action="{{=URL('console', 'get_stations')}}">
+	    <div class="input-prepend input-append success">
+		    <span class="add-on success" for="inputWarning">Frontend</span>
+		    <select class="" name="frontend" id="select_frontend">
+		    <option value=""></option>
+		    {{for frontend in frontends.keys():}}
+			    <option value="{{=frontend}}">{{=frontend}}</option>
+		    {{pass}}
+		    </select>
+		    <input id='frontend_frontend' type="submit" class="update btn btn-success" value="Add">
+	    </div>
+        </form>
+	    </div>
+    </section>
 
-<div class="">
-    <div class=''>
-    <div class='span2' id='sidebar_console'>
-        <!--h3> Data series </h3>
-        <div class='well' style="padding: 7px 0px;">
-        <ul class="nav nav-list">
-	    	<li><label class="checkbox"><input id='all' name='all' type="checkbox" checked='checked'>Hide/Show all</label></li>
+    <div class="">
+        <div class=''>
+        <div class='span2' id='sidebar_console'>
+            <!--h3> Data series </h3>
+            <div class='well' style="padding: 7px 0px;">
+            <ul class="nav nav-list">
+	        	<li><label class="checkbox"><input id='all' name='all' type="checkbox" checked='checked'>Hide/Show all</label></li>
+	        </ul-->
+	    </div>
+	    <div class="span10">
+            <div id="graph" class=" chart">	
+        <!--ul class="nav nav-pills"> 
+			    <li class="{{='active' if not(request.vars.interval) or request.vars.interval not in [str(7),str(24)] else ''}}"><a class='group' href="#" id="group_1">group by 1hour</a></li>
+			    <li class="{{='active' if request.vars.interval == str(6) else ''}}"><a href="#" class='group' id="group_6">group by 6hour</a></li>
+			    <li class="{{='active' if request.vars.interval == str(24) else ''}}"><a href="#" class='group' id="group_24">group by  1day</a></li>
 	    </ul-->
-	</div>
-	<div class="span10">
-        <div id="graph" class=" chart">	
-    <!--ul class="nav nav-pills"> 
-			<li class="{{='active' if not(request.vars.interval) or request.vars.interval not in [str(7),str(24)] else ''}}"><a class='group' href="#" id="group_1">group by 1hour</a></li>
-			<li class="{{='active' if request.vars.interval == str(6) else ''}}"><a href="#" class='group' id="group_6">group by 6hour</a></li>
-			<li class="{{='active' if request.vars.interval == str(24) else ''}}"><a href="#" class='group' id="group_24">group by  1day</a></li>
-	</ul-->
-	        <div id="compare_chart"  style="height:370px"> </div>
+	            <div id="compare_chart"  style="height:370px"> </div>
+            </div>
         </div>
+	    </div>
     </div>
-	</div>
+</div>
+<div class="tab-pane" id="maptab"> 
+    <section>{{include 'console/map_container.html'}}</section>
+</div>
 </div>
 
-<script>
-    $('#loading').hide();
-    
-    $.web2py.trap_form("", 'select_frontend');
-    $.web2py.ajax_init('');
-    timezoneJS.timezone.zoneFileBasePath = '{{=URL('vtraffic', 'static/js', 'tz')}}';
-    var options_console = { 
-        xaxis: { 
-			mode: "time", timezone: "Europe/Rome", alignTicksWithAxis:true,
-			dayNames: ['{{=T('Sun')}}', '{{=T('Mon')}}', '{{=T('Tue')}}', '{{=T('Wen')}}', '{{=T('Thu')}}', '{{=T('Fri')}}', '{{=T('Sat')}}'] 
-		},
-		yaxis: { position: 'left', zoomRange: false, panRange: false,},
-		addDynamically: true,
-		series:{ lines: { show: true, fill: false },
-				 points: { show: true },
-				 bars: {show: false},
-		},
-		crosshair: { mode: "x" },
-	}
-	var plot_console = new lplot('compare_chart', options_console);
-    var reload_interval;
-    
-    $('#compare_chart').on('loaded', function() {
-        $('#loading').hide();
-        $('body').css("cursor", "auto");
-    });
 
-    $('#compare_chart').on('loading', function() {
-        $('#loading').show();
-        $('body').css("cursor", "progress");
-    });
-    
-    $("#sidebar_console").on('click', 'li a', function() {
-		var key = $(this).attr("id");	
-		$(this).toggleClass('muted');
-		var current = plot_console.getObj(key);
-		if (typeof current === "undefined") {
-			if ( ! $(this).hasClass('muted')) {
-				return get_data($(this));
-			} else { 
-				// skip already coming call			
-				$(this).toggleClass('muted');
-			}
-		} else {
-			var index = jQuery.inArray(current, plot_console.data);
-			if ( index > -1 ) {
-				$('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
-				plot_console.data.splice(index, 1);
-			} else {
-				plot_console.data.push(current);
-			}
-		}
-		plot_console.plotAccordingToChoices();	
-	});
-	
-    function get_data(a_obj) {
-        console.log(a_obj);
-        var params = {
-            frontend: a_obj.data('frontend'),
-            seconds: {{=seconds}},
-            station : a_obj.data('station'),
-            unit: a_obj.data('unit'),
-            data_type: a_obj.data('type'),
-            data_label: a_obj.attr("title"),
-            period: a_obj.data("period"),
-        };
-		var url = '{{=URL("console", "get_data.json")}}'
-        var uri = url + '?' + $.param(params);
-		plot_console.loadData(uri);
-	}
-	
-	$(document).on('click', '#reload', function() {
-	    $(this).toggleClass('disabled');
-	    if (reload_interval === undefined){
-    	    plot_console.reload_all();
-    	    reload_interval = setInterval(function(){	plot_console.reload_all() }, 10000);
-	    } else {
-	        clearInterval(reload_interval);
-	        reload_interval = undefined;
+    <script>
+        $('#loading').hide();
+        
+        $.web2py.trap_form("", 'select_frontend');
+        $.web2py.ajax_init('');
+        timezoneJS.timezone.zoneFileBasePath = '{{=URL('vtraffic', 'static/js', 'tz')}}';
+        var options_console = { 
+            xaxis: { 
+			    mode: "time", timezone: "Europe/Rome", alignTicksWithAxis:true,
+			    dayNames: ['{{=T('Sun')}}', '{{=T('Mon')}}', '{{=T('Tue')}}', '{{=T('Wen')}}', '{{=T('Thu')}}', '{{=T('Fri')}}', '{{=T('Sat')}}'] 
+		    },
+		    yaxis: { position: 'left', zoomRange: false, panRange: false,},
+		    addDynamically: true,
+		    series:{ lines: { show: true, fill: false },
+				     points: { show: true },
+				     bars: {show: false},
+		    },
+		    crosshair: { mode: "x" },
 	    }
-	});
+	    var plot_console = new lplot('compare_chart', options_console);
+        var reload_interval;
+        
+        $('#compare_chart').on('loaded', function() {
+            $('#loading').hide();
+            $('body').css("cursor", "auto");
+        });
+
+        $('#compare_chart').on('loading', function() {
+            $('#loading').show();
+            $('body').css("cursor", "progress");
+        });
+        
+        $("#sidebar_console").on('click', 'li a', function() {
+		    var key = $(this).attr("id");	
+		    $(this).toggleClass('muted');
+		    var current = plot_console.getObj(key);
+		    if (typeof current === "undefined") {
+			    if ( ! $(this).hasClass('muted')) {
+				    return get_data($(this));
+			    } else { 
+				    // skip already coming call			
+				    $(this).toggleClass('muted');
+			    }
+		    } else {
+			    var index = jQuery.inArray(current, plot_console.data);
+			    if ( index > -1 ) {
+				    $('#' + key + ' .legend_box_color').css('background-color', "rgb(204,204,204)");
+				    plot_console.data.splice(index, 1);
+			    } else {
+				    plot_console.data.push(current);
+			    }
+		    }
+		    plot_console.plotAccordingToChoices();	
+	    });
 	
-	$(document).on('click', '#sidebar_console .well a', function() {
-	    destination = $('#' + $(this).data('target'));
-	    destination.slideToggle();
-	});
+        function get_data(a_obj) {
+            console.log(a_obj);
+            var params = {
+                frontend: a_obj.data('frontend'),
+                seconds: {{=seconds}},
+                station : a_obj.data('station'),
+                unit: a_obj.data('unit'),
+                data_type: a_obj.data('type'),
+                data_label: a_obj.attr("title"),
+                period: a_obj.data("period"),
+            };
+		    var url = '{{=URL("console", "get_data.json")}}'
+            var uri = url + '?' + $.param(params);
+		    plot_console.loadData(uri);
+	    }
 	
-	$(document).on('click', '#reset_zoom', function() {
-        plot_console.reset_zoom();
-   	});
+	    $(document).on('click', '#reload', function() {
+	        $(this).toggleClass('disabled');
+	        if (reload_interval === undefined){
+        	    plot_console.reload_all();
+        	    reload_interval = setInterval(function(){	plot_console.reload_all() }, 10000);
+	        } else {
+	            clearInterval(reload_interval);
+	            reload_interval = undefined;
+	        }
+	    });
 	
-    $(document).on('click', ".graph button", function() {
-		value = $(this).html();
-		if (value == 'Bars') {
-			plot_console.options.series.lines.show = false;
-			plot_console.options.series.bars.show = true;
-		} else {
-			plot_console.options.series.lines.show = true;
-			plot_console.options.series.bars.show = false;
-		}
-		plot_console.plotAccordingToChoices();	
-	});
-    
-    $(document).on('ajax:complete', 'form', function() {
-        if ( $(this).attr('data-w2p_target') !== undefined ){
-            $(this).addClass('no_trap');    //Workaround to avoid double submits
-            $.web2py.enableElement($(this).find($.web2py.formInputClickSelector));
+	    $(document).on('click', '#sidebar_console .well a', function() {
+	        destination = $('#' + $(this).data('target'));
+	        destination.slideToggle();
+	    });
+	
+	    $(document).on('click', '#reset_zoom', function() {
+            plot_console.reset_zoom();
+       	});
+	
+        $(document).on('click', ".graph button", function() {
+		    value = $(this).html();
+		    if (value == 'Bars') {
+			    plot_console.options.series.lines.show = false;
+			    plot_console.options.series.bars.show = true;
+		    } else {
+			    plot_console.options.series.lines.show = true;
+			    plot_console.options.series.bars.show = false;
+		    }
+		    plot_console.plotAccordingToChoices();	
+	    });
+        
+        $(document).on('ajax:complete', 'form', function() {
+            if ( $(this).attr('data-w2p_target') !== undefined ){
+                $(this).addClass('no_trap');    //Workaround to avoid double submits
+                $.web2py.enableElement($(this).find($.web2py.formInputClickSelector));
+            }
+        });
+        
+        var startDate = moment().subtract('days', 29);
+        var endDate = moment();
+        var datapickler_option = {
+            startDate: startDate,
+            endDate: endDate,
+            minDate: '01/01/2012',
+            maxDate: '12/31/2015',
+            dateLimit: { months: 60 },
+            showDropdowns: true,
+            showWeekNumbers: true,
+            timePicker: true,
+            timePickerIncrement: 1,
+            timePicker12Hour: true,
+            ranges: {
+                'Last 2 hours': [moment().subtract('hours', 2), moment().add('days', 1)],
+                'Today': [moment({hour: 00, minute: 00}), moment()],
+                'Yesterday': [moment({hour: 00, minute: 00}).subtract('days', 1), moment({hour: 23, minute: 59}).subtract('days', 1)],
+                'Last 7 Days': [moment().subtract('days', 6), moment().add('days', 1)],
+                'Last 30 Days': [moment().subtract('days', 29), moment().add('days', 1)],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+            },
+            opens: 'left',
+            buttonClasses: ['btn btn-default'],
+            applyClass: 'btn-small btn-primary',
+            cancelClass: 'btn-small',
+            format: 'MM/DD/YYYY',
+            separator: ' to ',
+        };
+        var date_set = function(start, end) {
+            $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            startDate = start;
+            endDate = end;
+            plot_console.reload_all();
         }
-    });
-    
-    var startDate = moment().subtract('days', 29);
-    var endDate = moment();
-    var datapickler_option = {
-        startDate: startDate,
-        endDate: endDate,
-        minDate: '01/01/2012',
-        maxDate: '12/31/2015',
-        dateLimit: { months: 60 },
-        showDropdowns: true,
-        showWeekNumbers: true,
-        timePicker: true,
-        timePickerIncrement: 1,
-        timePicker12Hour: true,
-        ranges: {
-            'Last 2 hours': [moment().subtract('hours', 2), moment().add('days', 1)],
-            'Today': [moment({hour: 00, minute: 00}), moment()],
-            'Yesterday': [moment({hour: 00, minute: 00}).subtract('days', 1), moment({hour: 23, minute: 59}).subtract('days', 1)],
-            'Last 7 Days': [moment().subtract('days', 6), moment().add('days', 1)],
-            'Last 30 Days': [moment().subtract('days', 29), moment().add('days', 1)],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
-        },
-        opens: 'left',
-        buttonClasses: ['btn btn-default'],
-        applyClass: 'btn-small btn-primary',
-        cancelClass: 'btn-small',
-        format: 'MM/DD/YYYY',
-        separator: ' to ',
-    };
-    var date_set = function(start, end) {
-        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-        startDate = start;
-        endDate = end;
-        plot_console.reload_all();
-    }
-    pickler = $('#reportrange').daterangepicker(datapickler_option, date_set);
-    
-    $('#reportrange span').html(moment().subtract('days', 29).format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
-    $('#reportrange').on('show', function() { console.log("show event fired"); });
-    $('#reportrange').on('hide', function() { console.log("hide event fired"); });
-    $('#reportrange').on('apply', function(ev, picker) { 
-    console.log("apply event fired, start/end dates are " 
-                  + picker.startDate.format('MMMM D, YYYY') 
-                  + " to " 
-                  + picker.endDate.format('MMMM D, YYYY')
-                ); 
-              });
-    //$('#reportrange').daterangepicker(optionSet1, cb);
-    
-    
-</script>
+        pickler = $('#reportrange').daterangepicker(datapickler_option, date_set);
+        
+        $('#reportrange span').html(moment().subtract('days', 29).format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
+        $('#reportrange').on('show', function() { console.log("show event fired"); });
+        $('#reportrange').on('hide', function() { console.log("hide event fired"); });
+        $('#reportrange').on('apply', function(ev, picker) { 
+        console.log("apply event fired, start/end dates are " 
+                      + picker.startDate.format('MMMM D, YYYY') 
+                      + " to " 
+                      + picker.endDate.format('MMMM D, YYYY')
+                    ); 
+                  });
+        //$('#reportrange').daterangepicker(optionSet1, cb);
+        
+        
+    </script>

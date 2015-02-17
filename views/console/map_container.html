@@ -1,0 +1,141 @@
+<div class="map-cont box">
+    <div id="map" style="height: 500px"></div>
+</div>
+<script>
+    var map = L.map('map').setView([46.493, 11.34], 14);
+    var popup_selected;
+    var geojsonLayer;
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    var l_pm10 = L.tileLayer.wms("http://geodata.integreen-life.bz.it/geoserver/edi/wms", {
+        layers: 'edi:pollution_pm10',
+        transparent: true,
+        attribution: "",
+        format: 'image/png',
+    });
+    
+    var l_nox = L.tileLayer.wms("http://geodata.integreen-life.bz.it/geoserver/edi/wms", {
+        layers: 'edi:pollution_nox',
+        transparent: true,
+        attribution: "",
+        format: 'image/png',
+    });
+
+    var l_congestion = L.tileLayer.wms("http://geodata.integreen-life.bz.it/geoserver/edi/wms", {
+        layers: 'edi:congestion',
+        transparent: true,
+        attribution: "",
+        format: 'image/png',
+    });
+    
+    var overlays = {
+        "Pm 10": l_pm10,
+        "NOx": l_nox,
+        "Congestion": l_congestion
+    };
+    layerControl = L.control.layers(null, overlays);
+
+    $("body").on('shown','a[data-toggle="tab"]', function() { 
+        map.invalidateSize(false);
+    });
+
+    function load_geojson() {
+        var url = 'http://parking.bz.it/parkbzNew/default/get_geojson';
+        var params = {url_base:true};
+        var url_request = url + '?' + jQuery.param(params);
+        if (geojsonLayer !== undefined){
+            console.log('rimuovo layer');
+            map.removeLayer(geojsonLayer);
+        }
+        $.getJSON(url_request, function( data ) {
+            geojsonLayer = L.geoJson(data, {
+                pointToLayer: function (feature, latlng) {
+                    var freeslots = feature.properties.freeslots;
+                    icon = ((freeslots > 70)? "green" : ((freeslots > 10) ? "yellow" : ((freeslots >= 0)? "red" : "grey")))
+                    var markerIcon = new L.Icon.Default({
+                        iconUrl: "/vtraffic/static/js/images/marker-icon-" + icon + ".png",
+                        iconRetinaUrl: "/vtraffic/static/js/images/marker-icon-" + icon + "-2x.png",
+                    });
+                    return L.marker(latlng, {icon: markerIcon});
+                },
+                onEachFeature: onEachFeature
+            });
+            // Add the new layer to the layerControl
+            layerControl.addOverlay(geojsonLayer, 'Parking');
+        });
+    }
+
+    function load_geojson_bluetooth() {
+        var url_request = '{{=URL('console', 'get_geojson', vars={'frontend':'Bluetooth', 'type':'Bluetooth Count record', 'period':1800})}}';
+        $.getJSON(url_request, function( data ) {
+            geojsonLayer = L.geoJson(data, {
+                pointToLayer: function (feature, latlng) {
+                    var v = feature.properties.last_value;
+                    icon = ((v > 200)? "3" : ((v > 100) ? "2" : "1"));
+                    var markerIcon = new L.Icon.Default({
+                        iconUrl: "/vtraffic/static/js/images/marker-bluetooth" + icon + ".png",
+                        iconRetinaUrl: "/vtraffic/static/js/images/marker-bluetooth" + icon + ".png",
+                    });
+                    return L.marker(latlng, {icon: markerIcon});
+                },
+                onEachFeature: onEachFeature
+            });
+            // Add the new layer to the layerControl
+            layerControl.addOverlay(geojsonLayer, 'Bluetooth');
+        });
+    }
+
+    function load_geojson_env() {
+        var url_request = '{{=URL('console', 'get_geojson', vars={'frontend':'Environment', 'type':'NO2'})}}';
+        $.getJSON(url_request, function( data ) {
+            geojsonLayer = L.geoJson(data, {
+                pointToLayer: function (feature, latlng) {
+                    var v = feature.properties.last_value;
+                    icon = ((v < 50)? "green" : ((v < 100) ? "yellow" : ((v < 200)? "red" : "grey")))
+                    var markerIcon = new L.Icon.Default({
+                        iconUrl: "/vtraffic/static/js/images/marker-icon-" + icon + ".png",
+                        iconRetinaUrl: "/vtraffic/static/js/images/marker-icon-" + icon + "-2x.png",
+                    });
+                    return L.marker(latlng, {icon: markerIcon});
+                },
+                onEachFeature: onEachFeature
+            });
+            // Add the new layer to the layerControl
+            layerControl.addOverlay(geojsonLayer, 'Environment');
+        });
+    }
+
+    map.on("popupopen", function(e) {
+        popup_open = e.popup;
+        $('.carpark').trigger('reload', true);
+    });
+    map.on("popupclose", function() {
+        popup_open = undefined;
+    });
+    load_geojson();
+    load_geojson_bluetooth();
+    load_geojson_env();
+
+    function onEachFeature (feature, layer) {
+        var popupContent;
+        if (feature.properties && feature.properties.popupContent) {
+            popupContent = feature.properties.popupContent;
+        }
+        var popup = layer.bindPopup(popupContent);
+        if (feature.properties && feature.properties.openPopup) {
+            popup_selected = popup;
+        }
+    }
+    $(document).on('click', '.forecast h3', function(){
+        var el = $(this);
+	    $(this).toggleClass('open').next().slideToggle('fast', function() {
+	        $(el).trigger('slidend');
+	    });
+    });
+
+
+
+    map.addControl(layerControl);
+</script>
