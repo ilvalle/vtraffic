@@ -35,7 +35,7 @@ frontends = {'Meteo':'MeteoFrontEnd',
 @auth.requires_login()
 def index():
     session.forget(request)
-    response.files.insert(1,URL('static','css/standard.css'))
+    response.files.append(URL('static','css/standard.css'))
     # Direct load for parking javascript app (client)
     response.files.append('http://parking.bz.it/parkbzNew/static/js/app.js')
     return response.render('console/index.html', {'frontends':frontends, 'seconds':seconds})

@@ -137,17 +137,34 @@
 	<div id="push"></div>
     </div> <!-- end wrap -->
     <!-- Footer ================================================== -->
-	<footer class="footer" id="footer">
-        <div class="container">
-	{{include 'social_buttons.html'}}
-         <p>Code licensed under <a href="http://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU Affero General Public License</a> available on <a href='https://github.com/ilvalle/vtraffic'>github</a>
-        <br/>Powered by the <a href='http://web2py.com'>web2py</a> python web framework</p>
-	<ul>
-		<li><a href="http://twitter.github.com/bootstrap">Bootstrap</a> licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License v2.0</a></li>
-		<li><a href="http://glyphicons.com">Glyphicons Free</a> licensed under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></li>
-	</ul>
-	<p>Contact: project [at] integreen-life.bz.it</p>
-	<!--p>Designed and built by <a href='https://twitter.com/ilvalle' rel="popover"  data-content="" title='Paolo Valleri'>Paolo Valleri</a></p-->
+    {{if request.controller == 'console':}}
+    <footer id="footer-1" class="footer-1">
+    	<div class="aux">
+	    	<h3>{{=T("The experimental apps of the")}}<strong>{{=T("Municipality of Bolzano")}}</strong></h3>
+			<ul>
+				<li class="bzparking"><a href="http://parking.bz.it/" target="_blank"><img src="{{=URL('static','images/logo-bzparking.png')}}" alt="BZ Parking"></a></li>
+				<li class="bzbus"><a href="http://bus.bz.it"><img src="{{=URL('static','images/logo-bzbus.png')}}" alt="BZ Bus"></a></li>
+				<li class="bztraffic"><a href="http://traffic.bz.it/" target="_blank"><img src="{{=URL('static','images/logo-bztraffic.png')}}" alt="BZ Traffic"></a></li>
+			</ul>
+    	</div>
+    </footer>
+    {{pass}}
+	<footer id="footer-2" class="footer-2">
+	<div class="aux">
+        <div class="aux2">
+	        <ul>
+		        <li class=""><a href="http://ec.europa.eu/environment/life" target="_blank"><img src="/vtraffic/static/images/logo-life-eu.jpg"></a></li>
+		        <li class="integreen"><a href="http://integreen-life.bz.it"><img src="/vtraffic/static/images/logo-integreen.jpg"></a></li>
+		        <li class=""><a href="http://www.comune.bolzano.it/" target="_blank"><img src="/vtraffic/static/images/logo-bz.jpg" alt="Logo Comune di Bolzano"></a></li>
+		        <li class=""><a href="https://tis.bz.it/open" target="_blank"><img src="/vtraffic/static/images/logo-tis.jpg" alt="Logo TIS Innovation Park"></a></li>
+		        <li class=""><a href="http://www.ait.ac.at/" target="_blank"><img src="/vtraffic/static/images/logo-ait.jpg"></a></li>
+	        </ul>
+        </div>
+        <div class="text">
+            <p>Code licensed under <a href="http://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU Affero General Public License</a> available on <a href='https://github.com/ilvalle/vtraffic'>github</a></p>
+            <p>Powered by the <a href='http://web2py.com'>web2py</a> python web framework</p>
+        	<p>Contact: project [at] integreen-life.bz.it</p>
+	    </div>
 	</div>
         </footer>
 	<script src="{{=URL('static','js/jquery.pjax.js')}}"></script>

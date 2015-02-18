@@ -71,7 +71,7 @@ author: Madeincima.it
 	body{color:#58595b;background:url(../images/bg-body.jpg) 0 0 repeat	}
 	.aux{width:90%;margin:0 auto;position:relative}
 	
-	header{background:url(../images/bg-pattern.jpg) 0 0 repeat;padding:4.5% 0 1% 0;position:relative	}
+	header.mastheader, #header{background:url(../images/bg-pattern.jpg) 0 0 repeat;padding:4.5% 0 1% 0;position:relative	}
 		.logo{width:45%;position:relative}
 		.logo a{border:0;padding:0}
 		a.beta{position:absolute;bottom:17%;left:108%;background:#009cdd;color:#fff;font-weight:bold;font-size:.8em;padding:0.2em .5em;text-transform:uppercase}
@@ -140,7 +140,13 @@ author: Madeincima.it
 		.aside .buttons a{display:block;color:#fff;border:0;padding:.8em 0 .9em 0;white-space:nowrap}
 		.aside .buttons em{font-style:normal;font-family: 'titillium_webbold',arial,sans-serif}
 		.share-btn{background:#0a99d4;text-shadow:1px 1px 1px #065b7e;display:none}
-		.developers-btn{background:#76c419;no-repeat;text-shadow:1px 1px 1px #3e6f03}
+		.developers-btn{
+		    background:#76c419;no-repeat;
+		    text-shadow:1px 1px 1px #3e6f03; 
+		    margin: 10px 20px;
+		    min-height: 76px;
+            vertical-align: middle
+        }
 		.widget-cont{display:none}
 	
 	.addthisbox{margin-bottom:2em}
@@ -159,7 +165,7 @@ author: Madeincima.it
 		.footer-2 ul{text-align:center;margin:0 auto 15px auto;max-width:445px}
 		.footer-2 li{display:inline-block;margin:0 10% 0 0;}
 		.footer-2 li a{border:none;width:100%;display:block;padding:0}
-		.footer-2 .eu{width:20%}
+		.footer-2 .eu{width:12%}
 		.footer-2 .bz{width:33%}
 		.footer-2 .tis{margin:0;width:18%}
 		.footer-2 img{width:100%;display:block}
@@ -175,6 +181,39 @@ author: Madeincima.it
     .error{background:#ea8780}
     .updating-s{position:absolute;top:0;bottom:0;right:0;left:0;background:rgba(246,246,246,0.97) url(../images/updating-blue.gif) 50% 50% no-repeat;cursor:auto}
     .updating-s, .actions .notice { display:none}
+    .footer-1 li.bzparking {
+        top: 18.04%;
+        left: 0;
+        width: 34.32%;
+    }
+    .footer-1 li.bzbus {
+        top: 0;
+        left: 34.86%;
+        width: 37.57%;
+    }
+    .footer-1 li.bztraffic {
+        top: 40.21%;
+        left: 66.49%;
+        width: 33.24%;
+    }
+    .footer-1 ul {
+        position: relative;
+        left: 0;
+        right: 0;
+        display: block;
+        max-width: 370px;
+        height: 0;
+        padding-bottom: 52.63%;
+        margin: 0 auto .6em;
+    }
+.footer-1 li {
+position: absolute;
+}    
+.footer-2 .integreen {
+width: 104px;
+height: 27px;
+top: 9px;
+}
 } 
 
 
@@ -191,7 +230,11 @@ author: Madeincima.it
 @media only screen and (min-width:25em){
 
 	a.beta{bottom:20%;left:106%;font-size:.9em;padding:0.25em .6em}
-
+.footer-1 ul {
+width: 304px;
+height: 161px;
+padding-bottom: 0;
+}
 }
 
 @media only screen and (min-width:39em){
@@ -255,13 +298,28 @@ author: Madeincima.it
 
 	
 	.footer-1 {padding-top:4.5em;padding-bottom:3.5em}
-	.footer-1 h3{font-size:2.6em;margin-bottom:1.2em;}
-	.footer-2 .aux2{float:right;width:42%}
+.footer-1 h3 {
+margin: 0 7% 0 0;
+font-size: 2.9em;
+padding-top: 1.1em;
+}
+	.footer-2 .aux2{float:right;width:60%}
 	.footer-2 .text{float:left;text-align:left}
 	.footer-2{clear:none;float:left;width:100%}
 	.footer-2 ul{max-width:auto;width:100%;float:right}
-	.footer-2 li{margin-right:7%}
-	
+	.footer-2 li{margin-right:2%}
+	.footer-2 ul {
+        max-width: none;
+    }
+    .footer-2 li.eu {
+margin-left: 0;
+}
+.footer-1 ul {
+    width: 370px;
+    height: 195px;
+}
+
+
 }
 
 
@@ -300,7 +358,26 @@ author: Madeincima.it
 	.controls a.update:hover{background-position:-103px -20px}
 	.aside .buttons li:hover{opacity:.85}
 	.aside .buttons .share-btn.open:hover{opacity:1}
-	
+	.footer-1 ul {
+        display: inline-block;
+        left: auto;
+        right: auto;
+        margin: 0 0 .6em;
+        padding: 0;
+        max-width: none;
+    }
+	.footer-1 h3 {
+        display: inline-block;
+        vertical-align: top;
+        margin: 0 4% 0 0;
+        text-align: left;
+        font-size: 2.3em;
+        line-height: 1.35em;
+        padding-top: 1.3em;
+    }
+    .footer-1 h3 strong {
+        display: block;
+    }
 }
 
 
@@ -379,11 +456,7 @@ only screen and (min-resolution: 2dppx){
     padding-left: 2px;
 }
 
-.carpark-aux ul {
-    margin-left: 0px;
-}
-
-.carpark-aux h3 {
-    line-height: 25px;
+.survey-btn {
+    background: #0a99d4;
 }
 
