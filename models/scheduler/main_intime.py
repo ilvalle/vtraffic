@@ -94,7 +94,9 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
     last_ts = db_intime.get_last_ts(output_type_id, station_id, interval, 'elaborationhistory')
     unique = True
     if last_ts:
-        last_ts = "'%s'" % (last_ts - datetime.timedelta(seconds=interval/2))
+        # Fix count for interval too small
+        s = max(interval/2, 1350)
+        last_ts = "'%s'" % (last_ts - datetime.timedelta(seconds=s))
     else:
         last_ts = 'min(timestamp)::date'
         unique = False # Speedup, no data are in the db for the given combination of station_id/type_id/interval
