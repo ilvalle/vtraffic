@@ -30,11 +30,20 @@
         format: 'image/png',
     });
     
+    var l_vehicle = L.tileLayer.wms("http://geodata.integreen-life.bz.it/geoserver/edi/wms", {
+        layers: 'edi:no2_1_microgm3_ma_position',
+        transparent: true,
+        attribution: "",
+        format: 'image/png',
+    });
+    
     var overlays = {
         "Pm 10": l_pm10,
         "NOx": l_nox,
-        "Congestion": l_congestion
+        "Congestion": l_congestion,
+        "Vehicle": l_vehicle
     };
+
     layerControl = L.control.layers(null, overlays);
 
     $("body").on('shown','a[data-toggle="tab"]', function() { 
