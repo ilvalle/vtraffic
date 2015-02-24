@@ -4,6 +4,7 @@
 <ul class="nav nav-tabs">
   <li class="active"><a href="#console" data-toggle="tab">Console</a></li>
   <li><a href="#maptab" data-toggle="tab">Map</a></li>
+  <li><a href="#data" data-toggle="tab">Data</a></li>
 </ul>
 
 <div class="tab-content console">
@@ -77,6 +78,10 @@
 </div>
 <div class="tab-pane" id="maptab"> 
     <section>{{include 'console/map_container.html'}}</section>
+</div>
+
+<div class="tab-pane" id="data"> 
+    <section>{{=LOAD('console', 'edit_js', ajax=True)}}</section>
 </div>
 </div>
 

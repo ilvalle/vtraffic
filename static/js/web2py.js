@@ -557,6 +557,9 @@
       };
     },
     component_handler: function (target) {
+        if (! target){
+            return;
+        }
       $('div[data-w2p_remote]', target).each(function () {
         var remote, times, timeout, target;
         var el = $(this);
@@ -716,7 +719,7 @@ collapse = jQuery.web2py.collapse;
 fade = jQuery.web2py.fade;
 
 /* internals - shouldn't be needed
-web2py_ajax_init = jQuery.web2py.ajax_init;
+
 web2py_event_handlers = jQuery.web2py.event_handlers;
 web2py_trap_link = jQuery.web2py.trap_link;
 web2py_calc_entropy = jQuery.web2py.calc_entropy;

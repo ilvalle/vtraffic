@@ -138,25 +138,37 @@ db_intime = intimeDAL('intimepostgres://%s:%s@10.8.0.1:5432/integreenintime' % (
 db_intime.executesql("set search_path to 'intime', 'public';")
 
 db_intime.define_table('station',
-    Field('name'),
+    Field('name', 'string'),
     Field('shortname'),
     Field('description'),
     Field('stationtype'),
     #Field('pointprojection'),
     Field('stationcode'),
     Field('active'),
-    Field('parent_id', 'reference station'),
-    migrate=False
+    #Field('parent_id', 'reference station'),
+    migrate=False,
+    format="%(name)s",
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ],
 )
 
-db_intime.define_table('linkbasicdata',
-    Field('origin_id', 'reference station'),
-    Field('destination_id', 'reference station'),
-    Field('station_id', 'reference station'),
+db_intime.define_table("linkbasicdata",
+    Field('station_id', "reference station", label='Station'),
+    Field('origin_id', "reference station", label="Origin station"),
+    Field('destination_id', "reference station", label="Destination station"),
     Field('street_ids_ref', 'list:reference streetbasicdata'),
     Field('length', 'double'),
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ],
+    format="%(station_id)s",
 )
+
+
 
 db_intime.define_table('type',
     Field('cname'),
@@ -165,7 +177,11 @@ db_intime.define_table('type',
     Field('description'),
     Field('rtype'),
     format="%(cname)s",
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 
 db_intime.define_table('elaboration',
@@ -175,7 +191,11 @@ db_intime.define_table('elaboration',
     Field('station_id', 'reference station'),
     Field('type_id', 'reference type'),
     Field('period', 'integer'),
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 db_intime.define_table('elaborationhistory',
     Field('created_on', 'datetime'),
@@ -184,8 +204,13 @@ db_intime.define_table('elaborationhistory',
     Field('station_id', 'reference station'),
     Field('type_id', 'reference type'),
     Field('period', 'integer'),    
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
+
 db_intime.define_table('measurement',
     Field('created_on', 'datetime'),
     Field('timestamp', 'datetime'),
@@ -193,7 +218,11 @@ db_intime.define_table('measurement',
     Field('station_id', 'reference station'),
     Field('type_id', 'reference type'),
     Field('period', 'integer'),    
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 db_intime.define_table('measurementhistory',
     Field('created_on', 'datetime'),
@@ -202,7 +231,11 @@ db_intime.define_table('measurementhistory',
     Field('station_id', 'reference station'),
     Field('type_id', 'reference type'),
     Field('period', 'integer'),
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 db_intime.define_table('measurementstring',
     Field('created_on', 'datetime'),
@@ -211,7 +244,11 @@ db_intime.define_table('measurementstring',
     Field('station_id', 'reference station'),
     Field('type_id', 'reference type'),
     Field('period', 'integer'),    
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 db_intime.define_table('measurementstringhistory',
     Field('created_on', 'datetime'),
@@ -220,7 +257,11 @@ db_intime.define_table('measurementstringhistory',
     Field('station_id', 'reference station'),
     Field('type_id', 'reference type'),
     Field('period', 'integer'),    
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 db_intime.define_table('trafficstreetfactor',
     Field('id_arco', 'reference station'),
@@ -228,7 +269,11 @@ db_intime.define_table('trafficstreetfactor',
     Field('factor', 'double'),
     Field('length', 'double'),
     Field('hv_perc', 'double'),
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 db_intime.define_table('streetbasicdata',
     Field('station_id', 'reference station'),
@@ -236,14 +281,22 @@ db_intime.define_table('streetbasicdata',
     Field('description', 'string'),
     Field('speed_default', 'double'),
     Field('linegeometry', 'geometry()'),    
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 db_intime.define_table('copert_parcom',
     Field('percent', 'double'),
     Field('descriz', 'string'),
     Field('id_class', 'integer'),
     Field('eurocl', 'integer'),
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 db_intime.define_table('copert_emisfact',
     Field('type_id', 'reference type'),
@@ -255,7 +308,11 @@ db_intime.define_table('copert_emisfact',
     Field('coef_c', 'double'),
     Field('coef_d', 'double'),
     Field('coef_e', 'double'),
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 db_intime.define_table('measurementmobilehistory',
     Field('no2_1_ppb', 'double'),
@@ -265,7 +322,11 @@ db_intime.define_table('measurementmobilehistory',
     Field('no2_1_microgm3_exp', 'double'),
     Field('station_id', 'reference station'),
     Field('id_vehicle_nr', 'integer'),
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 
 db_intime.define_table('classification',
@@ -273,11 +334,15 @@ db_intime.define_table('classification',
     Field('threshold', 'string', requires=IS_IN_SET(['black', 'red', 'yellow', 'green'])),
     Field('min', 'double'),
     Field('max', 'double'),
-    migrate=False
+    migrate=False,
+    on_define=lambda table: [
+        table.id.set_attributes(readable = False),
+        #table.__setitem__('create', auth.has_membership('siteadmin')),
+    ]
 )
 
-
-db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
+if not request.controller:
+    db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
 cmd_options = request.global_settings.cmd_options
 if cmd_options and cmd_options.scheduler or request.controller in ['plugin_cs_monitor', 'test', 'monitor']:
     response.models_to_run.append("^scheduler/\\w+\\.py$")

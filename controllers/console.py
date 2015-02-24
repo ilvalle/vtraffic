@@ -182,5 +182,12 @@ def __get_last_value(frontend, _id,  _type, _period):
     obj=data[index]
     return int(obj['value'])
 
+@auth.requires_login()
+def edit():
+    return ''
 
+@auth.requires_login()
+def edit_js():
+    form = SQLFORM.grid(db_intime.linkbasicdata, formstyle='bootstrap', maxtextlength=50, searchable=False, csv=False)
+    return response.render('console/edit_js.load', {'form':form})
 
