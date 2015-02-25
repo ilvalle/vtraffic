@@ -1,5 +1,6 @@
 import requests
 from itertools import groupby
+import time
 
 #tests
 default_period = 3600
@@ -129,7 +130,7 @@ def map():
 
     return {}
     
-    
+#@cache.action(time_expire=180, cache_model=cache.ram, vars=True)
 def get_geojson():
     session.forget(request)
     frontend = request.vars.frontend
@@ -137,7 +138,7 @@ def get_geojson():
     data_type = request.vars.type
     period = request.vars.period
 
-    stations = __get_stations_info(frontend)
+    stations = cache.ram('__get_stations_info_%s' % frontend, lambda: __get_stations_info(frontend), (3600 * 24))
 
     for s in stations:
         s['last_value'] = __get_last_value(frontend, s['id'], data_type, period)
@@ -169,7 +170,6 @@ def __get_last_value(frontend, _id,  _type, _period):
     method = "rest/get-records"
     params = {'name':_type, 'period':_period, 'station':_id, 'seconds': 7200}
     r = requests.get("%s/%s" % (rest_url, method), params=params)
-    #print r.url
     data=r.json()
 
     index = len(data)-1 # last value
