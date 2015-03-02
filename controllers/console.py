@@ -31,7 +31,8 @@ frontends = {'Meteo':'MeteoFrontEnd',
              'Bluetooth':'BluetoothFrontEnd', 
              'Link':'LinkFrontEnd', 
              'Street': 'StreetFrontEnd', 
-             'Traffic': 'TrafficFrontEnd'}
+             'Traffic': 'TrafficFrontEnd',
+             'Cleanroads': 'RWISFrontEnd'}
  
 @auth.requires_login()
 def index():
