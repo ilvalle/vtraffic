@@ -12,14 +12,14 @@ db = DAL('postgres://%s:%s@10.8.0.1:5432/integreen' % (user, pwd),
 )
 
 cache.memcache = cache.ram
-if not request.is_local:
-	from gluon.contrib.memcache import MemcacheClient
-	#from gluon.contrib.memdb import MEMDB
-	memcache_servers = ['127.0.0.1:11211']
-	cache.memcache = MemcacheClient(request, memcache_servers)
-	cache.ram = cache.disk = cache.memcache
-	#session.connect(request,response,db=MEMDB(cache.memcache))
-	#session.connect(request,response,db)
+#if not request.is_local:
+#	from gluon.contrib.memcache import MemcacheClient
+#	#from gluon.contrib.memdb import MEMDB
+#	memcache_servers = ['127.0.0.1:11211']
+#	cache.memcache = MemcacheClient(request, memcache_servers)
+#	cache.ram = cache.disk = cache.memcache
+#	#session.connect(request,response,db=MEMDB(cache.memcache))
+#	#session.connect(request,response,db)
 
 ## (optional) optimize handling of static files
 #response.optimize_css = 'concat,minify'
