@@ -1,5 +1,9 @@
 from collections import OrderedDict
 
+if request.function != 'wiki':
+    from gluon.tools import Wiki
+    response.menu += Wiki(auth).menu(controller="default", function="wiki")
+
 # 21 bluetooth match type_id
 # '2015-07-21' is a testing period
 db_intime.elaborationhistory._common_filter = lambda query: ((db_intime.elaborationhistory.timestamp > '2015-07-21') & 

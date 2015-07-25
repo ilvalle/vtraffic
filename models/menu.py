@@ -23,8 +23,10 @@ response.menu = [
         (A(CAT(TAG.I(_class="icon-info-sign"), " %s" % T('Parking situation')), _href='http://parking.integreen-life.bz.it', _title="Bolzano parking situation") , False, None),
 		(A(CAT(TAG.I(_class="icon-road"), " %s" %  T('Traffic monitoring')),_href='http://traffic.integreen-life.bz.it', _title="Bluetooth traffic monitoring"), False, None),
 	]),
-	(T('Graph'), request.function == 'plot' , URL('plot', 'index'))
+	(T('Graph'), request.function == 'plot' , URL('plot', 'index')),
+	(T('Traffic flow'), request.controller == 'flow' , URL('flow', 'index'))
 ]
+
 if session.auth and auth.is_logged_in():
 	response.menu.insert(1, (T('manage'), False, None, [
 		(T('Add station'), False, URL('default', 'add_station')),
