@@ -39,9 +39,14 @@ def get_data():
     # Future works should allow users to select the order of all nodes, as C->D or D->C
     if request.vars.station_id and request.vars.station_id.isdigit():
         station_id_start = int(request.vars.station_id)
-        ele = next((item for item in rows if item['linkbasicdata']['origin_id'] == station_id_start), None)
-        rows.insert(0, rows.pop(rows.index(ele)))
-
+        new_ordered_rows = []
+        for r in rows:
+            # Move to the top, all links with the selected station as origin
+            if r['linkbasicdata']['origin_id'] == station_id_start:
+                new_ordered_rows.insert(0, r)
+            else:
+                new_ordered_rows.append(r)
+        rows = new_ordered_rows
     links = []
     exclude_pairs = []
     pos_nodes = [node['id'] for node in nodes]
