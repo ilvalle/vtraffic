@@ -11,7 +11,7 @@ def index():
     stations = db_intime((eh.station_id == lb.station_id) & 
                          (lb.origin_id == db_intime.station.id)).select(db_intime.station.name, db_intime.station.id, 
                                                                     groupby=db_intime.station.id|db_intime.station.name,
-                                                                    cacheable=True, cache=(cache.ram, 60))
+                                                                    cacheable=True)
 
     return {'stations':stations}    
 
@@ -21,7 +21,7 @@ def get_data():
     # Selecting all possible match between all stations
     rows = db_intime(eh.station_id == lb.station_id).select(lb.origin_id, lb.destination_id, cc, 
                                                             groupby=lb.origin_id|lb.destination_id, 
-                                                            cacheable=True, cache=(cache.ram, 60)).as_list()
+                                                            cacheable=True).as_list()
     # Create a list of stations from the merge of stations as origin with stations as destination
     stations_orig = map(lambda r: r['linkbasicdata']['origin_id'], rows)
     stations_dest = map(lambda r: r['linkbasicdata']['destination_id'], rows)    
@@ -30,7 +30,7 @@ def get_data():
     # Query all necessary details, such as name, id etc
     nodes =  db_intime(db_intime.station.id.belongs(all_stations), 
                        ignore_common_filters=True).select(db_intime.station.name, db_intime.station.id, 
-                                                          cacheable=True, cache=(cache.ram, 60)).as_list()
+                                                          cacheable=True).as_list()
 
     # Create the output for D3
     # Place the row with the selected station as first link, because only a direction link 
