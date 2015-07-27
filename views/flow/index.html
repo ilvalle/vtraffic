@@ -1,15 +1,24 @@
 {{extend 'layout.html'}}
 <div class="clearfix">
 <form class="form-inline" id='d3_station_form'>
-		<div class="control-group success">
-			<label class="control-label" for="inputWarning">Starting station</label>
-			<div class="controls"><select class="input-block-level" name="station_id" id="select_o"><option></option>
-			{{for station in stations:}}
-				<option {{='selected' if str(station.id) == request.vars.station_id else ''}} value="{{=station.id}}">{{=station.name}}</option>
-			{{pass}}
-			</select></div>
-		</div>
-		<a id='' type="submit" class="update btn btn-success pull-right">Update</a>
+	<div class="control-group info">
+		<label class="control-label" for="inputWarning">Day of the week</label>
+	    <div class="controls">
+        {{for pos, day in enumerate(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']):}}
+        <label class="checkbox inline">
+            <input name="dow" checked='checked' type="checkbox" id="weekday_{{=day}}" value='{{=pos}}'>{{=day}}
+        </label>
+        {{pass}}
+    </div></div>
+	<div class="control-group success">
+		<label class="control-label" for="inputWarning">Starting station</label>
+		<div class="controls"><select class="input-block-level" name="station_id" id="select_o"><option></option>
+		{{for station in stations:}}
+			<option {{='selected' if str(station.id) == request.vars.station_id else ''}} value="{{=station.id}}">{{=station.name}}</option>
+		{{pass}}
+		</select></div>
+	</div>
+	<a id='' type="submit" class="update btn btn-success pull-right">Update</a>
 </form>
 </div>
 <section class="span12">

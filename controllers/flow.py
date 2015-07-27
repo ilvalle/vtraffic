@@ -1,4 +1,6 @@
 from collections import OrderedDict
+from gluon.dal import Expression
+session.forget()
 
 if request.function != 'wiki':
     from gluon.tools import Wiki
@@ -6,7 +8,7 @@ if request.function != 'wiki':
 
 # 21 bluetooth match type_id
 # '2015-07-21' is a testing period
-db_intime.elaborationhistory._common_filter = lambda query: ((db_intime.elaborationhistory.timestamp > '2015-07-21') & 
+db_intime.elaborationhistory._common_filter = lambda query: ((db_intime.elaborationhistory.timestamp > '2015-07-15') &
                                                              (db_intime.elaborationhistory.type_id == 21))  
 eh = db_intime.elaborationhistory
 lb = db_intime.linkbasicdata
@@ -32,11 +34,22 @@ def get_data():
         orderby = (lb.origin_id==station_id_start).case(1,2)
 
     cc = eh.station_id.count()
+    query = (eh.station_id == lb.station_id)
+    # Filter the datetime according to the day of the week
+    days = None
+    if request.vars.dow:
+        days = map(lambda d: int(d),request.vars.dow) if isinstance(request.vars.dow, list) else [int(request.vars.dow)]
+        dow = Expression(db, db._adapter.EXTRACT, eh.timestamp, 'dow', 'integer')
+        query_day = (dow == days[0])
+        for d in days[1:]:
+            query_day |= (dow == d)
+        query &= query_day
     # Selecting all possible match between all stations
-    rows = db_intime(eh.station_id == lb.station_id).select(lb.origin_id, lb.destination_id, cc, 
-                                                            groupby=lb.origin_id|lb.destination_id,
-                                                            orderby=orderby,
-                                                            cacheable=True).as_list()
+    rows = db_intime(query).select(lb.origin_id, lb.destination_id, cc,
+                                   groupby=lb.origin_id|lb.destination_id,
+                                   orderby=orderby,
+                                   cacheable=True).as_list()
+
     # Create a list of stations from the merge of stations as origin with stations as destination
     stations_orig = map(lambda r: r['linkbasicdata']['origin_id'], rows)
     stations_dest = map(lambda r: r['linkbasicdata']['destination_id'], rows)    
