@@ -48,11 +48,11 @@ def get_data():
     rows = db_intime(query).select(lb.origin_id, lb.destination_id, cc,
                                    groupby=lb.origin_id|lb.destination_id,
                                    orderby=orderby,
-                                   cacheable=True).as_list()
+                                   cacheable=True)
 
     # Create a list of stations from the merge of stations as origin with stations as destination
-    stations_orig = map(lambda r: r['linkbasicdata']['origin_id'], rows)
-    stations_dest = map(lambda r: r['linkbasicdata']['destination_id'], rows)    
+    stations_orig = map(lambda r: r[lb.origin_id], rows)
+    stations_dest = map(lambda r: r[lb.destination_id], rows)
     all_stations = list(set(stations_orig+stations_dest))   # set makes list unique
 
     # Query all necessary details, such as name, id etc
@@ -65,7 +65,7 @@ def get_data():
     exclude_pairs = []
     pos_nodes = [node['id'] for node in nodes]
     for r in rows:
-        orig_id, dest_id = r['linkbasicdata']['origin_id'], r['linkbasicdata']['destination_id']
+        orig_id, dest_id = r[lb.origin_id], r[lb.destination_id]
         pair = "%s_%s" % (orig_id, dest_id)
         pair_backward = "%s_%s" % (dest_id, orig_id)
         if pair_backward in exclude_pairs: 
@@ -73,7 +73,7 @@ def get_data():
             continue
         exclude_pairs.append(pair)
 
-        n_match = r['_extra']['%s' % cc]
+        n_match = r[cc]
         if n_match != 0:
             pos_orig = pos_nodes.index(orig_id)
             pos_dest = pos_nodes.index(dest_id)
