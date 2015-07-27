@@ -21,10 +21,21 @@ def index():
 
 # Ajax call from D3.json    
 def get_data():
+    # Place the row with the selected station as first link, because only a direction link
+    # can be visualized. A->B or B->A, including both cause a crash of D3
+    # given that, the user can select which one between A or B should be placed before
+    # Future works should allow users to select the order of all nodes, as C->D or D->C
+    orderby=None
+    if request.vars.station_id and request.vars.station_id.isdigit():
+        station_id_start = int(request.vars.station_id)
+        # Use sql case to place before the rows containing the selected station then, the other rows
+        orderby = (lb.origin_id==station_id_start).case(1,2)
+
     cc = eh.station_id.count()
     # Selecting all possible match between all stations
     rows = db_intime(eh.station_id == lb.station_id).select(lb.origin_id, lb.destination_id, cc, 
-                                                            groupby=lb.origin_id|lb.destination_id, 
+                                                            groupby=lb.origin_id|lb.destination_id,
+                                                            orderby=orderby,
                                                             cacheable=True).as_list()
     # Create a list of stations from the merge of stations as origin with stations as destination
     stations_orig = map(lambda r: r['linkbasicdata']['origin_id'], rows)
@@ -37,20 +48,6 @@ def get_data():
                                                           cacheable=True).as_list()
 
     # Create the output for D3
-    # Place the row with the selected station as first link, because only a direction link 
-    # can be visualized. A->B or B->A, including both cause a crash of D3
-    # given that, the user can select which one between A or B should be placed before
-    # Future works should allow users to select the order of all nodes, as C->D or D->C
-    if request.vars.station_id and request.vars.station_id.isdigit():
-        station_id_start = int(request.vars.station_id)
-        new_ordered_rows = []
-        for r in rows:
-            # Move to the top, all links with the selected station as origin
-            if r['linkbasicdata']['origin_id'] == station_id_start:
-                new_ordered_rows.insert(0, r)
-            else:
-                new_ordered_rows.append(r)
-        rows = new_ordered_rows
     links = []
     exclude_pairs = []
     pos_nodes = [node['id'] for node in nodes]
