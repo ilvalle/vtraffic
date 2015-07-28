@@ -35,11 +35,11 @@
     	response.files.append(URL('static','js/OpenLayers.js'))
     	response.files.append(URL('static','js/d3.v3.min.js'))
     	response.files.append(URL('static','js/sankey.js'))
-    else:
-    	response.files.append(URL('static','css/daterangepicker-bs2.css'))
-    	response.files.append(URL('static','js/moment.min.js'))        
-    	response.files.append(URL('static','js/daterangepicker.js'))
     pass
+	response.files.append(URL('static','css/daterangepicker-bs2.css'))
+	response.files.append(URL('static','js/moment.min.js'))        
+	response.files.append(URL('static','js/daterangepicker.js'))
+
 	response.include_meta()
 	response.include_files()
 }}
