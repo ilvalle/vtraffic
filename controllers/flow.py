@@ -23,6 +23,15 @@ def index():
 
 # Ajax call from D3.json    
 def get_data():
+
+    if ((request.vars.to) and (request.vars['from']) and
+        request.vars.to.isdigit() and request.vars['from'].isdigit()):
+        from_epoch = int(request.vars['from'][:-3])
+        to_epoch = int(request.vars.to[:-3])
+        db_intime.elaborationhistory._common_filter = lambda query: ((db_intime.elaborationhistory.timestamp.epoch() >= from_epoch) &
+                                                                     (db_intime.elaborationhistory.timestamp.epoch() <= to_epoch) &
+                                                                     (db_intime.elaborationhistory.type_id == 21))
+
     # Place the row with the selected station as first link, because only a direction link
     # can be visualized. A->B or B->A, including both cause a crash of D3
     # given that, the user can select which one between A or B should be placed before

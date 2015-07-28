@@ -9,6 +9,10 @@
             <input name="dow" checked='checked' type="checkbox" id="weekday_{{=day}}" value='{{=pos}}'>{{=day}}
         </label>
         {{pass}}
+        <div id="reportrange" class="btn pull-right">
+            <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+            <span></span> <b class="caret"></b>
+        </div>
     </div></div>
 	<div class="control-group success">
 		<label class="control-label" for="inputWarning">Starting station</label>
@@ -30,6 +34,8 @@
 </div>
 </section>
 <script>
+    var startDate, endDate;
+    uri = "{{=URL('flow', 'get_data.json')}}";
     function create_d3_chart(station_id) {
         $("#flow_chart").empty();
         var margin = {top: 1, right: 1, bottom: 6, left: 1},
@@ -53,13 +59,20 @@
 
         var path = sankey.link();
 
-        uri = "{{=URL('flow', 'get_data.json')}}";
+
+        var url = uri + '?';
+        var params = {}
+        if ((typeof startDate !== "undefined") && (typeof endDate !== "undefined")) {
+	        params = {
+                from: startDate.valueOf(),
+                to: endDate.valueOf(),
+	        };
+	        url = url + $.param(params) + "&";
+	    }
         if (station_id) {
-            url = uri + '?' + station_id;
-        } else {
-            url = uri;
+            url = url + station_id
         }
-        console.log(url);
+
         d3.json(url, function(energy) {
             sankey
               .nodes(energy.nodes)
@@ -119,5 +132,40 @@
     $("#d3_station_form").on('click', '.update', function() {
         create_d3_chart($( "#d3_station_form" ).serialize());
     });
-    
+    var startDate = moment().subtract('days', 7);
+    var endDate = moment();
+    var datapickler_option = {
+        startDate: startDate,
+        endDate: endDate,
+        minDate: '01/01/2012',
+        maxDate: '12/31/2015',
+        dateLimit: { months: 60 },
+        showDropdowns: true,
+        showWeekNumbers: true,
+        timePicker: true,
+        timePickerIncrement: 1,
+        timePicker12Hour: true,
+        ranges: {
+            'Last 2 hours': [moment().subtract('hours', 2), moment().add('days', 1)],
+            'Today': [moment({hour: 00, minute: 00}), moment()],
+            'Yesterday': [moment({hour: 00, minute: 00}).subtract('days', 1), moment({hour: 23, minute: 59}).subtract('days', 1)],
+            'Last 7 Days': [moment().subtract('days', 6), moment().add('days', 1)],
+            'Last 30 Days': [moment().subtract('days', 29), moment().add('days', 1)],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+        },
+        opens: 'left',
+        buttonClasses: ['btn btn-default'],
+        applyClass: 'btn-small btn-primary',
+        cancelClass: 'btn-small',
+        format: 'MM/DD/YYYY',
+        separator: ' to ',
+    };
+    var date_set = function(start, end) {
+        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        startDate = start;
+        endDate = end;
+    }
+    pickler = $('#reportrange').daterangepicker(datapickler_option, date_set);
+    $('#reportrange span').html(moment().subtract('days', 29).format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
 </script>
