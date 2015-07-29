@@ -82,29 +82,6 @@ def figures():
             output.append(cur_station)
     return response.render('plot/figures.html', {'stations':output} )
 
-def flow():
-    station_id = 19 # castel firmiano
-    stations = db( db.match.station_id_orig == db.station.id ).select(db.station.name, db.station.id, groupby=db.station.name|db.station.id).as_list()
-    links = []
-    exclude_backwards = set()
-    ele = next((item for item in stations if item["id"] == 19), None)
-
-    stations.insert(0, stations.pop(stations.index(ele)))
-    for pos_orig, station_orig in enumerate( stations):
-        exclude_backwards.add( station_orig['id'])
-        for pos_dest, station_dest in enumerate(stations):
-            if station_dest['id'] in exclude_backwards: continue
-            query = db( (db.match.station_id_orig == station_orig['id']) &
-                        (db.match.station_id_dest == station_dest['id']))._count()
-            data = db.executesql(query, as_dict=True)
-            n_match = data[0]['count']
-            if n_match != 0:
-                links.append({'source': pos_orig, 'target': pos_dest, 'value': str(n_match)})
-
-    #stations = [{'name': station['name']} for station in stations]
-   # links.append({'source': 2, 'target': 5, 'value': 333})
-    return response.json({'links':links, 'nodes':stations})
-
 def get_real_time():
     db_intime.station._common_filter = lambda query: db_intime.station.stationtype == 'Linkstation'
     stations = db_intime(db_intime.station).select(db_intime.station.ALL)
