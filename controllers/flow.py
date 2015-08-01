@@ -71,24 +71,36 @@ def get_data():
 
     # Create the output for D3
     links = []
-    exclude_pairs = []
     pos_nodes = [node['id'] for node in nodes]
     for r in rows:
         orig_id, dest_id = r[lb.origin_id], r[lb.destination_id]
-        pair = "%s_%s" % (orig_id, dest_id)
-        pair_backward = "%s_%s" % (dest_id, orig_id)
-        if pair_backward in exclude_pairs: 
-            #print pair, 'excluded'
-            continue
-        exclude_pairs.append(pair)
-
         n_match = r[cc]
         if n_match != 0:
             pos_orig = pos_nodes.index(orig_id)
             pos_dest = pos_nodes.index(dest_id)
-            links.append({'source': pos_orig, 'target': pos_dest, 'value': n_match})
+			# Check if the current pair doesn't create a loop
+            if not __check_loop(pos_dest, pos_orig, links):
+	            links.append({'source': pos_orig, 'target': pos_dest, 'value': n_match})
 
     #import pprint
     #pprint.pprint( nodes)
     #pprint.pprint( links)
     return response.json({'links':links, 'nodes':nodes})
+    
+# Return True if there is a path from start to end through 
+# any combination of the provided pairs
+def __check_loop(start, end, pairs):
+    for p in pairs:
+        if p['source'] == start and p['target'] == end:
+            # Base case, a path has been found
+            return True
+        elif p['source'] == start:
+            # reduce step
+            # p is a potential pair in the path 
+            # recursive call to check_loop using p['target'] as start
+            # Optimization: decrease the number of pairs
+            _pairs = pairs[:]   # fastest way to copy
+            _pairs.remove(p)    # remove p from the list
+            if __check_loop(p['target'], end, _pairs):
+                return True
+    return False
