@@ -95,7 +95,9 @@ def __count_elements_intime(station_id, interval, output_type_id, input_type_id,
     unique = True
     if last_ts:
         # Fix count for interval too small
-        s = max(interval/2, 1350)
+        s = interval/2
+        if s <= 900:
+            s += interval
         last_ts = "'%s'" % (last_ts - datetime.timedelta(seconds=s))
     else:
         last_ts = 'min(timestamp)::date'
